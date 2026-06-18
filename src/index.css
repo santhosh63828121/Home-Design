@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #f8f6f1;
+    --text: #1a1a1a;
+    --accent: #2d6a5a;
+    --muted: #888888;
+    --white: #ffffff;
+    --divider: #e8e4de;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Offset anchor jumps so the fixed navbar doesn't cover section tops. */
+    scroll-padding-top: 80px;
+  }
+
+  body {
+    @apply bg-background text-ink font-sans antialiased;
+    margin: 0;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Visible, on-brand focus ring for keyboard users. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--white);
+  }
+}
+
+@layer components {
+  /* Editorial small-caps label used across sections. */
+  .eyebrow {
+    @apply font-caps text-xs uppercase tracking-wide3 text-accent;
+  }
+
+  .btn-pill {
+    @apply inline-flex items-center gap-2 rounded-full px-6 py-3 font-caps text-sm font-semibold tracking-caps transition-transform duration-200 will-change-transform;
+  }
+
+  .btn-pill:hover {
+    transform: scale(1.03);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}
+
+/* Respect users who prefer reduced motion across the whole app. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
