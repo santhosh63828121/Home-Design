@@ -18,11 +18,12 @@ export const CONTACT = {
 }
 
 export const NAV_LINKS = [
-  { label: 'FLOORS', href: '#services' },
-  { label: 'OFFERS', href: '#pricing' },
-  { label: 'GALLERY', href: '#gallery' },
-  { label: 'COMMUNITY', href: '#why' },
-  { label: 'PRICING', href: '#pricing' },
+  { label: 'Home', href: '#walkthrough' },
+  { label: 'Projects', href: '#gallery' },
+  { label: 'Services', href: '#services' },
+  { label: 'Portfolio', href: '#transformations' },
+  { label: 'About', href: '#why' },
+  { label: 'Contact', href: '#contact' },
 ]
 
 // Section 2 — immersive room slides.
@@ -242,6 +243,128 @@ export const HERO = {
     text: 'Crafted, curated and completely yours — designed around how you live.',
   },
 }
+
+/**
+ * CINEMATIC SCENES — the pinned scroll walkthrough (Scene 1 → 5).
+ * Each scene is driven by CameraController/TransitionManager via scroll progress.
+ *
+ * `mood`     → drives the ThreeFX atmosphere (particle color, light-ray tint, fog).
+ * `dolly`    → CameraController scale range [from,to] used to simulate walking forward.
+ * `pan`      → subtle camera x/y drift in % of viewport across the scene's scroll span.
+ */
+export const CINEMATIC_SCENES = [
+  {
+    id: 'exterior',
+    name: 'Exterior',
+    eyebrow: 'RGL DECORS · THE RESIDENCE',
+    title: 'A Home Worth\nWalking Into.',
+    body: 'Modern villa architecture, cinematic light, and interiors crafted around how you live. Begin the walkthrough.',
+    cta: 'Explore The Home',
+    image:
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2400&q=80',
+    alt: 'Luxury modern villa exterior at golden hour',
+    mood: { particleColor: '#ffe6b8', rayColor: '#ffd27a', fog: '#0e1a24', intensity: 0.55 },
+    dolly: [1.08, 1.0],
+    pan: { x: -2, y: 1.5 },
+    clouds: true,
+  },
+  {
+    id: 'living',
+    name: 'Living Room',
+    eyebrow: 'SCENE 02 · LIVING ROOM',
+    title: 'Where the\nDay Unwinds.',
+    body: 'A sculptural sofa, marble floors and designer lighting. Large windows pour daylight across the room.',
+    image:
+      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2400&q=80',
+    alt: 'Luxury living room with modern sofa, marble floor and large windows',
+    mood: { particleColor: '#fff0d6', rayColor: '#ffdca0', fog: '#171410', intensity: 0.7 },
+    dolly: [1.18, 1.0],
+    pan: { x: 3, y: -1 },
+  },
+  {
+    id: 'kitchen',
+    name: 'Kitchen',
+    eyebrow: 'SCENE 03 · THE KITCHEN',
+    title: 'Crafted in\nMarble & Light.',
+    body: 'Honed marble countertops, handleless cabinetry and premium appliances — engineered down to the millimetre.',
+    image:
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=2400&q=80',
+    alt: 'Luxury modern kitchen with marble countertops and premium cabinetry',
+    mood: { particleColor: '#fffaf0', rayColor: '#ffe9c2', fog: '#14110c', intensity: 0.65 },
+    dolly: [1.15, 1.0],
+    pan: { x: -3, y: 1 },
+  },
+  {
+    id: 'bedroom',
+    name: 'Bedroom',
+    eyebrow: 'SCENE 04 · MASTER BEDROOM',
+    title: 'Rest, Wrapped\nin Warmth.',
+    body: 'A king bed, layered wooden textures and ambient light that softens as evening falls.',
+    image:
+      'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=2400&q=80',
+    alt: 'Luxury master bedroom with king bed and warm ambient lighting',
+    mood: { particleColor: '#ffd9a0', rayColor: '#ffb866', fog: '#1a1108', intensity: 0.6 },
+    dolly: [1.2, 1.0],
+    pan: { x: 2.5, y: -1.5 },
+  },
+  {
+    id: 'bathroom',
+    name: 'Bathroom',
+    eyebrow: 'SCENE 05 · SPA BATHROOM',
+    title: 'A Private\nSpa Retreat.',
+    body: 'Book-matched marble walls, a freestanding tub and a rain shower beneath soft, reflective light.',
+    image:
+      'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=2400&q=80',
+    alt: 'Luxury spa bathroom with marble walls and freestanding bathtub',
+    mood: { particleColor: '#e6f4ff', rayColor: '#bfe3ff', fog: '#0c1620', intensity: 0.75 },
+    dolly: [1.16, 1.0],
+    pan: { x: -2, y: 1 },
+  },
+]
+
+// Final Section — client testimonials.
+export const TESTIMONIALS = [
+  {
+    quote:
+      'They handed over our 2BHK in 41 days. The 3D walkthrough matched the final result almost exactly — zero surprises.',
+    name: 'Priya & Karthik',
+    role: '2BHK · Velachery, Chennai',
+  },
+  {
+    quote:
+      'The modular kitchen is the heart of our home now. Marble finish, soft-close everything, and built to fit a tricky corner perfectly.',
+    name: 'Anand Subramanian',
+    role: 'Villa · OMR, Chennai',
+  },
+  {
+    quote:
+      'Transparent pricing and a dedicated designer who actually listened. The master bedroom turned out better than we imagined.',
+    name: 'Deepa Rajan',
+    role: '3BHK · Adyar, Chennai',
+  },
+]
+
+// Final Section — before / after transformation showcase.
+export const BEFORE_AFTER = [
+  {
+    id: 'ba-living',
+    label: 'LIVING ROOM',
+    before:
+      'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=80',
+    after:
+      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1400&q=80',
+    alt: 'Living room before and after RGL Decors transformation',
+  },
+  {
+    id: 'ba-kitchen',
+    label: 'MODULAR KITCHEN',
+    before:
+      'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1400&q=80',
+    after:
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1400&q=80',
+    alt: 'Kitchen before and after RGL Decors transformation',
+  },
+]
 
 export const SERVICES = {
   label: 'FLOOR 1 · OPEN PLAN',

@@ -1,0 +1,477 @@
+/* ============================================================================
+   LUXURY CINEMATIC WALKTHROUGH
+   Pinned 100vh stage. Scenes stack absolutely; a CSS-3D camera rig + GSAP
+   drive dolly / pan / corner-turns / doors. Tuned for 60fps (transform+opacity).
+
+   Palette: gold #C9A86A · champagne #E8D9BE · marble #F6F2EA · charcoal #14110C
+   ========================================================================== */
+
+.cinematic {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: #0c1116;
+  color: #fff;
+  perspective: 1500px;
+  perspective-origin: 50% 48%;
+}
+
+.cinematic__fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Camera body — owns exposure (brightness) + hand-held micro-movement. */
+.cinematic__camera {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  filter: brightness(1); /* JS adapts exposure per room from the scroll handler */
+  will-change: transform, filter;
+}
+
+/* Dolly layer — owns the final pull-back scale (kept separate from micro). */
+.cinematic__dolly {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 45%;
+  will-change: transform;
+}
+
+.cinematic__stage {
+  position: absolute;
+  inset: 0;
+}
+
+/* --- Scene ------------------------------------------------------------- */
+.scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  will-change: opacity;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.scene:first-child {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scene__media {
+  position: absolute;
+  inset: -6%;
+  z-index: 1;
+  will-change: transform, filter;
+  transform-style: preserve-3d;
+  background: radial-gradient(120% 90% at 50% 20%, #243240 0%, #0c1116 80%);
+}
+
+.scene__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.scene__grade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0) 36%,
+    rgba(0, 0, 0, 0.34) 76%,
+    rgba(0, 0, 0, 0.64) 100%
+  );
+}
+
+/* Cinematic lens vignette. */
+.scene__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 100% at 50% 45%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.scene__clouds {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+      60% 40% at 20% 30%,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0) 60%
+    ),
+    radial-gradient(50% 30% at 70% 20%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(40% 28% at 45% 12%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 60%);
+  background-repeat: repeat-x;
+  background-size: 1200px 100%;
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+.scene__ray {
+  position: absolute;
+  top: -20%;
+  left: 8%;
+  width: 55%;
+  height: 140%;
+  background: linear-gradient(
+    105deg,
+    rgba(255, 240, 200, 0) 35%,
+    rgba(255, 235, 190, 0.22) 50%,
+    rgba(255, 240, 200, 0) 65%
+  );
+  transform: rotate(8deg);
+  mix-blend-mode: screen;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Foreground architectural column used for corner-turn parallax reveal. */
+.scene__column {
+  position: absolute;
+  top: -5%;
+  left: 50%;
+  width: 26%;
+  height: 110%;
+  z-index: 5;
+  background: linear-gradient(
+    90deg,
+    rgba(8, 10, 14, 0) 0%,
+    rgba(20, 17, 12, 0.92) 22%,
+    rgba(40, 34, 24, 0.98) 50%,
+    rgba(20, 17, 12, 0.92) 78%,
+    rgba(8, 10, 14, 0) 100%
+  );
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+/* --- Door connectors --------------------------------------------------- */
+.scene__door {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  perspective: 1700px;
+  pointer-events: none;
+}
+
+.scene__doorLight {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+
+.scene__leaf {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  z-index: 2;
+  background: linear-gradient(180deg, #3a2c1c 0%, #5a4329 45%, #2c2013 100%);
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.6);
+  backface-visibility: hidden;
+}
+
+/* Wood grain hint + a brushed-gold handle line. */
+.scene__leaf::after {
+  content: '';
+  position: absolute;
+  top: 6%;
+  bottom: 6%;
+  width: 64%;
+  left: 18%;
+  border: 1px solid rgba(201, 168, 106, 0.35);
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02) 0px,
+    rgba(0, 0, 0, 0.05) 6px
+  );
+}
+
+.scene__leaf--l {
+  left: 0;
+  transform-origin: left center;
+  border-right: 1px solid rgba(201, 168, 106, 0.4);
+}
+
+.scene__leaf--r {
+  right: 0;
+  transform-origin: right center;
+}
+
+/* Glass spa door variant. */
+.scene__door--slide .scene__leaf {
+  background: linear-gradient(135deg, rgba(210, 230, 240, 0.32), rgba(255, 255, 255, 0.16));
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 80px rgba(255, 255, 255, 0.2);
+}
+
+.scene__door--slide .scene__leaf::after {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* --- Scene copy -------------------------------------------------------- */
+.scene__content {
+  position: relative;
+  z-index: 6;
+  max-width: 680px;
+  padding: 0 6vw 13vh;
+  will-change: opacity;
+}
+
+.cinematic:not(.cinematic--static) .scene__content {
+  opacity: 0;
+}
+
+.scene__eyebrow {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #c9a86a;
+  margin: 0 0 1.1rem;
+}
+
+.scene__title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(2.7rem, 7.5vw, 6rem);
+  line-height: 1;
+  margin: 0;
+  white-space: pre-line;
+  letter-spacing: -0.01em;
+  text-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+}
+
+.scene__title .cine-line {
+  overflow: hidden;
+  display: block;
+  padding-bottom: 0.04em;
+}
+
+.scene__body {
+  margin: 1.5rem 0 0;
+  max-width: 44ch;
+  font-size: clamp(0.98rem, 1.4vw, 1.2rem);
+  line-height: 1.65;
+  color: rgba(246, 242, 234, 0.86);
+}
+
+.scene__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 2.2rem;
+  padding: 1rem 2.1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #d8bd86, #c9a86a);
+  color: #14110c;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 16px 44px rgba(201, 168, 106, 0.35);
+}
+
+.scene__cta:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 22px 56px rgba(201, 168, 106, 0.5);
+}
+
+/* --- Overlays ---------------------------------------------------------- */
+.cinematic__flash {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  background: radial-gradient(80% 80% at 50% 45%, #fff6e2 0%, rgba(255, 240, 200, 0) 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cinematic__exit {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 6vw;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cinematic__exitTitle {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 5.5vw, 4.4rem);
+  line-height: 1.04;
+  margin: 0;
+  color: #f6f2ea;
+  text-shadow: 0 10px 50px rgba(0, 0, 0, 0.6);
+}
+
+.cinematic__exitTitle .cine-line {
+  overflow: hidden;
+  display: block;
+  padding-bottom: 0.05em;
+}
+
+.cinematic__exitSub {
+  margin: 1.4rem 0 0;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
+  letter-spacing: 0.05em;
+  color: #c9a86a;
+}
+
+/* --- HUD --------------------------------------------------------------- */
+.cinematic__nav {
+  position: absolute;
+  right: 5vw;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cinematic__navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(246, 242, 234, 0.45);
+  transition: color 0.4s ease;
+}
+
+.cinematic__navItem i {
+  width: 22px;
+  height: 1px;
+  background: rgba(246, 242, 234, 0.35);
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
+.cinematic__navItem.is-active {
+  color: #fff;
+}
+
+.cinematic__navItem.is-active i {
+  width: 42px;
+  background: #c9a86a;
+}
+
+.cinematic__progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  z-index: 9;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.cinematic__progress span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #c9a86a, #f6f2ea);
+}
+
+.cinematic__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 2.2rem;
+  transform: translateX(-50%);
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(246, 242, 234, 0.75);
+  transition: opacity 0.5s ease;
+}
+
+.cinematic__hint.is-hidden {
+  opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .cinematic__nav {
+    display: none;
+  }
+  .scene__content {
+    padding: 0 7vw 15vh;
+  }
+}
+
+/* ============================================================================
+   Static fallback — reduced motion / no WebGL → accessible stacked story.
+   ========================================================================== */
+.cinematic--static {
+  height: auto;
+  overflow: visible;
+  perspective: none;
+}
+
+.cinematic--static .cinematic__fx,
+.cinematic--static .cinematic__flash,
+.cinematic--static .cinematic__exit,
+.cinematic--static .scene__door,
+.cinematic--static .scene__column {
+  display: none;
+}
+
+.cinematic--static .cinematic__camera,
+.cinematic--static .cinematic__dolly,
+.cinematic--static .cinematic__stage {
+  position: static;
+  filter: none;
+  transform: none !important;
+}
+
+.cinematic--static .scene {
+  position: relative;
+  inset: auto;
+  height: 100vh;
+  height: 100svh;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.cinematic--static .scene__media {
+  inset: 0;
+  transform: none !important;
+}
+
+.cinematic--static .scene__content,
+.cinematic--static .scene__content [data-reveal],
+.cinematic--static .scene__title .cine-line {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
