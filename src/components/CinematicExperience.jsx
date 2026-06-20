@@ -1,36 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
-import { SCENES, EXIT } from '../cinematic/config.js'
+import { ROOMS } from '../cinematic/config.js'
 import './cinematic.css'
 
 /**
- * CinematicExperience — the pinned luxury home walkthrough (Scenes 1→5).
+ * CinematicExperience — a TRUE one-take walkthrough of a single 3D home.
  *
- * Renders the layered DOM the engine drives:
- *   .cinematic            pinned viewport (perspective root)
- *     canvas.fx           Three.js atmosphere
- *     .camera (rig)       micro-movement + exposure (CSS var)
- *       .dolly            exit pull-back scale
- *         .stage          the 5 stacked scenes + connectors
- *     .flash / .exit      light-flash + final headline overlays
- *     HUD                 room nav + progress + scroll hint
+ * The whole house is rendered into one <canvas> by HouseScene; a single virtual
+ * camera walks the path on scroll (no fades, no image swaps). This component
+ * only owns the canvas + the HTML room-label overlay that updates as the camera
+ * enters each space, plus the scroll hint and progress bar.
  *
- * All animation lives in /src/cinematic controllers. A reduced-motion / no-WebGL
- * fallback renders the scenes as an accessible stacked story.
+ * Reduced-motion / no-WebGL users get an accessible text fallback.
  */
-const COUNT = SCENES.length
-const isDoor = (t) => t === 'pivot-door' || t === 'slide-door'
+const roomAt = (p) => {
+  const i = ROOMS.findIndex((r) => p >= r.range[0] && p < r.range[1])
+  return i === -1 ? ROOMS.length - 1 : i
+}
 
 export default function CinematicExperience() {
-  const refs = {
-    wrapper: useRef(null),
-    camera: useRef(null),
-    dolly: useRef(null),
-    stage: useRef(null),
-    canvas: useRef(null),
-    flash: useRef(null),
-    exit: useRef(null),
-  }
+  const wrapperRef = useRef(null)
+  const canvasRef = useRef(null)
   const engineRef = useRef(null)
   const [active, setActive] = useState(0)
   const [progress, setProgress] = useState(0)
@@ -54,18 +45,13 @@ export default function CinematicExperience() {
 
     let cancelled = false
     import('../cinematic/CinematicEngine.js').then(({ default: CinematicEngine }) => {
-      if (cancelled || !refs.wrapper.current) return
+      if (cancelled || !wrapperRef.current) return
       const engine = new CinematicEngine({
-        wrapper: refs.wrapper.current,
-        camera: refs.camera.current,
-        dolly: refs.dolly.current,
-        stage: refs.stage.current,
-        canvas: refs.canvas.current,
-        flash: refs.flash.current,
-        exitEl: refs.exit.current,
+        wrapper: wrapperRef.current,
+        canvas: canvasRef.current,
         onProgress: (p) => {
           setProgress(p)
-          setActive(Math.min(COUNT - 1, Math.floor(p * COUNT)))
+          setActive(roomAt(p))
         },
       })
       engine.init()
@@ -76,7 +62,6 @@ export default function CinematicExperience() {
       cancelled = true
       engineRef.current?.destroy()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleCta = (e, target) => {
@@ -86,140 +71,69 @@ export default function CinematicExperience() {
     else el?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  return (
-    <section
-      ref={refs.wrapper}
-      id="walkthrough"
-      aria-label="Luxury home walkthrough"
-      className={`cinematic${reduced ? ' cinematic--static' : ''}`}
-    >
-      <canvas ref={refs.canvas} className="cinematic__fx" aria-hidden="true" />
-
-      <div ref={refs.camera} className="cinematic__camera">
-        <div ref={refs.dolly} className="cinematic__dolly">
-          <div ref={refs.stage} className="cinematic__stage">
-            {SCENES.map((scene, i) => (
-              <article
-                key={scene.id}
-                data-scene={scene.id}
-                className={`scene scene--${scene.id}`}
-                aria-label={scene.name}
-              >
-                {/* Camera media layer */}
-                <div data-media className="scene__media">
-                  <img
-                    src={scene.image}
-                    alt={scene.alt}
-                    loading={i === 0 ? 'eager' : 'lazy'}
-                    fetchpriority={i === 0 ? 'high' : 'auto'}
-                    decoding="async"
-                    className="scene__img"
-                    onError={(e) => (e.currentTarget.style.opacity = 0)}
-                  />
-                  <div className="scene__grade" aria-hidden="true" />
-                  <div className="scene__vignette" aria-hidden="true" />
-                  {scene.clouds && <div data-clouds className="scene__clouds" aria-hidden="true" />}
-                  <div data-ray className="scene__ray" aria-hidden="true" />
-                </div>
-
-                {/* Corner-turn foreground column (parallax reveal) */}
-                {scene.enter?.type === 'corner-turn' && (
-                  <div data-fg className="scene__column" aria-hidden="true" />
-                )}
-
-                {/* Door connector (pivot / slide) opening into this room */}
-                {isDoor(scene.enter?.type) && (
-                  <div
-                    data-door
-                    className={`scene__door scene__door--${
-                      scene.enter.type === 'slide-door' ? 'slide' : 'pivot'
-                    }`}
-                    aria-hidden="true"
-                  >
-                    <div
-                      data-door-light
-                      className="scene__doorLight"
-                      style={{
-                        background: `radial-gradient(60% 80% at 50% 50%, ${
-                          scene.enter.light || '#ffe6b8'
-                        } 0%, rgba(255,255,255,0) 70%)`,
-                      }}
-                    />
-                    <div data-door-leaf className="scene__leaf scene__leaf--l" />
-                    <div data-door-leaf className="scene__leaf scene__leaf--r" />
-                  </div>
-                )}
-
-                {/* Copy overlay */}
-                <div data-content className="scene__content">
-                  <p data-reveal className="scene__eyebrow">
-                    {scene.eyebrow}
-                  </p>
-                  <h2 data-title className="scene__title">
-                    {scene.title}
-                  </h2>
-                  <p data-reveal className="scene__body">
-                    {scene.body}
-                  </p>
-                  {scene.cta && (
-                    <a
-                      data-reveal
-                      href={scene.cta.target}
-                      onClick={(e) => handleCta(e, scene.cta.target)}
-                      className="scene__cta"
-                    >
-                      {scene.cta.label}
-                      <span aria-hidden="true">→</span>
-                    </a>
-                  )}
-                </div>
-              </article>
+  // Accessible fallback (no WebGL / reduced motion).
+  if (reduced) {
+    return (
+      <section id="walkthrough" className="cinematic cinematic--static" aria-label="Home walkthrough">
+        <div className="cinematic__staticInner">
+          <p className="scene__eyebrow">RGL Decors · The Walkthrough</p>
+          <h1 className="cinematic__staticTitle">A Walk Through One Luxury Home</h1>
+          <ul className="cinematic__staticList">
+            {ROOMS.map((r) => (
+              <li key={r.id}>
+                <span>{r.name}</span>
+                <p>{r.body}</p>
+              </li>
             ))}
-          </div>
+          </ul>
+          <a href="#story" className="scene__cta" onClick={(e) => handleCta(e, '#story')}>
+            Continue <span aria-hidden="true">→</span>
+          </a>
         </div>
+      </section>
+    )
+  }
+
+  const room = ROOMS[active]
+
+  return (
+    <section ref={wrapperRef} id="walkthrough" aria-label="Luxury home walkthrough" className="cinematic">
+      <canvas ref={canvasRef} className="cinematic__fx" aria-hidden="true" />
+
+      {/* Room label overlay — crossfades as the camera enters each space */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={room.id}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -16 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className={`scene__content scene__content--${room.side}${room.hero ? ' scene__content--hero' : ''}`}
+        >
+          <p className="scene__eyebrow">{room.eyebrow}</p>
+          <h2 className={`scene__title${room.hero ? ' scene__title--hero' : ''}`}>{room.title}</h2>
+          <p className="scene__body">{room.body}</p>
+          {room.cta && (
+            <a
+              href={room.cta.target}
+              onClick={(e) => handleCta(e, room.cta.target)}
+              className="scene__cta"
+            >
+              {room.cta.label}
+              <span aria-hidden="true">→</span>
+            </a>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      <div className="cinematic__progress" aria-hidden="true">
+        <span style={{ transform: `scaleX(${progress})` }} />
       </div>
 
-      {/* Light-flash transition overlay */}
-      <div ref={refs.flash} className="cinematic__flash" aria-hidden="true" />
-
-      {/* Final cinematic exit headline */}
-      <div ref={refs.exit} className="cinematic__exit" aria-hidden="true">
-        <h2 data-exit-title className="cinematic__exitTitle">
-          {EXIT.title}
-        </h2>
-        <p data-exit-sub className="cinematic__exitSub">
-          {EXIT.subtitle}
-        </p>
+      <div className={`cinematic__hint${progress > 0.02 ? ' is-hidden' : ''}`} aria-hidden="true">
+        <span>Scroll to Explore</span>
+        <ChevronDown size={16} className="animate-bounceArrow" />
       </div>
-
-      {/* HUD — hidden in static fallback */}
-      {!reduced && (
-        <>
-          <nav className="cinematic__nav" aria-hidden="true">
-            {SCENES.map((scene, i) => (
-              <span
-                key={scene.id}
-                className={`cinematic__navItem${i === active ? ' is-active' : ''}`}
-              >
-                <i />
-                {scene.name}
-              </span>
-            ))}
-          </nav>
-
-          <div className="cinematic__progress" aria-hidden="true">
-            <span style={{ transform: `scaleX(${progress})` }} />
-          </div>
-
-          <div
-            className={`cinematic__hint${progress > 0.02 ? ' is-hidden' : ''}`}
-            aria-hidden="true"
-          >
-            <span>Scroll to walk through</span>
-            <ChevronDown size={18} className="animate-bounceArrow" />
-          </div>
-        </>
-      )}
     </section>
   )
 }
