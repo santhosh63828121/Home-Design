@@ -2,22 +2,32 @@ import * as THREE from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import CameraPath from './CameraPath.js'
+import { ASSETS, PROPS } from './config.js'
+import * as TEX from './textures.js'
 
-const H = 3.1 // wall height
-const T = 0.18 // wall thickness
+const H = 3.1
+const T = 0.18
 const DOOR_W = 1.7
 const DOOR_H = 2.35
 
 /**
- * HouseScene
- * ----------
- * A single procedural luxury home in Three.js — connected rooms with real
- * doorways, stylised furniture, warm lighting and light spill. One perspective
- * camera travels the CameraPath on scroll with inertia, handheld micro-motion,
- * exposure adaptation and motion-blur (AfterimagePass) that strengthens on
- * turns. The walkthrough never cuts: the movement itself hides every "join".
+ * HouseScene — a PBR luxury home with an optional real-asset path.
+ *
+ * Procedural mode (default): per-room palettes, marble/wood/fabric with normal
+ * maps, RectAreaLights + warm coves, image-based lighting (RoomEnvironment),
+ * fake contact shadows, subtle bloom, ACES + sRGB. Honest ceiling: premium
+ * stylised ArchViz.
+ *
+ * Asset mode (config.ASSETS): set a GLTF `model` and/or `.hdr` `hdri` and the
+ * camera walks a real, photoreal model instead — same path, no engine changes.
  */
 export default class HouseScene {
   constructor(canvas, cfg) {
@@ -27,13 +37,11 @@ export default class HouseScene {
     this.doorRange = cfg.doorOpenRange
     this.path = new CameraPath(cfg.waypoints)
     this.disposed = false
-    this.curT = 0
-    this.targetT = 0
-    this.prevT = 0
+    this.curT = this.targetT = this.prevT = 0
     this.time = 0
     this.mobile = window.innerWidth < 768
+    this.procLights = []
 
-    // Scratch vectors (no per-frame allocations).
     this._pos = new THREE.Vector3()
     this._look = new THREE.Vector3()
     this._dir = new THREE.Vector3()
@@ -44,93 +52,141 @@ export default class HouseScene {
   init() {
     const renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: !this.mobile, powerPreference: 'high-performance' })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2))
+    renderer.useLegacyLights = false
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = this.rooms[0].exposure
+    renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.shadowMap.enabled = !this.mobile
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
     this.renderer = renderer
+    this.aniso = renderer.capabilities.getMaxAnisotropy()
+
+    RectAreaLightUniformsLib.init()
 
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color('#0a0806')
-    this.scene.fog = new THREE.Fog('#0c0a07', 16, 64)
+    this.scene.fog = new THREE.Fog('#0c0a07', 22, 80)
 
-    this.camera = new THREE.PerspectiveCamera(this.journey.perspectiveFov, 1, 0.1, 220)
+    this.pmrem = new THREE.PMREMGenerator(renderer)
+    this.scene.environment = this.pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+
+    this.camera = new THREE.PerspectiveCamera(this.journey.perspectiveFov, 1, 0.1, 240)
+
+    this.houseGroup = new THREE.Group()
+    this.scene.add(this.houseGroup)
 
     this._materials()
     this._buildShell()
-    this._buildFurniture()
+    this._buildEntrance()
+    this._buildFacade()
+    this._buildFoyer()
+    this._buildLiving()
+    this._buildOtherFurniture()
     this._lights()
     this._composer()
     this.resize()
     this._loop()
+
+    this._loadAssets() // optional full-villa GLTF / HDRI overrides
+    this._loadProps() // real modelled furniture into the procedural house
   }
 
   // ---- Materials --------------------------------------------------------
   _materials() {
+    const A = this.aniso
+    const std = (o) => new THREE.MeshStandardMaterial(o)
+    const wall = (color) => std({ color, roughness: 0.96, envMapIntensity: 0.35 })
     this.mat = {
-      wall: new THREE.MeshStandardMaterial({ color: '#c8bca9', roughness: 0.95 }),
-      accent: new THREE.MeshStandardMaterial({ color: '#241f1b', roughness: 0.85 }),
-      marble: new THREE.MeshStandardMaterial({ color: '#e9e6df', roughness: 0.3, metalness: 0.05 }),
-      wood: new THREE.MeshStandardMaterial({ color: '#6a4a2e', roughness: 0.6 }),
-      woodDark: new THREE.MeshStandardMaterial({ color: '#3f2c1a', roughness: 0.55 }),
-      ceiling: new THREE.MeshStandardMaterial({ color: '#1a1714', roughness: 1 }),
-      fabric: new THREE.MeshStandardMaterial({ color: '#a99c89', roughness: 0.9 }),
-      dark: new THREE.MeshStandardMaterial({ color: '#16140f', roughness: 0.6, metalness: 0.2 }),
-      gold: new THREE.MeshStandardMaterial({ color: '#c9a86a', roughness: 0.35, metalness: 0.7 }),
-      green: new THREE.MeshStandardMaterial({ color: '#2d6a5a', roughness: 0.6 }),
-      leaf: new THREE.MeshStandardMaterial({ color: '#3a5a3a', roughness: 0.8 }),
-      glassWarm: new THREE.MeshStandardMaterial({ color: '#ffe9c4', emissive: '#ffdca0', emissiveIntensity: 1.4, roughness: 1 }),
-      glassCool: new THREE.MeshStandardMaterial({ color: '#dbe9f5', emissive: '#bcd8f5', emissiveIntensity: 1.5, roughness: 1 }),
-      lamp: new THREE.MeshStandardMaterial({ color: '#fff2d8', emissive: '#ffdfa6', emissiveIntensity: 2.2, roughness: 1 }),
+      floor: std({
+        map: TEX.marble({ base: '#e7e0d3', vein: 'rgba(150,138,120,0.4)', repeat: 3, aniso: A }),
+        normalMap: TEX.floorNormal(3, A), normalScale: new THREE.Vector2(0.25, 0.25),
+        roughness: 0.18, metalness: 0.0, envMapIntensity: 1.5,
+      }),
+      floorWood: std({
+        map: TEX.wood({ base: '#5a3f26', repeat: 4, aniso: A }),
+        normalMap: TEX.woodNormal(4), normalScale: new THREE.Vector2(0.4, 0.4),
+        roughness: 0.45, envMapIntensity: 0.8,
+      }),
+      marble: std({ map: TEX.marble({ base: '#f3efe8', vein: 'rgba(110,100,85,0.55)', repeat: 1 }), normalMap: TEX.floorNormal(1, A), normalScale: new THREE.Vector2(0.15, 0.15), roughness: 0.12, envMapIntensity: 1.6 }),
+      stoneSlab: std({ map: TEX.marble({ base: '#cfccc4', vein: 'rgba(80,78,72,0.4)', repeat: 2 }), roughness: 0.4, envMapIntensity: 0.9 }),
+      // per-room walls
+      wFoyer: wall('#e7ddc8'),
+      wLiving: wall('#d8ccb6'),
+      wFeature: std({ map: TEX.wood({ base: '#5c4733', repeat: 2 }), roughness: 0.7, envMapIntensity: 0.5 }),
+      wKitchen: wall('#c9c5bd'),
+      wBedroom: wall('#b3a48f'),
+      wBath: std({ map: TEX.marble({ base: '#b9b6ae', vein: 'rgba(70,68,62,0.4)', repeat: 1 }), roughness: 0.35, envMapIntensity: 1.0 }),
+      accent: std({ color: '#2a241f', roughness: 0.7, envMapIntensity: 0.5 }),
+      ceiling: std({ color: '#efe9df', roughness: 1, envMapIntensity: 0.2 }),
+      walnut: std({ map: TEX.wood({ base: '#3c2a19', repeat: 2 }), normalMap: TEX.woodNormal(2), normalScale: new THREE.Vector2(0.3, 0.3), roughness: 0.5, metalness: 0.1, envMapIntensity: 0.7 }),
+      fabric: std({ map: TEX.fabric({ base: '#c3b6a0', repeat: 2 }), normalMap: TEX.fabricNormal(2), normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.92, envMapIntensity: 0.3 }),
+      fabricDark: std({ map: TEX.fabric({ base: '#5a4636', repeat: 2 }), normalMap: TEX.fabricNormal(2), normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.9, envMapIntensity: 0.3 }),
+      stone: std({ map: TEX.blackStone({}), roughness: 0.08, metalness: 0.3, envMapIntensity: 2.0 }),
+      rug: std({ map: TEX.rug({ base: '#cfc6b6', repeat: 1 }), normalMap: TEX.fabricNormal(4), normalScale: new THREE.Vector2(0.3, 0.3), roughness: 1, envMapIntensity: 0.15 }),
+      bronze: std({ color: '#6e5634', roughness: 0.35, metalness: 0.85, envMapIntensity: 1.4 }),
+      gold: std({ color: '#c9a86a', roughness: 0.3, metalness: 0.9, envMapIntensity: 1.6 }),
+      black: std({ color: '#0c0c0d', roughness: 0.4, metalness: 0.5, envMapIntensity: 1.2 }),
+      glass: std({ color: '#bcd4e0', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.16, envMapIntensity: 2.5 }),
+      leaf: std({ color: '#3c5a3a', roughness: 0.8 }),
+      cushionA: std({ map: TEX.fabric({ base: '#2f4660', repeat: 2 }), normalMap: TEX.fabricNormal(2), roughness: 0.85 }),
+      cushionB: std({ map: TEX.fabric({ base: '#b07a3c', repeat: 2 }), roughness: 0.85 }),
+      cushionC: std({ map: TEX.fabric({ base: '#7d756a', repeat: 2 }), roughness: 0.85 }),
+      throw: std({ map: TEX.fabric({ base: '#4a4742', repeat: 3 }), normalMap: TEX.fabricNormal(4), roughness: 1 }),
+      lampShade: std({ color: '#fff3df', emissive: '#ffe6bd', emissiveIntensity: 1.4, roughness: 1 }),
+      led: std({ color: '#fff0d6', emissive: '#ffd9a0', emissiveIntensity: 2.6, roughness: 1 }),
+      glassWarm: std({ color: '#ffe9c4', emissive: '#ffdca0', emissiveIntensity: 1.2, roughness: 1 }),
+      glassCool: std({ color: '#dbe9f5', emissive: '#bcd8f5', emissiveIntensity: 1.3, roughness: 1 }),
+      art: std({ map: TEX.artwork({}), roughness: 0.6, envMapIntensity: 0.4 }),
+      stoneWall: std({ map: TEX.marble({ base: '#7d756a', vein: 'rgba(40,38,34,0.5)', repeat: 3 }), roughness: 0.85 }),
+      pathLight: std({ color: '#fff0d6', emissive: '#ffcf8a', emissiveIntensity: 3, roughness: 1 }),
     }
+    this.shadowTex = TEX.shadowBlob()
   }
 
-  // ---- Geometry helpers -------------------------------------------------
+  // ---- helpers ----------------------------------------------------------
   _box(w, h, d, x, y, z, m, cast = true, recv = true) {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m)
     mesh.position.set(x, y, z)
-    mesh.castShadow = cast && this.renderer.shadowMap.enabled
-    mesh.receiveShadow = recv && this.renderer.shadowMap.enabled
-    this.scene.add(mesh)
+    const s = this.renderer.shadowMap.enabled
+    mesh.castShadow = cast && s
+    mesh.receiveShadow = recv && s
+    ;(this._target || this.houseGroup).add(mesh)
     return mesh
   }
 
-  /**
-   * Wall centred at (cx,cz). alongX → runs in x; else runs in z.
-   * opening: { gap, at } cuts a centred doorway (left/right jambs + lintel).
-   */
-  _wall(cx, cz, len, alongX, m = this.mat.wall, opening = null) {
+  _contact(x, z, w, d, y = 0.03) {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(w, d),
+      new THREE.MeshBasicMaterial({ map: this.shadowTex, transparent: true, depthWrite: false, opacity: 0.9 }),
+    )
+    m.rotation.x = -Math.PI / 2
+    m.position.set(x, y, z)
+    m.renderOrder = 1
+    ;(this._target || this.houseGroup).add(m)
+  }
+
+  _wall(cx, cz, len, alongX, m = this.mat.wLiving, opening = null) {
     const place = (segLen, off) => {
       if (segLen <= 0.01) return
       if (alongX) this._box(segLen, H, T, cx + off, H / 2, cz, m, false, true)
       else this._box(T, H, segLen, cx, H / 2, cz + off, m, false, true)
     }
-    if (!opening) {
-      place(len, 0)
-      return
-    }
+    if (!opening) return place(len, 0)
     const { gap, at = 0 } = opening
     const half = len / 2
-    const leftLen = at - gap / 2 - -half // from -half to at-gap/2
-    const rightLen = half - (at + gap / 2)
-    place(leftLen, (-half + (at - gap / 2)) / 2)
-    place(rightLen, (at + gap / 2 + half) / 2)
-    // Lintel above the doorway.
+    place(at - gap / 2 + half, (-half + (at - gap / 2)) / 2)
+    place(half - (at + gap / 2), (at + gap / 2 + half) / 2)
     const lintelH = H - DOOR_H
     if (alongX) this._box(gap, lintelH, T, cx + at, DOOR_H + lintelH / 2, cz, m, false, false)
     else this._box(T, lintelH, gap, cx, DOOR_H + lintelH / 2, cz + at, m, false, false)
   }
 
   _floor(x1, z1, x2, z2, m) {
-    const w = Math.abs(x2 - x1)
-    const d = Math.abs(z2 - z1)
-    this._box(w, 0.1, d, (x1 + x2) / 2, -0.05, (z1 + z2) / 2, m, false, true)
+    this._box(Math.abs(x2 - x1), 0.1, Math.abs(z2 - z1), (x1 + x2) / 2, -0.05, (z1 + z2) / 2, m, false, true)
   }
 
   _ceiling(x1, z1, x2, z2) {
-    const w = Math.abs(x2 - x1)
-    const d = Math.abs(z2 - z1)
-    this._box(w, 0.1, d, (x1 + x2) / 2, H + 0.05, (z1 + z2) / 2, this.mat.ceiling, false, false)
+    this._box(Math.abs(x2 - x1), 0.1, Math.abs(z2 - z1), (x1 + x2) / 2, H + 0.05, (z1 + z2) / 2, this.mat.ceiling, false, false)
   }
 
   _window(cx, cz, w, alongX, cool = false) {
@@ -140,202 +196,467 @@ export default class HouseScene {
   }
 
   _plant(x, z, scale = 1) {
-    this._box(0.5 * scale, 0.5 * scale, 0.5 * scale, x, 0.25 * scale, z, this.mat.dark)
-    const foliage = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55 * scale, 1), this.mat.leaf)
-    foliage.position.set(x, 0.95 * scale, z)
+    this._box(0.5 * scale, 0.5 * scale, 0.5 * scale, x, 0.25 * scale, z, this.mat.black)
+    const foliage = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55 * scale, 2), this.mat.leaf)
+    foliage.position.set(x, 1.0 * scale, z)
+    foliage.scale.y = 1.4
     foliage.castShadow = this.renderer.shadowMap.enabled
-    this.scene.add(foliage)
+    this.houseGroup.add(foliage)
+    this._contact(x, z, 1.2 * scale, 1.2 * scale)
   }
 
-  // ---- House shell ------------------------------------------------------
+  // ---- shell ------------------------------------------------------------
   _buildShell() {
     const M = this.mat
-    // Floors (marble vs wood per room).
-    this._floor(-3, 0, 3, -6, M.wood) // foyer
-    this._floor(-5, -6, 5, -15, M.marble) // living
-    this._floor(5, -7, 15, -16, M.marble) // kitchen
-    this._floor(5, -16, 15, -26, M.wood) // bedroom
-    this._floor(-5, -16, 5, -26, M.marble) // bathroom
+    this._floor(-3, 0, 3, -6, M.floorWood)
+    this._floor(-5, -6, 5, -15, M.floor)
+    this._floor(5, -7, 15, -16, M.floor)
+    this._floor(5, -16, 15, -26, M.floorWood)
+    this._floor(-5, -16, 5, -26, M.floor)
+    // (foyer ceiling is built tall in _buildFoyer for the double-height space)
+    for (const c of [[-5, -6, 5, -15], [5, -7, 15, -16], [5, -16, 15, -26], [-5, -16, 5, -26]]) this._ceiling(...c)
 
-    // Ceilings.
-    this._ceiling(-3, 0, 3, -6)
-    this._ceiling(-5, -6, 5, -15)
-    this._ceiling(5, -7, 15, -16)
-    this._ceiling(5, -16, 15, -26)
-    this._ceiling(-5, -16, 5, -26)
+    // Front wall + entrance portal are built in _buildEntrance() (architectural opening).
+    this._wall(-3, -3, 6, false, M.wFoyer)
+    this._wall(3, -3, 6, false, M.wFoyer)
+    this._wall(0, -6, 10, true, M.wFoyer, { gap: 2.0, at: 0 })
+    this._wall(-5, -10.5, 9, false, M.wLiving)
+    this._wall(0, -15, 10, true, M.wFeature) // living feature wall (walnut)
+    this._wall(5, -11, 10, false, M.wLiving, { gap: 2.0, at: -1 })
+    this._wall(10, -7, 10, true, M.wKitchen)
+    this._wall(15, -11.5, 9, false, M.wKitchen)
+    this._wall(10, -16, 10, true, M.wKitchen, { gap: 2.0, at: 0 })
+    this._wall(15, -21, 10, false, M.wBedroom)
+    this._wall(10, -26, 10, true, M.accent)
+    this._wall(5, -21, 10, false, M.wBedroom, { gap: 2.0, at: 0 })
+    this._wall(-5, -21, 10, false, M.wBath)
+    this._wall(0, -26, 10, true, M.wBath)
+    this._wall(0, -16, 10, true, M.wBath)
 
-    // Front wall + door opening (foyer south, z=0).
-    this._wall(0, 0, 6, true, M.wall, { gap: DOOR_W, at: 0 })
-    // Foyer sides.
-    this._wall(-3, -3, 6, false, M.wall)
-    this._wall(3, -3, 6, false, M.wall)
-    // Foyer ↔ Living (z=-6), doorway centred.
-    this._wall(0, -6, 10, true, M.wall, { gap: 2.0, at: 0 })
-    // Living exterior.
-    this._wall(-5, -10.5, 9, false, M.wall) // west (window)
-    this._wall(0, -15, 10, true, M.accent) // north accent wall (TV)
-    // Living ↔ Kitchen (x=5, z -6..-16), doorway at z=-12 (local -1).
-    this._wall(5, -11, 10, false, M.wall, { gap: 2.0, at: -1 })
-    // Kitchen exterior.
-    this._wall(10, -7, 10, true, M.wall) // south (window)
-    this._wall(15, -11.5, 9, false, M.wall) // east (window)
-    // Kitchen ↔ Bedroom (z=-16), doorway at x=10 (local 0).
-    this._wall(10, -16, 10, true, M.wall, { gap: 2.0, at: 0 })
-    // Bedroom exterior.
-    this._wall(15, -21, 10, false, M.wall) // east (window)
-    this._wall(10, -26, 10, true, M.accent) // north accent (headboard)
-    // Bedroom ↔ Bathroom (x=5), doorway at z=-21 (local 0).
-    this._wall(5, -21, 10, false, M.wall, { gap: 2.0, at: 0 })
-    // Bathroom exterior.
-    this._wall(-5, -21, 10, false, M.wall) // west (window)
-    this._wall(0, -26, 10, true, M.wall) // north
-    this._wall(0, -16, 10, true, M.wall) // south
+    this._window(0, -15, 6, true, false)
+    this._window(15, -21, 5, false, false)
+    this._window(-5, -21, 5, false, true)
+    this._window(15, -11.5, 4, false, true)
 
-    // Windows (emissive + spill light handled in _lights).
-    this._window(-5, -10.5, 5, false, true) // living west, cool daylight
-    this._window(0, -15, 6, true, false) // living north warm
-    this._window(15, -21, 5, false, false) // bedroom east warm
-    this._window(-5, -21, 5, false, true) // bathroom west cool
-    this._window(15, -11.5, 4, false, true) // kitchen east cool
+    // Living tray-ceiling cove.
+    this._box(8, 0.06, 7, 0, H - 0.18, -10.5, M.led, false, false)
+    this._box(8.6, 0.06, 7.6, 0, H - 0.02, -10.5, M.ceiling, false, false)
 
-    // Front door leaf (pivots open).
-    const pivot = new THREE.Group()
-    pivot.position.set(-DOOR_W / 2, 0, 0)
-    const leaf = this._box(DOOR_W, DOOR_H, 0.08, DOOR_W / 2, DOOR_H / 2, 0, M.woodDark)
-    this.scene.remove(leaf)
-    pivot.add(leaf)
-    this._box(0.05, 0.4, 0.05, DOOR_W - 0.18, DOOR_H / 2, 0.08, M.gold) // handle (added to scene, near door)
-    this.scene.add(pivot)
-    this.frontDoor = pivot
-
-    // Outdoor ground + a warm path slab for the entrance shot.
-    this._box(60, 0.1, 40, 0, -0.06, 12, new THREE.MeshStandardMaterial({ color: '#1c1a16', roughness: 1 }), false, true)
   }
 
-  // ---- Furniture --------------------------------------------------------
-  _buildFurniture() {
+  /**
+   * Entrance portal — a real architectural opening so the door never clips the
+   * wall. Wide recessed portal (3.6 m) with fixed glass sidelights; the door
+   * leaf (1.5 m) lives in a 2.0 m clear opening (0.5 m clearance) and pivots on
+   * an axis OFFSET 200 mm from its edge, swinging into free interior space. The
+   * camera path (x=0) clears the open leaf, which rests near x≈−0.6.
+   */
+  _buildEntrance() {
     const M = this.mat
-    // Foyer: console + mirror + plant.
-    this._box(1.6, 0.85, 0.4, 0, 0.42, -5.6, M.woodDark)
-    const mirror = this._box(0.9, 1.4, 0.05, 0, 1.7, -5.95, M.gold)
-    mirror.scale.set(1, 1, 1)
+    const OPEN_W = 3.6 // portal width
+    const OPEN_H = 2.6 // portal height
+    const REVEAL = 0.22 // depth the door is recessed behind the facade
+    const SL = 0.8 // sidelight width
+    const DOOROP = OPEN_W / 2 - SL // = 1.0 → door opening half-width (x ∈ [-1,1], 2.0 wide)
+    const LW = 1.5 // door leaf width
+    const LT = 0.1 // door leaf thickness (100mm)
+    const LH = 2.35 // door leaf height
+
+    // Front wall solid parts (pillars + header) around the portal.
+    this._box(3 - OPEN_W / 2, H, T, -(3 + OPEN_W / 2) / 2, H / 2, 0, M.wFoyer) // left pillar
+    this._box(3 - OPEN_W / 2, H, T, (3 + OPEN_W / 2) / 2, H / 2, 0, M.wFoyer) // right pillar
+    this._box(OPEN_W, H - OPEN_H, T, 0, OPEN_H + (H - OPEN_H) / 2, 0, M.wFoyer) // header
+
+    // Recessed reveal: side + top returns from the facade (z=0) back to the door plane.
+    this._box(0.24, OPEN_H, REVEAL, -OPEN_W / 2 + 0.12, OPEN_H / 2, -REVEAL / 2, M.stoneWall)
+    this._box(0.24, OPEN_H, REVEAL, OPEN_W / 2 - 0.12, OPEN_H / 2, -REVEAL / 2, M.stoneWall)
+    this._box(OPEN_W, 0.24, REVEAL, 0, OPEN_H - 0.12, -REVEAL / 2, M.stoneWall)
+    this._box(OPEN_W, 0.1, 0.5, 0, 0.0, -REVEAL / 2, M.stoneSlab) // premium stone threshold
+
+    // Fixed glass sidelights (static, no collision) + warm interior glow behind.
+    for (const sx of [-(DOOROP + SL / 2), DOOROP + SL / 2]) {
+      this._box(SL, OPEN_H, 0.04, sx, OPEN_H / 2, -REVEAL, M.glass)
+      this._box(SL - 0.1, OPEN_H - 0.3, 0.02, sx, OPEN_H / 2, -REVEAL - 0.06, M.glassWarm, false, false)
+    }
+    // Walnut mullions/jambs framing the central door opening (x = ±1.0).
+    for (const mx of [-DOOROP, DOOROP]) this._box(0.1, OPEN_H, 0.16, mx, OPEN_H / 2, -REVEAL, M.walnut)
+    this._box(2 * DOOROP, 0.14, 0.16, 0, LH + 0.05, -REVEAL, M.walnut) // door head jamb
+    // Recessed-ceiling LED strip glowing onto the door.
+    this._box(2 * DOOROP - 0.2, 0.05, 0.18, 0, OPEN_H - 0.05, -REVEAL + 0.02, M.led, false, false)
+
+    // --- TRUE PIVOT DOOR (offset axis), opens INWARD, clears all geometry ---
+    const pivotX = -LW / 2 + 0.2 // axis 200mm in from the leaf's left edge
+    const pivot = new THREE.Group()
+    pivot.position.set(pivotX, 0, -REVEAL) // recessed door plane
+    const leaf = new THREE.Mesh(new THREE.BoxGeometry(LW, LH, LT), M.walnut)
+    leaf.position.set(-pivotX, LH / 2, 0) // leaf centred in the opening (world x≈0 when closed)
+    leaf.castShadow = this.renderer.shadowMap.enabled
+    pivot.add(leaf)
+    // Vertical brushed-brass pull near the leading (right) edge, on the exterior face.
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 1.0, 14), M.gold)
+    handle.position.set(-pivotX + LW / 2 - 0.12, LH / 2, LT / 2 + 0.04)
+    pivot.add(handle)
+    this.houseGroup.add(pivot)
+    this.frontDoor = pivot
+  }
+
+  // ---- exterior villa facade -------------------------------------------
+  _buildFacade() {
+    const M = this.mat
+    // Ground / lawn + driveway.
+    this._box(90, 0.1, 60, 0, -0.06, 16, new THREE.MeshStandardMaterial({ color: '#13130f', roughness: 1 }), false, true)
+    this._box(5, 0.12, 16, 0, 0.0, 8, this.mat.stoneSlab, false, true) // pathway
+
+    // Facade elevation (two storeys) flanking the entrance — clear of the portal.
+    this._box(7, 6.4, 0.4, -5.5, 3.2, 0.2, M.stoneWall) // left stone mass
+    this._box(7, 6.4, 0.4, 5.5, 3.2, 0.2, M.wFoyer) // right stucco mass
+    // Upper-centre facade ABOVE the entrance only (never covers the opening).
+    this._box(4.2, 6.4 - 2.7, 0.4, 0, 2.7 + (6.4 - 2.7) / 2, 0.2, M.wFoyer)
+    // Wooden cladding slats on the left mass.
+    for (let i = 0; i < 8; i++) this._box(0.18, 5.6, 0.08, -8.4 + i * 0.5, 3.0, 0.02, M.walnut)
+    // Cantilevered entry canopy over the door (real overhang) + soffit downlights.
+    this._box(4.6, 0.28, 1.6, 0, 2.75, 0.8, M.accent)
+    for (const px of [-1.4, 0, 1.4]) this._box(0.24, 0.06, 0.24, px, 2.6, 0.9, M.pathLight, false, false)
+
+    // Landscape: planters, path lights, stylised trees/palms.
+    for (const sx of [-2.6, 2.6]) {
+      this._box(0.2, 0.5, 0.2, sx, 0.25, 5.5, M.pathLight, false, false) // bollard light
+      this.procLights.push(this._point('#ffcf8a', 3, 4, sx, 0.6, 5.5))
+    }
+    // Olive/palm trees.
+    for (const [tx, tz, s] of [[-7, 4, 1.3], [7.5, 5, 1.5], [-3.2, 6.5, 1.0]]) {
+      this._box(0.25 * s, 2.4 * s, 0.25 * s, tx, 1.2 * s, tz, M.walnut)
+      const f = new THREE.Mesh(new THREE.IcosahedronGeometry(0.9 * s, 2), M.leaf)
+      f.position.set(tx, 2.6 * s, tz)
+      f.scale.y = 1.2
+      this.houseGroup.add(f)
+    }
+    // Low planters by the door.
+    for (const sx of [-1.1, 1.1]) this._plant(sx, 1.4, 0.8)
+  }
+
+  // ---- grand double-height foyer ---------------------------------------
+  _shaft(x, y, z, w, h, rotX, rotY) {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({ color: '#ffdca0', transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+    )
+    m.position.set(x, y, z)
+    m.rotation.set(rotX, rotY, 0)
+    m.renderOrder = 2
+    this.houseGroup.add(m)
+  }
+
+  _buildFoyer() {
+    const M = this.mat
+    const FH = 5.6 // double-height ceiling
+    // Upper wall bands lifting the foyer to double height.
+    this._box(6, FH - H, T, 0, (H + FH) / 2, 0, M.wFoyer) // front upper
+    this._box(T, FH - H, 6, -3, (H + FH) / 2, -3, M.wFoyer) // left upper
+    this._box(T, FH - H, 6, 3, (H + FH) / 2, -3, M.wFoyer) // right upper
+    this._box(6, FH - H, T, 0, (H + FH) / 2, -6, M.wFoyer) // back upper
+    this._box(6, 0.12, 6, 0, FH + 0.06, -3, M.ceiling) // tall ceiling
+    this._box(5, 0.06, 5, 0, FH - 0.12, -3, M.led, false, false) // ceiling cove glow
+    // Clerestory windows → natural sunlight from above.
+    this._box(1.7, 1.1, 0.06, -1.3, 4.4, 0.04, M.glassWarm, false, false)
+    this._box(1.7, 1.1, 0.06, 1.3, 4.4, 0.04, M.glassWarm, false, false)
+
+    // Statement chandelier hanging into the void.
+    this._box(0.08, 1.4, 0.08, 0, FH - 0.7, -3, M.gold)
+    for (let i = 0; i < 3; i++) {
+      const r = 0.9 - i * 0.22
+      this._box(r, 0.05, r, 0, FH - 1.5 - i * 0.4, -3, M.led, false, false)
+    }
+    this._point('#ffe3b0', 9, 9, 0, FH - 1.8, -3)
+
+    // Floating staircase: cantilevered marble treads + glass railing (right side).
+    for (let i = 0; i < 7; i++) {
+      this._box(1.5, 0.14, 0.46, 2.2, 0.28 + i * 0.32, -1.2 - i * 0.5, M.marble)
+    }
+    this._box(0.05, 1.2, 3.4, 1.45, 1.4, -2.6, M.glass) // glass railing
+    this._box(0.05, 0.32, 3.6, 2.95, 2.3, -2.6, M.led, false, false) // stair under-glow strip
+
+    // Large artwork + olive tree + console styling.
+    this._box(0.05, 2.0, 1.3, -2.93, 2.2, -3.2, M.art)
+    this._plant(2.5, -5.3, 1.7) // indoor olive tree (tall)
+    this._box(0.34, 0.4, 0.34, 0.5, 0.85, -5.6, M.gold) // sculpture on the console
+
+    // Warm light spilling from the doorway into the foyer.
+    this._shaft(0, 1.6, -1.6, 3.2, 3.4, -0.5, 0)
+    this._shaft(-0.5, 1.4, -2.4, 2.4, 3.2, -0.6, 0.3)
+    this._shaft(0.6, 1.5, -2.2, 2.2, 3.0, -0.6, -0.3)
+    this._point('#ffdca0', 7, 9, 0, 2.3, -1.5) // threshold spill light
+  }
+
+  // ---- living room ------------------------------------------------------
+  _buildLiving() {
+    const M = this.mat
+    this.boxSeating = new THREE.Group()
+    this.houseGroup.add(this.boxSeating)
+    const wx = -4.86
+    this._box(0.1, 2.8, 5.4, wx, 1.6, -10.5, M.marble)
+    this._box(0.12, 1.3, 2.4, wx + 0.06, 1.6, -10.5, M.black)
+    for (let i = 0; i < 4; i++) this._box(0.42, 0.06, 2.6, wx + 0.25, 0.7 + i * 0.62, -12.6, M.walnut)
+    this._box(0.06, 2.6, 2.6, wx + 0.02, 1.6, -12.6, M.led, false, false)
+    this._box(0.5, 2.7, 2.7, wx + 0.28, 1.6, -12.6, M.walnut)
+    this._box(0.55, 0.5, 4.6, wx + 0.35, 0.25, -10.2, M.walnut)
+    this._box(0.06, 0.32, 4.6, wx + 0.64, 0.3, -10.2, M.led, false, false)
+
+    const sf = M.fabric
+    this._target = this.boxSeating // box sofa + armchair (hidden if real props load)
+    this._box(5.0, 0.45, 1.2, -0.7, 0.35, -14.0, sf)
+    this._box(5.0, 0.7, 0.3, -0.7, 0.8, -14.5, sf)
+    this._box(0.3, 0.6, 1.2, -3.05, 0.65, -14.0, sf)
+    for (let i = 0; i < 4; i++) this._box(1.05, 0.45, 0.5, -2.6 + i * 1.2, 0.78, -14.05, sf)
+    this._box(1.3, 0.45, 2.6, 1.65, 0.35, -13.0, sf)
+    this._box(1.3, 0.22, 2.6, 1.65, 0.66, -13.0, sf)
+    this._box(0.55, 0.55, 0.2, -2.4, 0.85, -13.7, M.cushionA)
+    this._box(0.55, 0.55, 0.2, -1.4, 0.85, -13.7, M.cushionB)
+    this._box(0.55, 0.55, 0.2, -0.2, 0.85, -13.7, M.cushionC)
+    this._box(0.55, 0.55, 0.2, 0.9, 0.85, -13.7, M.cushionA)
+    this._box(1.2, 0.08, 1.3, 1.65, 0.74, -12.6, M.throw)
+    this._contact(-0.4, -13.6, 6.2, 3.4)
+
+    this._box(1.0, 0.45, 1.0, -1.8, 0.32, -11.4, M.fabricDark)
+    this._box(1.0, 0.7, 0.25, -1.8, 0.75, -11.8, M.fabricDark)
+    this._box(0.22, 0.55, 1.0, -2.35, 0.6, -11.4, M.fabricDark)
+    this._box(0.22, 0.55, 1.0, -1.25, 0.6, -11.4, M.fabricDark)
+    this._box(0.5, 0.45, 0.18, -1.8, 0.8, -11.75, M.cushionA)
+    this._contact(-1.8, -11.4, 1.6, 1.6)
+    this._target = null // end box-seating group
+
+    this._box(1.7, 0.16, 0.95, -0.4, 0.5, -12.5, M.stone)
+    this._box(1.5, 0.42, 0.8, -0.4, 0.26, -12.5, M.bronze)
+    this._box(0.42, 0.08, 0.3, -0.7, 0.62, -12.5, M.glassCool)
+    this._box(0.4, 0.06, 0.28, -0.7, 0.69, -12.5, M.cushionB)
+    this._box(0.14, 0.3, 0.14, -0.1, 0.73, -12.4, M.black)
+    this._box(0.1, 0.22, 0.1, 0.12, 0.69, -12.6, M.black)
+    this._contact(-0.4, -12.5, 2.1, 1.3)
+
+    this._box(6.2, 0.04, 4.4, -0.5, 0.02, -12.6, M.rug, false, true)
+
+    this._box(0.6, 0.5, 0.6, 3.6, 1.9, -13.6, M.lampShade, false, false)
+    for (const a of [-0.25, 0, 0.25]) this._box(0.05, 1.7, 0.05, 3.6 + a, 0.85, -13.6 + a, M.black)
+
+    this._box(0.05, 2.0, 1.4, 4.92, 1.7, -13.8, M.art)
+    this._plant(-4.2, -7.2, 1.15)
+    this._plant(3.4, -7.6, 0.95)
+
+    for (let i = 0; i < 6; i++) this._box(1.6, 0.18, 0.5, 3.2, 0.09 + i * 0.18, -14.6, M.marble)
+    this._box(0.06, 1.1, 1.4, 4.0, 0.9, -14.6, M.glass)
+  }
+
+  // ---- other rooms ------------------------------------------------------
+  _buildOtherFurniture() {
+    const M = this.mat
+    this._box(1.6, 0.85, 0.4, 0, 0.42, -5.6, M.walnut)
+    this._box(0.9, 1.4, 0.05, 0, 1.7, -5.95, M.gold)
     this._plant(2.4, -5.4, 1)
 
-    // Living room: sofa, coffee table, rug, TV unit, pendant, plant.
-    this._box(6, 0.06, 4, 0, 0.02, -10.5, M.green, false, true) // rug
-    // sofa facing the TV wall (north): seat at z≈-8 facing -z
-    this._box(3.2, 0.45, 1.1, 0, 0.35, -8.2, M.fabric) // seat base
-    this._box(3.2, 0.6, 0.3, 0, 0.75, -7.75, M.fabric) // backrest
-    this._box(0.3, 0.55, 1.1, -1.6, 0.6, -8.2, M.fabric) // arm L
-    this._box(0.3, 0.55, 1.1, 1.6, 0.6, -8.2, M.fabric) // arm R
-    this._box(1.4, 0.18, 0.7, 0, 0.5, -9.6, M.woodDark) // coffee table top
-    this._box(2.8, 0.5, 0.45, 0, 0.45, -14.6, M.woodDark) // TV unit
-    this._box(2.0, 1.1, 0.06, 0, 1.5, -14.85, M.dark) // TV
-    this._plant(-4, -7, 1.2)
-    // pendant
-    this._box(0.5, 0.12, 0.5, 0, 2.5, -10.5, M.lamp)
+    this._box(2.6, 0.9, 1.2, 10, 0.45, -11.5, M.walnut)
+    this._box(2.85, 0.12, 1.45, 10, 0.96, -11.5, M.marble)
+    this._box(4.5, 0.9, 0.6, 12.4, 0.45, -7.6, M.walnut)
+    this._box(4.6, 0.12, 0.62, 12.4, 0.96, -7.6, M.marble)
+    this._box(4.5, 0.7, 0.35, 12.4, 2.2, -7.4, M.walnut)
+    for (const sx of [-0.8, 0.8]) this._box(0.4, 0.6, 0.4, 10 + sx, 0.3, -10.6, M.black)
+    for (const px of [-0.7, 0.7]) this._box(0.18, 0.4, 0.18, 10 + px, 2.25, -11.5, M.led)
+    this._contact(10, -11.5, 3.2, 1.8)
 
-    // Kitchen: island + counter + cabinets + stools + pendants.
-    this._box(2.6, 0.9, 1.2, 10, 0.45, -11.5, M.woodDark) // island base
-    this._box(2.8, 0.1, 1.4, 10, 0.95, -11.5, M.marble) // island top
-    this._box(4.5, 0.9, 0.6, 12.4, 0.45, -7.6, M.woodDark) // base cabinets (south wall)
-    this._box(4.5, 0.1, 0.6, 12.4, 0.95, -7.6, M.marble) // counter
-    this._box(4.5, 0.7, 0.35, 12.4, 2.2, -7.4, M.wood) // upper cabinets
-    for (const sx of [-0.8, 0.8]) this._box(0.4, 0.6, 0.4, 10 + sx, 0.3, -10.6, M.dark) // stools
-    for (const px of [-0.7, 0.7]) this._box(0.18, 0.35, 0.18, 10 + px, 2.3, -11.5, M.lamp) // pendants
-
-    // Bedroom: bed, headboard, nightstands, lamps, rug, wardrobe.
-    this._box(5, 0.06, 4, 10, 0.02, -21, M.wood, false, true) // rug
-    this._box(2.6, 0.45, 3.0, 10, 0.32, -22.2, M.woodDark) // bed base
-    this._box(2.6, 0.25, 3.0, 10, 0.65, -22.2, M.fabric) // mattress
-    this._box(2.7, 1.0, 0.2, 10, 1.0, -25.6, M.fabric) // headboard
-    for (const dx of [-1.0, 1.0]) {
-      this._box(0.7, 0.4, 0.5, 10 + dx, 0.35, -23.6, M.woodDark) // pillows row
+    this._box(5, 0.04, 4, 10, 0.02, -21, M.rug, false, true)
+    this._box(2.7, 0.4, 3.2, 10, 0.3, -22.2, M.walnut)
+    this._box(2.7, 0.28, 3.2, 10, 0.62, -22.2, M.fabric)
+    this._box(2.9, 1.1, 0.2, 10, 1.0, -25.6, M.fabricDark)
+    for (const dx of [-0.8, 0.8]) this._box(0.9, 0.22, 0.5, 10 + dx, 0.86, -23.7, M.fabric)
+    for (const nx of [-1.9, 1.9]) {
+      this._box(0.6, 0.5, 0.5, 10 + nx, 0.3, -25.2, M.walnut)
+      this._box(0.22, 0.4, 0.22, 10 + nx, 0.9, -25.2, M.lampShade, false, false)
     }
-    for (const nx of [-1.8, 1.8]) {
-      this._box(0.6, 0.5, 0.5, 10 + nx, 0.3, -25.2, M.woodDark) // nightstand
-      this._box(0.2, 0.4, 0.2, 10 + nx, 0.85, -25.2, M.lamp) // lamp
-    }
-    this._box(2.4, 2.4, 0.6, 14.4, 1.2, -21, M.wood) // wardrobe (east)
+    this._box(2.4, 2.4, 0.6, 14.4, 1.2, -21, M.walnut)
+    this._contact(10, -22.4, 3.4, 3.6)
 
-    // Bathroom: tub, vanity, mirror, plant.
-    this._box(1.9, 0.6, 0.9, 0, 0.32, -21, M.marble) // bathtub outer
-    this._box(1.6, 0.4, 0.65, 0, 0.45, -21, M.dark) // tub inner (water cavity)
-    this._box(2.0, 0.85, 0.55, -4.4, 0.42, -19, M.woodDark) // vanity
-    this._box(2.0, 0.1, 0.55, -4.4, 0.9, -19, M.marble) // vanity top
-    this._box(1.4, 1.2, 0.05, -4.85, 1.8, -19, M.glassCool) // mirror (glow)
+    this._box(1.9, 0.6, 0.95, 0, 0.32, -21, M.marble)
+    this._box(1.6, 0.4, 0.65, 0, 0.45, -21, M.black)
+    this._box(2.0, 0.85, 0.55, -4.4, 0.42, -19, M.walnut)
+    this._box(2.05, 0.12, 0.57, -4.4, 0.9, -19, M.marble)
+    this._box(1.4, 1.2, 0.05, -4.85, 1.8, -19, M.glassCool)
     this._plant(-4, -24, 1)
+    this._contact(0, -21, 2.4, 1.3)
   }
 
-  // ---- Lights -----------------------------------------------------------
+  // ---- lights -----------------------------------------------------------
   _point(color, intensity, dist, x, y, z) {
     const l = new THREE.PointLight(color, intensity, dist, 2)
     l.position.set(x, y, z)
     this.scene.add(l)
+    this.procLights.push(l)
+    return l
+  }
+
+  _rect(color, intensity, w, h, x, y, z, look) {
+    const l = new THREE.RectAreaLight(color, intensity, w, h)
+    l.position.set(x, y, z)
+    l.lookAt(look.x, look.y, look.z)
+    this.scene.add(l)
+    this.procLights.push(l)
     return l
   }
 
   _lights() {
     const shadows = this.renderer.shadowMap.enabled
-    this.scene.add(new THREE.HemisphereLight('#fff0dd', '#1a120a', 0.55))
+    const hemi = new THREE.HemisphereLight('#fff2e0', '#1a120a', 0.25)
+    this.scene.add(hemi)
+    this.hemi = hemi
 
-    // Outdoor sun for the entrance approach.
-    const sun = new THREE.DirectionalLight('#ffdca0', 1.4)
-    sun.position.set(6, 10, 14)
+    const sun = new THREE.DirectionalLight('#ffe2b0', 1.5)
+    sun.position.set(7, 11, 15)
     if (shadows) {
       sun.castShadow = true
-      sun.shadow.mapSize.set(1024, 1024)
-      sun.shadow.camera.near = 1
-      sun.shadow.camera.far = 60
-      sun.shadow.camera.left = -20
-      sun.shadow.camera.right = 20
-      sun.shadow.camera.top = 20
-      sun.shadow.camera.bottom = -20
+      sun.shadow.mapSize.set(2048, 2048)
+      Object.assign(sun.shadow.camera, { near: 1, far: 80, left: -24, right: 24, top: 24, bottom: -24 })
+      sun.shadow.bias = -0.0004
     }
     this.scene.add(sun)
+    this.procLights.push(sun)
 
-    // Warm room fills.
-    this._point('#ffdca0', 22, 16, 0, 2.7, -4) // foyer / door spill
-    this._point('#ffe6c0', 30, 22, 0, 2.7, -10.5) // living
-    this._point('#cfe2f5', 14, 16, -5, 1.8, -10.5) // living window (cool spill)
-    this._point('#ffe6c0', 26, 20, 10, 2.7, -11.5) // kitchen
-    this._point('#ffd9a0', 24, 22, 10, 2.7, -21) // bedroom
-    this._point('#ffcf95', 10, 8, 10, 1.0, -25.2) // bedroom lamps glow
-    this._point('#dbeaff', 22, 20, 0, 2.6, -21) // bathroom
-    this._point('#cfe2f5', 12, 14, -5, 1.8, -21) // bathroom window
+    this._rect('#ffe7c4', 2.6, 7, 6, 0, H - 0.2, -10.5, new THREE.Vector3(0, 0, -10.5))
+    this._rect('#cfe2f5', 1.8, 5, 2.2, 0, 1.7, -14.9, new THREE.Vector3(0, 1.7, 0))
+    this._point('#ffe2b0', 6, 9, 3.6, 1.9, -13.6)
+    this._point('#ffd9a0', 4, 6, -4.4, 1.6, -12.6)
+    this._point('#ffe6c0', 5, 14, 0, 2.7, -10.5)
 
-    // Shadow-casting key spot in the living room for grounded furniture.
+    this._point('#ffdca0', 8, 13, 0, 2.7, -4)
+    this._rect('#ffe7c4', 2.4, 4, 4, 10, H - 0.2, -11.5, new THREE.Vector3(10, 0, -11.5))
+    this._point('#ffe6c0', 6, 15, 10, 2.7, -11.5)
+    this._point('#ffd9a0', 8, 17, 10, 2.7, -21)
+    this._point('#ffcf95', 4, 6, 10, 1.0, -25.2)
+    this._point('#dbeaff', 7, 15, 0, 2.6, -21)
+    this._point('#cfe2f5', 5, 12, -5, 1.8, -21)
+
     if (shadows) {
-      const spot = new THREE.SpotLight('#fff0d6', 60, 24, Math.PI / 4, 0.5, 1.5)
-      spot.position.set(0, 3, -10.5)
-      spot.target.position.set(0, 0, -10.5)
+      const spot = new THREE.SpotLight('#fff0d6', 60, 26, Math.PI / 4, 0.5, 1.5)
+      spot.position.set(0, 3, -11)
+      spot.target.position.set(0, 0, -12.5)
       spot.castShadow = true
-      spot.shadow.mapSize.set(1024, 1024)
+      spot.shadow.mapSize.set(2048, 2048)
+      spot.shadow.bias = -0.0004
       this.scene.add(spot, spot.target)
+      this.procLights.push(spot)
     }
   }
 
-  // ---- Post-processing --------------------------------------------------
+  // ---- optional real assets --------------------------------------------
+  _loadAssets() {
+    if (ASSETS.hdri) {
+      new RGBELoader().load(
+        ASSETS.hdri,
+        (hdr) => {
+          hdr.mapping = THREE.EquirectangularReflectionMapping
+          this.scene.environment = this.pmrem.fromEquirectangular(hdr).texture
+          if (ASSETS.hdriAsBackground) {
+            this.scene.background = hdr // sharp sky/garden through the windows
+            this.scene.backgroundBlurriness = 0.0
+          } else {
+            hdr.dispose()
+          }
+          this.scene.fog = null // let the real environment define depth
+          console.info('[HouseScene] HDRI environment active.')
+        },
+        undefined,
+        () => console.warn('[HouseScene] HDRI failed to load — keeping procedural lighting.'),
+      )
+    }
+
+    if (ASSETS.model) {
+      const draco = new DRACOLoader()
+      draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/')
+      const loader = new GLTFLoader()
+      loader.setDRACOLoader(draco)
+      loader.load(
+        ASSETS.model,
+        (gltf) => {
+          const m = gltf.scene
+          m.scale.setScalar(ASSETS.modelScale || 1)
+          m.position.set(...(ASSETS.modelPosition || [0, 0, 0]))
+          m.rotation.y = ASSETS.modelRotationY || 0
+          const s = this.renderer.shadowMap.enabled
+          m.traverse((o) => {
+            if (o.isMesh) {
+              o.castShadow = s
+              o.receiveShadow = s
+              if (o.material && o.material.map) o.material.map.anisotropy = this.aniso
+            }
+          })
+          this.scene.add(m)
+          this.model = m
+          // Hand the room over to the real asset: hide procedural house + fills.
+          this.houseGroup.visible = false
+          this.procLights.forEach((l) => (l.visible = false))
+          if (this.hemi) this.hemi.intensity = 0.1
+          console.info('[HouseScene] GLTF villa loaded — walking the real model.')
+        },
+        undefined,
+        () => console.warn('[HouseScene] GLTF failed to load — keeping procedural home.'),
+      )
+    }
+  }
+
+  /** Load real modelled furniture, auto-fit to scale, seat on floor, place. */
+  _loadProps() {
+    if (!PROPS || !PROPS.length) return
+    const loader = new GLTFLoader()
+    const V = THREE.Vector3
+    const s = this.renderer.shadowMap.enabled
+    PROPS.forEach((p) => {
+      loader.load(
+        p.url,
+        (g) => {
+          const o = g.scene
+          o.rotation.y = p.rotationY || 0
+          o.updateMatrixWorld(true)
+          let box = new THREE.Box3().setFromObject(o)
+          const size = box.getSize(new V())
+          o.scale.setScalar((p.targetWidth || 2) / Math.max(size.x, size.z, 0.001))
+          o.updateMatrixWorld(true)
+          box = new THREE.Box3().setFromObject(o)
+          const c = box.getCenter(new V())
+          o.position.x += p.position[0] - c.x
+          o.position.z += p.position[1] - c.z
+          o.position.y += -box.min.y
+          o.traverse((m) => {
+            if (m.isMesh) {
+              m.castShadow = s
+              m.receiveShadow = s
+              if (m.material && m.material.map) m.material.map.anisotropy = this.aniso
+            }
+          })
+          this.scene.add(o)
+          if (this.boxSeating) this.boxSeating.visible = false
+          console.info('[HouseScene] prop loaded:', p.url)
+        },
+        undefined,
+        () => console.warn('[HouseScene] prop failed to load:', p.url),
+      )
+    })
+  }
+
+  // ---- post-processing --------------------------------------------------
   _composer() {
     const composer = new EffectComposer(this.renderer)
     composer.addPass(new RenderPass(this.scene, this.camera))
     this.afterimage = new AfterimagePass(0.0)
     this.afterimage.uniforms.damp.value = 0.0
     composer.addPass(this.afterimage)
+    const w = window.innerWidth
+    const h = window.innerHeight
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.14, 0.5, 0.95) // strength, radius, threshold
+    composer.addPass(this.bloom)
     composer.addPass(new OutputPass())
     this.composer = composer
   }
 
-  // ---- Drive ------------------------------------------------------------
-  /** Called from the scroll handler. Sets the target; the loop eases to it. */
-  setProgress(t) {
-    this.targetT = THREE.MathUtils.clamp(t, 0, 1)
-  }
-
-  /** Jump immediately (used by the ?cam= debug param). */
-  jumpTo(t) {
-    this.curT = this.targetT = this.prevT = THREE.MathUtils.clamp(t, 0, 1)
-  }
+  // ---- drive ------------------------------------------------------------
+  setProgress(t) { this.targetT = THREE.MathUtils.clamp(t, 0, 1) }
+  jumpTo(t) { this.curT = this.targetT = this.prevT = THREE.MathUtils.clamp(t, 0, 1) }
 
   _exposureAt(t) {
     const r = this.rooms.find((rm) => t >= rm.range[0] && t < rm.range[1])
@@ -346,14 +667,10 @@ export default class HouseScene {
     if (this.disposed) return
     this.time += 0.016
     const J = this.journey
-
-    // Inertia: ease current progress toward the scroll target (momentum).
     this.curT += (this.targetT - this.curT) * J.inertia
     const speed = Math.min(1, Math.abs(this.curT - this.prevT) * 140)
 
     this.path.sample(this.curT, this._pos, this._look)
-
-    // Handheld micro-movement + walking bob (scaled by speed).
     const t = this.time
     this._pos.x += Math.sin(t * 1.3) * 0.022 + Math.sin(t * 0.7) * 0.016
     this._pos.y += Math.cos(t * 1.1) * 0.014 + Math.sin(t * 9) * 0.02 * speed
@@ -364,7 +681,6 @@ export default class HouseScene {
     this.camera.up.set(0, 1, 0)
     this.camera.lookAt(this._look)
 
-    // Signed turn rate → roll (lean into turns) + motion-blur strength.
     this._dir.copy(this._look).sub(this._pos).normalize()
     const turn = this._prevDir.angleTo(this._dir)
     this._tmp.crossVectors(this._prevDir, this._dir)
@@ -372,21 +688,20 @@ export default class HouseScene {
     this.camera.rotateZ(roll)
     this._prevDir.copy(this._dir)
 
-    // Motion blur strengthens during turns.
     if (this.afterimage) {
       const target = THREE.MathUtils.clamp(turn * 22 + speed * 0.12, 0, 0.72)
       const d = this.afterimage.uniforms.damp
       d.value += (target - d.value) * 0.2
     }
 
-    // Exposure adaptation per room.
     const targetExp = this._exposureAt(this.curT)
     this.renderer.toneMappingExposure += (targetExp - this.renderer.toneMappingExposure) * 0.04
 
-    // Front door swings open as the camera approaches.
     const [d0, d1] = this.doorRange
     const dp = THREE.MathUtils.smoothstep(this.curT, d0, d1)
-    if (this.frontDoor) this.frontDoor.rotation.y = -dp * Math.PI * 0.52
+    // Opens INWARD (+rotation swings the leaf front toward −z into the foyer),
+    // 90° so it rests perpendicular, fully clear of the wall, frame and camera.
+    if (this.frontDoor) this.frontDoor.rotation.y = dp * Math.PI * 0.5
 
     this.prevT = this.curT
     this.composer.render()
@@ -407,11 +722,10 @@ export default class HouseScene {
     cancelAnimationFrame(this._raf)
     this.scene?.traverse((o) => {
       if (o.geometry) o.geometry.dispose()
-      if (o.material) {
-        const mats = Array.isArray(o.material) ? o.material : [o.material]
-        mats.forEach((m) => m.dispose())
-      }
+      if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m.dispose())
     })
+    this.scene.environment?.dispose?.()
+    this.pmrem?.dispose?.()
     this.composer?.dispose?.()
     this.renderer?.dispose()
   }
