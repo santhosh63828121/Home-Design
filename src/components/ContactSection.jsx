@@ -1,11 +1,12 @@
-import { useState } from 'react'
+'use client'
+
+import { useActionState } from 'react'
 import { motion } from 'framer-motion'
 import { MapPin, Phone, Mail, Clock, Globe, MessageCircle, CheckCircle2 } from 'lucide-react'
 import { Heading } from './ui/Typography.jsx'
 import { fadeUp, slideLeft, staggerContainer, viewportOnce } from '../animations/variants.js'
 import { CONTACT, SERVING_AREAS } from '../data/content.js'
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+import { submitContact } from '@/app/actions/contact'
 
 const FIELDS = [
   { name: 'name', label: 'Name', type: 'text', autoComplete: 'name' },
@@ -13,49 +14,20 @@ const FIELDS = [
   { name: 'subject', label: 'Subject', type: 'text', autoComplete: 'off' },
 ]
 
+const initialState = { ok: false }
+
 /**
  * Section 8 — contact.
- * Left: heading + detail list + map/WhatsApp CTAs (fades up).
- * Right: forest-green form card with client-side validation (slides in).
+ * Left: heading + detail list + map/WhatsApp CTAs.
+ * Right: forest-green form card posting to a Zod-validated Server Action
+ * (progressive enhancement via useActionState; honeypot spam protection).
  */
 export default function ContactSection() {
-  const [values, setValues] = useState({ name: '', email: '', subject: '', message: '' })
-  const [errors, setErrors] = useState({})
-  const [sent, setSent] = useState(false)
-
-  const update = (e) => {
-    const { name, value } = e.target
-    setValues((v) => ({ ...v, [name]: value }))
-    if (errors[name]) setErrors((er) => ({ ...er, [name]: undefined }))
-  }
-
-  const validate = () => {
-    const next = {}
-    if (!values.name.trim()) next.name = 'Please enter your name.'
-    if (!values.email.trim()) next.email = 'Please enter your email.'
-    else if (!EMAIL_RE.test(values.email)) next.email = 'Enter a valid email address.'
-    if (!values.subject.trim()) next.subject = 'Please add a subject.'
-    if (!values.message.trim()) next.message = 'Please write a short message.'
-    return next
-  }
-
-  const onSubmit = (e) => {
-    e.preventDefault()
-    const next = validate()
-    setErrors(next)
-    if (Object.keys(next).length === 0) {
-      // In production this would POST to an API / CRM endpoint.
-      setSent(true)
-      setValues({ name: '', email: '', subject: '', message: '' })
-    }
-  }
+  const [state, formAction, pending] = useActionState(submitContact, initialState)
+  const errors = state.errors || {}
 
   const details = [
-    {
-      icon: MapPin,
-      title: CONTACT.location,
-      sub: `Serving: ${SERVING_AREAS}`,
-    },
+    { icon: MapPin, title: CONTACT.location, sub: `Serving: ${SERVING_AREAS}` },
     { icon: Phone, title: CONTACT.phoneDisplay, href: CONTACT.phoneHref },
     { icon: Mail, title: CONTACT.email, href: CONTACT.emailHref },
     { icon: Clock, title: CONTACT.hours },
@@ -63,11 +35,7 @@ export default function ContactSection() {
   ]
 
   return (
-    <section
-      id="contact"
-      aria-labelledby="contact-heading"
-      className="bg-background py-20 sm:py-[100px]"
-    >
+    <section id="contact" aria-labelledby="contact-heading" className="bg-background py-20 sm:py-[100px]">
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-12 px-5 sm:px-8 lg:grid-cols-[55fr_45fr] lg:gap-16 lg:px-12">
         {/* Left column */}
         <motion.div
@@ -85,8 +53,8 @@ export default function ContactSection() {
           </motion.div>
 
           <motion.p variants={fadeUp} className="mt-6 max-w-lg text-ink/75">
-            We're Chennai's most trusted interior designers. 500+ happy families served across
-            Tamil Nadu. Let's build your dream home — one room at a time.
+            We&apos;re Chennai&apos;s most trusted interior designers. 500+ happy families served across
+            Tamil Nadu. Let&apos;s build your dream home — one room at a time.
           </motion.p>
 
           <motion.ul variants={fadeUp} className="mt-10 space-y-6">
@@ -142,19 +110,37 @@ export default function ContactSection() {
         >
           <h3 className="font-serif text-2xl">Get In Touch</h3>
 
-          {sent ? (
+          {state.ok ? (
             <div
               role="status"
               className="mt-8 flex flex-col items-center gap-3 rounded-xl bg-white/10 p-8 text-center"
             >
               <CheckCircle2 size={40} aria-hidden="true" />
               <p className="font-serif text-xl">Thank you!</p>
-              <p className="text-sm text-white/80">
-                We've received your message and will reach out shortly.
-              </p>
+              <p className="text-sm text-white/80">{state.message}</p>
+              {state.whatsappUrl && (
+                <a
+                  href={state.whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-pill mt-3 bg-[#25D366] text-white hover:bg-[#1ebe57]"
+                >
+                  <MessageCircle size={16} aria-hidden="true" /> CONTINUE ON WHATSAPP
+                </a>
+              )}
             </div>
           ) : (
-            <form onSubmit={onSubmit} noValidate className="mt-8 space-y-6">
+            <form action={formAction} className="mt-8 space-y-6">
+              {/* Honeypot — hidden from humans, catches bots */}
+              <input
+                type="text"
+                name="company"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="hidden"
+              />
+
               {FIELDS.map((field) => (
                 <div key={field.name}>
                   <label htmlFor={field.name} className="sr-only">
@@ -166,8 +152,6 @@ export default function ContactSection() {
                     type={field.type}
                     autoComplete={field.autoComplete}
                     placeholder={field.label}
-                    value={values[field.name]}
-                    onChange={update}
                     aria-invalid={!!errors[field.name]}
                     aria-describedby={errors[field.name] ? `${field.name}-error` : undefined}
                     className="w-full border-b border-white/40 bg-transparent py-3 text-white placeholder-white/60 outline-none transition-colors focus:border-white"
@@ -189,8 +173,6 @@ export default function ContactSection() {
                   name="message"
                   rows={4}
                   placeholder="Message"
-                  value={values.message}
-                  onChange={update}
                   aria-invalid={!!errors.message}
                   aria-describedby={errors.message ? 'message-error' : undefined}
                   className="w-full resize-none border-b border-white/40 bg-transparent py-3 text-white placeholder-white/60 outline-none transition-colors focus:border-white"
@@ -204,9 +186,10 @@ export default function ContactSection() {
 
               <button
                 type="submit"
-                className="btn-pill w-full justify-center bg-white font-bold text-accent hover:bg-white/90"
+                disabled={pending}
+                className="btn-pill w-full justify-center bg-white font-bold text-accent hover:bg-white/90 disabled:opacity-70"
               >
-                SEND MESSAGE <span aria-hidden="true">→</span>
+                {pending ? 'SENDING…' : 'SEND MESSAGE'} <span aria-hidden="true">→</span>
               </button>
             </form>
           )}

@@ -1,0 +1,35 @@
+// Prisma schema — lead persistence for the RGL Decors contact pipeline.
+// Dev uses SQLite (zero-setup). For production switch `provider` to "postgresql"
+// and point DATABASE_URL at your Postgres instance.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// A captured enquiry from any site form (contact / get-a-quote).
+model Lead {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  name     String
+  email    String
+  phone    String?
+  city     String?
+  homeType String?
+  budget   String?
+  subject  String?
+  message  String
+
+  source    String  @default("website") // which form/page produced the lead
+  status    String  @default("NEW") // NEW | CONTACTED | QUALIFIED | WON | LOST
+  ipHash    String? // hashed IP for abuse triage (not raw IP)
+  userAgent String?
+
+  @@index([createdAt])
+  @@index([status])
+}

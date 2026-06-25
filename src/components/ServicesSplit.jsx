@@ -1,3 +1,6 @@
+'use client'
+
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Eyebrow, Heading, Body } from './ui/Typography.jsx'
 import { fadeUp, slideLeft, staggerContainer, viewportOnce } from '../animations/variants.js'
@@ -58,12 +61,12 @@ export default function ServicesSplit() {
         viewport={viewportOnce}
         className="relative min-h-[50vh] overflow-hidden md:min-h-full"
       >
-        <img
+        <Image
           src={SERVICES.image}
           alt={SERVICES.alt}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover"
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-cover"
         />
       </motion.div>
     </section>

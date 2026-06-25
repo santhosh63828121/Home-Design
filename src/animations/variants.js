@@ -6,24 +6,26 @@
 
 const EASE = [0.22, 1, 0.36, 1] // smooth, premium ease-out
 
+// Durations kept in the 150–500ms band — long enough to read as intentional,
+// short enough to feel fast. y/x distances trimmed so reveals are calm, not showy.
 export const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
 }
 
 export const fadeIn = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.7, ease: EASE } },
+  visible: { opacity: 1, transition: { duration: 0.45, ease: EASE } },
 }
 
 export const slideLeft = {
-  hidden: { opacity: 0, x: 40 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: EASE } },
+  hidden: { opacity: 0, x: 32 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.45, ease: EASE } },
 }
 
 export const slideRight = {
-  hidden: { opacity: 0, x: -40 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: EASE } },
+  hidden: { opacity: 0, x: -32 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.45, ease: EASE } },
 }
 
 // Parent container that staggers its children by 80ms (per spec).

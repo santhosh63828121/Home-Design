@@ -1,18 +1,22 @@
 /**
- * Central content source for the RGL Decors site.
- * Keeping all copy + imagery here makes the components data-driven and DRY.
+ * Section / page COPY + imagery for the RGL Decors site.
+ * Core BUSINESS FACTS (NAP, USPs, services, areas, socials) now live in the
+ * single source of truth — src/data/business.ts — and are re-projected below in
+ * the legacy shapes the existing components expect, so nothing drifts.
  */
+import { business, usps, socials, serviceAreas, companyStats } from './business'
+import { reviews } from './reviews'
 
-// Shared contact constants — referenced everywhere so they stay in sync.
+// Shared contact constants — projected from the canonical business record.
 export const CONTACT = {
-  phoneDisplay: '+91 86374 20482',
-  phoneHref: 'tel:+918637420482',
-  email: 'info@rgldecors.com',
-  emailHref: 'mailto:info@rgldecors.com',
+  phoneDisplay: business.nap.phoneDisplay,
+  phoneHref: business.nap.tel,
+  email: business.nap.email,
+  emailHref: `mailto:${business.nap.email}`,
   website: 'www.rgldecors.com',
-  whatsapp: 'https://wa.me/message/YCV7Y4IV2343N1',
-  hours: 'Mon–Sat: 9:00 AM – 7:00 PM',
-  location: 'Chennai, Tamil Nadu',
+  whatsapp: business.nap.whatsappChat,
+  hours: business.nap.hoursLabel,
+  location: `${business.nap.addressLocality}, ${business.nap.addressRegion}`,
   mapsHref:
     'https://www.google.com/maps/search/?api=1&query=RGL+Decors+Chennai+Tamil+Nadu',
 }
@@ -57,13 +61,10 @@ export const ROOM_SLIDES = [
   },
 ]
 
-// Section 4 — count-up stats.
-export const STATS = [
-  { value: 500, suffix: '+', label: 'Happy Families' },
-  { value: 10, suffix: '', label: 'Years Warranty' },
-  { value: 45, suffix: ' Days', label: 'Guaranteed Delivery' },
-  { value: 95, suffix: '%', label: 'Client Satisfaction' },
-]
+// Section 4 — count-up stats. Projected from the canonical, honesty-checked
+// `companyStats` (business.ts): only verifiable figures — no invented
+// "500+ families" / "95% satisfaction". See business.ts STATS_VERIFIED.
+export const STATS = companyStats
 
 // Section 5 — gallery accordion panels.
 export const GALLERY = [
@@ -162,56 +163,14 @@ export const PRICING = [
   },
 ]
 
-// Section 7 — "Why RGL Decors" feature grid. Icons are lucide-react names.
-export const FEATURES = [
-  {
-    icon: 'Clapperboard',
-    title: 'Free 3D Walkthrough',
-    description:
-      "India's 1st company offering complete HD 3D walkthrough with 99% accuracy — free of cost.",
-  },
-  {
-    icon: 'Clock',
-    title: 'On-Time Delivery',
-    description: 'Guaranteed move-in within 45 days. T&C applicable.',
-  },
-  {
-    icon: 'BadgeIndianRupee',
-    title: 'Best Price Guarantee',
-    description:
-      'Market-lowest prices with superior quality. Compare with any competitor.',
-  },
-  {
-    icon: 'Factory',
-    title: 'Precision Build',
-    description:
-      'Everything manufactured in our modular automated factory — smooth, error-free, bubble-free panels.',
-  },
-  {
-    icon: 'ShieldCheck',
-    title: '10-Year Warranty',
-    description: 'Big warranty period on all core materials. Hassle-free for a decade.',
-  },
-  {
-    icon: 'CheckCircle2',
-    title: '100+ Quality Checks',
-    description: 'Every single product passes 100+ quality checks before delivery.',
-  },
-  {
-    icon: 'Palette',
-    title: '1000+ Design Options',
-    description: 'Choose from 1000+ laminate colors, textures, styles and design options.',
-  },
-  {
-    icon: 'Wrench',
-    title: 'Free Customization',
-    description:
-      'Only company offering 100% customized wardrobes, kitchens & units to fit your exact space.',
-  },
-]
+// Section 7 — "Why RGL Decors" feature grid (the 8 USPs, canonical source).
+export const FEATURES = usps
 
-export const SERVING_AREAS =
-  'Chennai, Coimbatore, Salem, Dharmapuri, Krishnagiri, Hosur, Kanchipuram, Chengalpattu'
+// Service-area string for the contact section (cities only, state-wide excluded).
+export const SERVING_AREAS = serviceAreas
+  .filter((a) => !a.statewide)
+  .map((a) => a.name)
+  .join(', ')
 
 export const FOOTER_LINKS = [
   'Home',
@@ -224,11 +183,7 @@ export const FOOTER_LINKS = [
 ]
 
 export const SOCIALS = [
-  { name: 'Facebook', icon: 'Facebook', href: 'https://facebook.com/rgldecors' },
-  { name: 'Instagram', icon: 'Instagram', href: 'https://instagram.com/rgldecors' },
-  { name: 'YouTube', icon: 'Youtube', href: 'https://youtube.com/@rgldecors' },
-  { name: 'Twitter', icon: 'Twitter', href: 'https://twitter.com/rgldecors' },
-  { name: 'Pinterest', icon: 'Music2', href: 'https://pinterest.com/rgldecors' },
+  ...socials.map((s) => ({ name: s.name, icon: s.icon, href: s.url })),
   { name: 'WhatsApp', icon: 'MessageCircle', href: CONTACT.whatsapp },
 ]
 
@@ -322,27 +277,9 @@ export const CINEMATIC_SCENES = [
   },
 ]
 
-// Final Section — client testimonials.
-export const TESTIMONIALS = [
-  {
-    quote:
-      'They handed over our 2BHK in 41 days. The 3D walkthrough matched the final result almost exactly — zero surprises.',
-    name: 'Priya & Karthik',
-    role: '2BHK · Velachery, Chennai',
-  },
-  {
-    quote:
-      'The modular kitchen is the heart of our home now. Marble finish, soft-close everything, and built to fit a tricky corner perfectly.',
-    name: 'Anand Subramanian',
-    role: 'Villa · OMR, Chennai',
-  },
-  {
-    quote:
-      'Transparent pricing and a dedicated designer who actually listened. The master bedroom turned out better than we imagined.',
-    name: 'Deepa Rajan',
-    role: '3BHK · Adyar, Chennai',
-  },
-]
+// Final Section — client testimonials. Projected from the single typed source
+// (data/reviews.ts). Rating SCHEMA stays gated there behind REVIEWS_VERIFIED.
+export const TESTIMONIALS = reviews
 
 // Final Section — before / after transformation showcase.
 export const BEFORE_AFTER = [

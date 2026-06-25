@@ -1,6 +1,14 @@
 node_modules
+.next
+out
 dist
-dist-ssr
-*.local
+.env
+.env*.local
+# Prisma local SQLite db (do not commit)
+*.db
+*.db-journal
+prisma/dev.db
+*.log
 .DS_Store
-.vite
+.vercel
+next-env.d.ts

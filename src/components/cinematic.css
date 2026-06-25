@@ -14,6 +14,32 @@
   color: #fff;
 }
 
+/* Hybrid hero switch — both heroes are in the SSR HTML; CSS shows exactly one so
+   the correct hero paints immediately (mobile LCP) with no client swap. Default
+   (desktop, motion OK): WebGL. Mobile or reduced-motion: the lightweight static
+   hero. .cine-force-static (added by JS only when WebGL is unavailable) forces
+   the static hero on desktop too. */
+.cine-hero-static {
+  display: none;
+}
+.cine-hero-webgl {
+  display: block;
+}
+@media (max-width: 767px), (prefers-reduced-motion: reduce) {
+  .cine-hero-static {
+    display: block;
+  }
+  .cine-hero-webgl {
+    display: none;
+  }
+}
+.cine-force-static .cine-hero-static {
+  display: block;
+}
+.cine-force-static .cine-hero-webgl {
+  display: none;
+}
+
 .cinematic__fx {
   position: absolute;
   inset: 0;
@@ -21,6 +47,14 @@
   height: 100%;
   display: block;
   z-index: 1;
+  /* Fade the rendered scene up from the section background once the first frame
+     paints (set via .is-ready). Opacity-only, so it never shifts layout. The
+     fixed-height .cinematic + absolute canvas already reserve the box → 0 CLS. */
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.cinematic__fx.is-ready {
+  opacity: 1;
 }
 
 /* --- Room label overlay ----------------------------------------------- */
@@ -50,7 +84,7 @@
 }
 
 .scene__eyebrow {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: var(--font-dmsans), system-ui, sans-serif;
   font-size: 0.68rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -59,7 +93,7 @@
 }
 
 .scene__title {
-  font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+  font-family: var(--font-dmsans), var(--font-inter), system-ui, sans-serif;
   font-weight: 700;
   font-size: clamp(2rem, 3.8vw, 3.6rem);
   line-height: 1.02;
@@ -71,7 +105,7 @@
 }
 
 .scene__title--hero {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-playfair), Georgia, serif;
   font-size: clamp(2.8rem, 6.5vw, 5.4rem);
   text-transform: none;
   line-height: 0.98;
@@ -97,7 +131,7 @@
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
   color: #fff;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: var(--font-dmsans), system-ui, sans-serif;
   font-weight: 600;
   font-size: 0.8rem;
   letter-spacing: 0.04em;
@@ -140,7 +174,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.4rem;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: var(--font-dmsans), system-ui, sans-serif;
   font-size: 0.66rem;
   letter-spacing: 0.26em;
   text-transform: uppercase;
@@ -181,7 +215,7 @@
 }
 
 .cinematic__staticTitle {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-playfair), Georgia, serif;
   font-size: clamp(2.2rem, 5vw, 3.6rem);
   line-height: 1.05;
   margin: 0.6rem 0 2rem;
@@ -201,7 +235,7 @@
 }
 
 .cinematic__staticList span {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: var(--font-dmsans), system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: #c9a86a;

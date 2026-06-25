@@ -1,4 +1,7 @@
+'use client'
+
 import CountUp from 'react-countup'
+import { useReducedMotion } from 'framer-motion'
 import useScrollReveal from '../hooks/useScrollReveal.js'
 import { STATS } from '../data/content.js'
 
@@ -9,6 +12,7 @@ import { STATS } from '../data/content.js'
  */
 export default function StatsSection() {
   const { ref, inView } = useScrollReveal(0.5)
+  const reduce = useReducedMotion()
 
   return (
     <section
@@ -27,10 +31,11 @@ export default function StatsSection() {
             }`}
           >
             <span className="font-serif text-5xl font-light text-ink sm:text-6xl lg:text-[6rem] lg:leading-none">
-              {inView ? (
-                <CountUp end={stat.value} duration={2} useEasing suffix={stat.suffix} />
+              {/* Reduced motion: show the final number immediately, no count-up. */}
+              {reduce || !inView ? (
+                `${reduce ? stat.value : 0}${stat.suffix}`
               ) : (
-                `0${stat.suffix}`
+                <CountUp end={stat.value} duration={1.8} useEasing suffix={stat.suffix} />
               )}
             </span>
             <span className="mt-4 font-sans text-[0.85rem] uppercase tracking-wide2 text-muted">

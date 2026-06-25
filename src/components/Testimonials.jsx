@@ -1,3 +1,5 @@
+'use client'
+
 import { motion } from 'framer-motion'
 import { Quote } from 'lucide-react'
 import { Eyebrow, Heading } from './ui/Typography.jsx'
@@ -26,7 +28,7 @@ export default function Testimonials() {
         >
           <Eyebrow className="text-amber-300">Loved by Families</Eyebrow>
           <Heading id="testimonials-heading" className="mt-4 text-3xl text-white sm:text-[3.5rem]">
-            Homes We've
+            Homes We&apos;ve
             <br />
             Brought to Life
           </Heading>

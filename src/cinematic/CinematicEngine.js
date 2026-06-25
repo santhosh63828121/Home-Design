@@ -19,10 +19,11 @@ gsap.registerPlugin(ScrollTrigger)
  * verification screenshots of each room).
  */
 export default class CinematicEngine {
-  constructor({ wrapper, canvas, onProgress }) {
+  constructor({ wrapper, canvas, onProgress, onReady }) {
     this.wrapper = wrapper
     this.canvas = canvas
     this.onProgress = onProgress
+    this.onReady = onReady
   }
 
   init() {
@@ -63,8 +64,18 @@ export default class CinematicEngine {
     this._onResize = () => this.house.resize()
     window.addEventListener('resize', this._onResize, { passive: true })
 
+    // Pause all WebGL rendering when the walkthrough scrolls out of view.
+    this._io = new IntersectionObserver(([e]) => this.house.setVisible(e.isIntersecting), {
+      threshold: 0,
+    })
+    this._io.observe(this.wrapper)
+
     this._refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 400)
     window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true })
+
+    // Signal "first frame painted" on the next rAF so the canvas can fade in
+    // from the section background (opacity-only → no layout shift).
+    requestAnimationFrame(() => this.onReady?.())
   }
 
   scrollTo(target, opts) {
@@ -73,6 +84,7 @@ export default class CinematicEngine {
 
   destroy() {
     clearTimeout(this._refreshTimer)
+    this._io?.disconnect()
     window.removeEventListener('resize', this._onResize)
     this.st?.kill()
     this.house?.dispose()

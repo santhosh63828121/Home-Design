@@ -1,4 +1,7 @@
+'use client'
+
 import { useState } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Eyebrow, Heading } from './ui/Typography.jsx'
 import { fadeUp, viewportOnce } from '../animations/variants.js'
@@ -61,12 +64,12 @@ export default function GalleryAccordion() {
                   isActive ? 'md:flex-[3.5]' : 'md:flex-[0.5]'
                 }`}
               >
-                <img
+                <Image
                   src={panel.image}
                   alt={panel.alt}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 60vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 {/* Permanent bottom gradient for label legibility */}
                 <div

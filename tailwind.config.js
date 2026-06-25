@@ -1,6 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  content: [
+    './src/app/**/*.{js,jsx,ts,tsx}',
+    './src/components/**/*.{js,jsx,ts,tsx}',
+    './src/**/*.{js,jsx,ts,tsx}',
+  ],
   theme: {
     extend: {
       colors: {
@@ -8,13 +12,14 @@ export default {
         ink: '#1A1A1A',
         accent: '#2D6A5A',
         'accent-dark': '#235446',
-        muted: '#888888',
+        muted: '#6B6B6B', /* darkened from #888 to clear WCAG AA 4.5:1 on light bgs */
         divider: '#E8E4DE',
       },
       fontFamily: {
-        serif: ['"Playfair Display"', 'Georgia', 'serif'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        caps: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        // Driven by next/font CSS variables (see app/layout.tsx).
+        serif: ['var(--font-playfair)', 'Georgia', 'serif'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        caps: ['var(--font-dmsans)', 'system-ui', 'sans-serif'],
       },
       letterSpacing: {
         caps: '0.12em',

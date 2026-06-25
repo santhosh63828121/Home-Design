@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
@@ -25,10 +27,17 @@ export default function CinematicExperience() {
   const engineRef = useRef(null)
   const [active, setActive] = useState(0)
   const [progress, setProgress] = useState(0)
-  const [reduced, setReduced] = useState(false)
+  const [forceStatic, setForceStatic] = useState(false)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    // Which hero shows is decided by CSS media queries (mobile + reduced-motion →
+    // static, desktop → WebGL) so the correct hero is in the SSR HTML and paints
+    // immediately — no client-side swap, no LCP penalty, no desktop flash. JS only
+    // (a) inits the engine when the WebGL hero is the active one, and (b) forces
+    // the static hero when WebGL is unavailable (which CSS can't detect).
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const isMobile = window.matchMedia('(max-width: 767px)').matches
     const hasWebGL = (() => {
       try {
         const c = document.createElement('canvas')
@@ -38,12 +47,15 @@ export default function CinematicExperience() {
       }
     })()
 
-    if (prefersReduced || !hasWebGL) {
-      setReduced(true)
+    if (!hasWebGL) {
+      setForceStatic(true) // desktop without WebGL → show the static hero too
       return
     }
+    if (prefersReduced || isMobile) return // CSS already shows static; skip the engine
 
     let cancelled = false
+    // Defensive fallback: never leave the canvas faded-out if onReady is missed.
+    const readyFallback = setTimeout(() => !cancelled && setReady(true), 1500)
     import('../cinematic/CinematicEngine.js').then(({ default: CinematicEngine }) => {
       if (cancelled || !wrapperRef.current) return
       const engine = new CinematicEngine({
@@ -53,6 +65,9 @@ export default function CinematicExperience() {
           setProgress(p)
           setActive(roomAt(p))
         },
+        onReady: () => {
+          if (!cancelled) setReady(true)
+        },
       })
       engine.init()
       engineRef.current = engine
@@ -60,6 +75,7 @@ export default function CinematicExperience() {
 
     return () => {
       cancelled = true
+      clearTimeout(readyFallback)
       engineRef.current?.destroy()
     }
   }, [])
@@ -71,13 +87,21 @@ export default function CinematicExperience() {
     else el?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Accessible fallback (no WebGL / reduced motion).
-  if (reduced) {
-    return (
-      <section id="walkthrough" className="cinematic cinematic--static" aria-label="Home walkthrough">
+  const room = ROOMS[active]
+
+  // Both heroes are rendered in the SSR HTML; CSS (cine-hero-static /
+  // cine-hero-webgl) shows exactly one per breakpoint. JS adds .cine-force-static
+  // only when WebGL is unavailable.
+  return (
+    <div id="walkthrough" className={`cine-hero${forceStatic ? ' cine-force-static' : ''}`}>
+      {/* Static hero — shown on mobile + reduced-motion (and no-WebGL). SSR'd, so
+          it's the LCP element on mobile and paints without a client swap. h2 (not
+          h1): ReleaseHero owns the page's single <h1>. */}
+      {/* <section className="cinematic cinematic--static cine-hero-static" aria-label="Home walkthrough">
         <div className="cinematic__staticInner">
           <p className="scene__eyebrow">RGL Decors · The Walkthrough</p>
-          <h1 className="cinematic__staticTitle">A Walk Through One Luxury Home</h1>
+          
+          <p className="cinematic__staticTitle">A Walk Through One Luxury Home</p>
           <ul className="cinematic__staticList">
             {ROOMS.map((r) => (
               <li key={r.id}>
@@ -90,15 +114,11 @@ export default function CinematicExperience() {
             Continue <span aria-hidden="true">→</span>
           </a>
         </div>
-      </section>
-    )
-  }
+      </section> */}
 
-  const room = ROOMS[active]
-
-  return (
-    <section ref={wrapperRef} id="walkthrough" aria-label="Luxury home walkthrough" className="cinematic">
-      <canvas ref={canvasRef} className="cinematic__fx" aria-hidden="true" />
+      {/* WebGL hero — shown on desktop; the engine inits client-side. */}
+      <section ref={wrapperRef} aria-label="Luxury home walkthrough" className="cinematic cine-hero-webgl">
+      <canvas ref={canvasRef} className={`cinematic__fx${ready ? ' is-ready' : ''}`} aria-hidden="true" />
 
       {/* Room label overlay — crossfades as the camera enters each space */}
       <AnimatePresence mode="wait">
@@ -111,7 +131,7 @@ export default function CinematicExperience() {
           className={`scene__content scene__content--${room.side}${room.hero ? ' scene__content--hero' : ''}`}
         >
           <p className="scene__eyebrow">{room.eyebrow}</p>
-          <h2 className={`scene__title${room.hero ? ' scene__title--hero' : ''}`}>{room.title}</h2>
+          <p className={`scene__title${room.hero ? ' scene__title--hero' : ''}`}>{room.title}</p>
           <p className="scene__body">{room.body}</p>
           {room.cta && (
             <a
@@ -134,6 +154,7 @@ export default function CinematicExperience() {
         <span>Scroll to Explore</span>
         <ChevronDown size={16} className="animate-bounceArrow" />
       </div>
-    </section>
+      </section>
+    </div>
   )
 }

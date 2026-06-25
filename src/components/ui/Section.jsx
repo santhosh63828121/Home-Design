@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Standard section wrapper: consistent vertical rhythm + centered max-width.
  * `bleed` renders an edge-to-edge section (no inner container).

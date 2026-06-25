@@ -1,3 +1,5 @@
+'use client'
+
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 import { Eyebrow, Heading } from './ui/Typography.jsx'

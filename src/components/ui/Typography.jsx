@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Reusable typography primitives so headings/labels stay consistent and DRY.
  * Each accepts `className` for per-use tweaks and forwards remaining props.

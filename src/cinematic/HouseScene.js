@@ -42,6 +42,16 @@ export default class HouseScene {
     this.mobile = window.innerWidth < 768
     this.procLights = []
 
+    // On-demand rendering state. The loop runs only while the camera is settling
+    // toward a new scroll target (or just received input) AND the section is
+    // visible; when static it idles on the last frame. This keeps the main thread
+    // free instead of rendering WebGL every frame forever (huge TBT win on
+    // mobile). Scroll input wakes it again via setProgress().
+    this._running = false
+    this._visible = true
+    this._raf = 0
+    this._lastInputMs = 0
+
     this._pos = new THREE.Vector3()
     this._look = new THREE.Vector3()
     this._dir = new THREE.Vector3()
@@ -85,7 +95,8 @@ export default class HouseScene {
     this._lights()
     this._composer()
     this.resize()
-    this._loop()
+    this._lastInputMs = (typeof performance !== 'undefined' ? performance.now() : 0)
+    this.wake() // render an initial settle, then idle until scrolled
 
     this._loadAssets() // optional full-villa GLTF / HDRI overrides
     this._loadProps() // real modelled furniture into the procedural house
@@ -655,8 +666,33 @@ export default class HouseScene {
   }
 
   // ---- drive ------------------------------------------------------------
-  setProgress(t) { this.targetT = THREE.MathUtils.clamp(t, 0, 1) }
-  jumpTo(t) { this.curT = this.targetT = this.prevT = THREE.MathUtils.clamp(t, 0, 1) }
+  setProgress(t) {
+    this.targetT = THREE.MathUtils.clamp(t, 0, 1)
+    this._lastInputMs = performance.now()
+    this.wake()
+  }
+  jumpTo(t) {
+    this.curT = this.targetT = this.prevT = THREE.MathUtils.clamp(t, 0, 1)
+    this._lastInputMs = performance.now()
+    this.wake()
+  }
+
+  /** Start the render loop if idle, visible and alive. */
+  wake() {
+    if (this.disposed || this._running || !this._visible) return
+    this._running = true
+    this._raf = requestAnimationFrame(this._loop)
+  }
+
+  /** Section visibility (offscreen → stop rendering entirely). */
+  setVisible(v) {
+    this._visible = v
+    if (v) this.wake()
+    else {
+      this._running = false
+      cancelAnimationFrame(this._raf)
+    }
+  }
 
   _exposureAt(t) {
     const r = this.rooms.find((rm) => t >= rm.range[0] && t < rm.range[1])
@@ -664,7 +700,10 @@ export default class HouseScene {
   }
 
   _loop = () => {
-    if (this.disposed) return
+    if (this.disposed) {
+      this._running = false
+      return
+    }
     this.time += 0.016
     const J = this.journey
     this.curT += (this.targetT - this.curT) * J.inertia
@@ -688,7 +727,7 @@ export default class HouseScene {
     this.camera.rotateZ(roll)
     this._prevDir.copy(this._dir)
 
-    if (this.afterimage) {
+    if (!this.mobile && this.afterimage) {
       const target = THREE.MathUtils.clamp(turn * 22 + speed * 0.12, 0, 0.72)
       const d = this.afterimage.uniforms.damp
       d.value += (target - d.value) * 0.2
@@ -704,8 +743,22 @@ export default class HouseScene {
     if (this.frontDoor) this.frontDoor.rotation.y = dp * Math.PI * 0.5
 
     this.prevT = this.curT
-    this.composer.render()
-    this._raf = requestAnimationFrame(this._loop)
+    // Mobile: plain single-pass render (skip bloom + motion-blur composer passes
+    // — by far the heaviest per-frame cost on low-power GPUs). Desktop keeps the
+    // full cinematic post-processing stack.
+    if (this.mobile) this.renderer.render(this.scene, this.camera)
+    else this.composer.render()
+
+    // On-demand: keep rendering only while the camera is still easing toward its
+    // scroll target or input arrived recently; otherwise hold this frame and idle
+    // (frees the main thread — the big mobile TBT win). Scrolling re-wakes it.
+    const settling = Math.abs(this.curT - this.targetT) > 0.0001
+    const recentInput = performance.now() - this._lastInputMs < 250
+    if (settling || recentInput) {
+      this._raf = requestAnimationFrame(this._loop)
+    } else {
+      this._running = false // idle on the last painted frame
+    }
   }
 
   resize() {
