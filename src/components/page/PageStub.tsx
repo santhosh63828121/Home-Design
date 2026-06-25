@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import Navbar from '@/components/Navbar.jsx'
 import Footer from '@/components/Footer.jsx'
 import SkipLink from '@/components/page/SkipLink'
+import MagneticButton from '@/components/MagneticButton'
 import { routes } from '@/lib/routes'
 import { siteConfig } from '@/lib/seo'
 import { JsonLd, breadcrumbSchema } from '@/lib/structured-data'
@@ -68,12 +69,12 @@ export default function PageStub({
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink/75">{intro}</p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link
+            <MagneticButton
               href={cta.href}
               className="btn-pill bg-accent text-white hover:bg-accent-dark"
             >
               {cta.label} <ArrowRight size={16} aria-hidden="true" />
-            </Link>
+            </MagneticButton>
             <a
               href={`tel:${siteConfig.nap.phoneE164}`}
               className="btn-pill border border-accent bg-transparent text-accent hover:bg-accent hover:text-white"

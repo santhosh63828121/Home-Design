@@ -100,7 +100,7 @@ export default function CinematicExperience() {
       {/* <section className="cinematic cinematic--static cine-hero-static" aria-label="Home walkthrough">
         <div className="cinematic__staticInner">
           <p className="scene__eyebrow">RGL Decors · The Walkthrough</p>
-          
+         
           <p className="cinematic__staticTitle">A Walk Through One Luxury Home</p>
           <ul className="cinematic__staticList">
             {ROOMS.map((r) => (

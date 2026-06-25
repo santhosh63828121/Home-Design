@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { motion } from 'framer-motion'
 import { MapPin, Phone, Mail, Clock, Globe, MessageCircle, CheckCircle2 } from 'lucide-react'
 import { Heading } from './ui/Typography.jsx'
-import { fadeUp, slideLeft, staggerContainer, viewportOnce } from '../animations/variants.js'
+import { fadeUp, staggerContainer, viewportOnce } from '../animations/variants.js'
 import { CONTACT, SERVING_AREAS } from '../data/content.js'
 import { submitContact } from '@/app/actions/contact'
 
@@ -100,9 +100,11 @@ export default function ContactSection() {
           </motion.div>
         </motion.div>
 
-        {/* Right column — form card */}
+        {/* Right column — form card. fadeUp (vertical) not slideLeft: a horizontal
+            reveal offset overflows the viewport on narrow screens (≤375px) while
+            the card sits in its translated hidden state. */}
         <motion.div
-          variants={slideLeft}
+          variants={fadeUp}
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}

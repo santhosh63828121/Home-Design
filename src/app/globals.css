@@ -23,6 +23,10 @@
     margin: 0;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    /* NOTE: no global `overflow-x: hidden/clip` here — it breaks the cinematic's
+       GSAP ScrollTrigger pin (massive CLS on desktop). The build has zero
+       horizontal overflow as-is (verified 320–1920px); catch any future overflow
+       at the source with `node scripts/overflow-find.mjs`, not a blanket clip. */
   }
 
   /* Visible, on-brand focus ring for keyboard users. */

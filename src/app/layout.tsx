@@ -11,6 +11,7 @@ import {
 } from '@/lib/structured-data'
 import FloatingContact from '@/components/FloatingContact'
 import MotionProvider from '@/components/MotionProvider'
+import ScrollProgress from '@/components/ScrollProgress'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${playfair.variable} ${inter.variable} ${dmSans.variable}`}>
       <body>
         <MotionProvider>
+          <ScrollProgress />
           {children}
           <FloatingContact />
         </MotionProvider>
