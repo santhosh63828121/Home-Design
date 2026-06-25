@@ -10,10 +10,20 @@ import { CONTACT } from '../data/content.js'
 import { mainNav, routes } from '@/lib/routes'
 
 /**
- * Floating glassmorphism PILL navbar — every item resolves to a real route.
- * Glass over the dark home walkthrough; solid white on content pages / after
- * scroll. Right cluster: Get Free Quote + click-to-call + WhatsApp. Mobile:
- * full overlay menu with the same real routes + a quote CTA.
+ * Floating glassmorphism PILL navbar — three balanced sections:
+ *
+ *   [ navbar-left: Logo ] [ navbar-center: nav (absolutely centred) ] [ navbar-right: actions ]
+ *
+ * The centre section is position:absolute + left-1/2 + -translate-x-1/2, so the
+ * navigation stays perfectly centred in the bar regardless of how wide the logo
+ * or the action cluster are. Left/right use justify-between.
+ *
+ * Adaptive colour: glass (translucent dark) over the dark home walkthrough,
+ * solid white on content pages / after scroll — kept for text contrast (WCAG AA).
+ *
+ * Overflow-safe: container is max-width + width:100%-48px (never 100vw); the
+ * centre nav scales compact→spacious across breakpoints so 7 links never collide
+ * with the side clusters.
  */
 export default function Navbar() {
   const pathname = usePathname()
@@ -57,28 +67,40 @@ export default function Navbar() {
   const linkColor = glass ? 'text-white/85' : 'text-ink'
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-3 z-50 px-3 sm:top-5 sm:px-5">
+    // Header spans the viewport but only paints the centred pill. px-6 gives the
+    // pill width: calc(100% - 48px); pointer-events-none lets clicks fall through
+    // the transparent gutter to the hero behind it.
+    <header className="pointer-events-none fixed inset-x-0 top-4 z-50 px-6">
       <nav
         aria-label="Primary"
-        className={`pointer-events-auto mx-auto flex h-14 w-full max-w-6xl items-center justify-between rounded-full pl-5 pr-2 transition-[background,box-shadow,border-color] duration-500 sm:h-16 sm:pl-7 sm:pr-2.5 ${
+        className={`pointer-events-auto relative mx-auto flex h-[66px] w-full max-w-[1440px] items-center justify-between rounded-full px-6 transition-[background,box-shadow,border-color] duration-500 lg:h-[78px] 2xl:max-w-[1600px] ${
           glass
-            ? 'border border-white/15 bg-black/25 backdrop-blur-xl'
-            : 'border border-black/5 bg-white/90 shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur-xl'
+            ? 'border border-white/15 bg-black/30 shadow-[0_10px_30px_rgba(0,0,0,0.15)] backdrop-blur-2xl'
+            : 'border border-black/5 bg-white/90 shadow-[0_10px_30px_rgba(0,0,0,0.12)] backdrop-blur-2xl'
         }`}
       >
-        <Link href={routes.home} aria-label="RGL Decors — home">
-          <Logo dark={!glass} />
-        </Link>
+        {/* ── navbar-left: Logo ───────────────────────────────────────────── */}
+        <div className="flex items-center gap-3">
+          <Link href={routes.home} aria-label="RGL Decors — home">
+            <Logo dark={!glass} />
+          </Link>
+        </div>
 
-        {/* Centre links — desktop */}
-        <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-6 lg:flex">
+        {/* ── navbar-center: navigation ──────────────────────────────────────
+            7 links only fit absolutely-centred from ~1440px (your large-desktop
+            target). So: in-flow on laptops (lg–xl) — justify-between keeps it
+            ~centred with the balanced side clusters and never overlaps them — and
+            absolutely-centred (left-1/2 / -translate-x-1/2) at 2xl, where there's
+            room for the full 16px / 42px-gap premium spacing. */}
+        <ul className="hidden items-center gap-3.5 lg:flex xl:gap-6 min-[1600px]:absolute min-[1600px]:left-1/2 min-[1600px]:-translate-x-1/2 min-[1600px]:gap-[42px]">
           {mainNav.map((link) => {
             const active = pathname === link.href
             return (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className={`font-caps text-[13px] tracking-caps transition-colors hover:text-[#2D6A5A] ${
+                  // inline-block so the hover translateY(-2px) actually applies.
+                  className={`inline-block whitespace-nowrap font-medium tracking-[0.04em] transition-[color,transform] duration-300 hover:-translate-y-0.5 hover:text-[#2D6A5A] text-[12.5px] xl:text-[14px] min-[1600px]:text-[16px] ${
                     active ? 'text-[#2D6A5A]' : linkColor
                   }`}
                 >
@@ -89,40 +111,47 @@ export default function Navbar() {
           })}
         </ul>
 
-        {/* Right cluster: call · whatsapp · Get Free Quote */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* ── navbar-right: actions (gap 16px) ───────────────────────────────
+            Phone + WhatsApp are 48px circles (desktop only — mobile uses the
+            global floating stack); Get Free Quote is the 52px pill; hamburger
+            below lg. */}
+        <div className="flex items-center gap-2 md:gap-4">
           <a
             href={CONTACT.phoneHref}
             aria-label={`Call ${CONTACT.phoneDisplay}`}
-            className={`hidden h-10 w-10 place-items-center rounded-full border transition-colors sm:grid ${
+            className={`hidden h-12 w-12 place-items-center rounded-full border transition-colors xl:grid ${
               glass
                 ? 'border-white/20 text-white hover:bg-white/15'
                 : 'border-black/10 text-ink hover:bg-black/5'
             }`}
           >
-            <Phone size={16} aria-hidden="true" />
+            <Phone size={17} aria-hidden="true" />
           </a>
           <a
             href={CONTACT.whatsapp}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="WhatsApp us"
-            className="hidden h-10 w-10 place-items-center rounded-full bg-[#25D366] text-white transition-transform hover:scale-105 sm:grid"
+            className="hidden h-12 w-12 place-items-center rounded-full bg-[#25D366] text-white transition-transform hover:scale-105 xl:grid"
           >
-            <MessageCircle size={18} aria-hidden="true" />
+            <MessageCircle size={19} aria-hidden="true" />
           </a>
           <Link
             href={routes.getQuote}
-            className="hidden items-center gap-1.5 rounded-full bg-[#2D6A5A] px-5 py-2.5 font-caps text-[12.5px] font-semibold tracking-caps text-white transition-colors hover:bg-[#235446] sm:inline-flex"
+            className="hidden h-12 items-center gap-2 rounded-full bg-[#2D6A5A] px-6 font-caps text-[13px] font-semibold tracking-caps text-white transition-colors hover:bg-[#235446] md:inline-flex lg:h-[52px] lg:px-7"
           >
-            <PencilRuler size={15} aria-hidden="true" /> Get Free Quote
+            <PencilRuler size={16} aria-hidden="true" /> Get Free Quote
           </Link>
+
+          {/* Hamburger — mobile + tablet (below lg). Keeps its ARIA + #mobile-menu
+              wiring for the keyboard / screen-reader path. */}
           <button
             type="button"
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
+            aria-controls="mobile-menu"
             onClick={() => setOpen((v) => !v)}
-            className={`grid h-10 w-10 place-items-center rounded-full border transition-colors sm:h-11 sm:w-11 lg:hidden ${
+            className={`grid h-11 w-11 place-items-center rounded-full border transition-colors lg:hidden ${
               open
                 ? 'border-black/10 text-ink'
                 : glass
@@ -135,7 +164,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile overlay */}
+      {/* Mobile overlay menu (unchanged behaviour: id + focusable links). */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -144,7 +173,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.3 }}
-            className="pointer-events-auto mx-auto mt-3 max-h-[80vh] w-full max-w-6xl overflow-auto rounded-3xl border border-black/5 bg-white/95 shadow-card backdrop-blur-md lg:hidden"
+            className="pointer-events-auto mx-auto mt-3 max-h-[80vh] w-full max-w-[1440px] overflow-auto rounded-3xl border border-black/5 bg-white/95 shadow-card backdrop-blur-md lg:hidden"
           >
             <motion.ul
               initial="hidden"
