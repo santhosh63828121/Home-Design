@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { business, socials, sameAs as businessSameAs, seoKeywords, serviceAreas } from '@/data/business'
+import { suburbs } from '@/data/locations'
 
 /**
  * SEO config — a thin projection of the canonical business data (data/business.ts)
@@ -30,7 +31,14 @@ export const siteConfig = {
     addressCountry: business.nap.addressCountry,
   },
   geo: business.geo,
-  areaServed: serviceAreas.map((a) => a.name),
+  // Honest coverage: the 8 TN cities we serve + the 12 Chennai suburbs with real
+  // local pages, then the state-wide entry. Suburb-level schema (GeoCircle) is
+  // also emitted per suburb page; this is the business-wide list.
+  areaServed: [
+    ...serviceAreas.filter((a) => !a.statewide).map((a) => a.name),
+    ...suburbs.map((s) => s.name),
+    ...serviceAreas.filter((a) => a.statewide).map((a) => a.name),
+  ],
   openingHours: business.openingHours,
   social: Object.fromEntries(socials.map((s) => [s.name.toLowerCase(), s.url])),
 } as const

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import PageStub from '@/components/page/PageStub'
-import BlogCard from '@/components/blog/BlogCard'
+import BlogIndex from '@/components/blog/BlogIndex'
 import { buildMetadata, siteConfig } from '@/lib/seo'
 import { routes } from '@/lib/routes'
 import { JsonLd } from '@/lib/structured-data'
@@ -42,18 +42,7 @@ export default function BlogIndexPage() {
         { name: 'Blog', path: routes.blog },
       ]}
     >
-      {posts.length === 0 ? (
-        <p className="rounded-2xl border border-divider bg-white px-6 py-5 text-sm text-muted">
-          Our first articles are being written. Meanwhile, explore our services or get a free 3D
-          design and quote.
-        </p>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((p) => (
-            <BlogCard key={p.slug} post={p} />
-          ))}
-        </div>
-      )}
+      <BlogIndex posts={posts} />
 
       <JsonLd id="ld-blog" data={blogSchema} />
     </PageStub>

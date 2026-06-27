@@ -3,6 +3,7 @@ import Link from 'next/link'
 import PageStub from '@/components/page/PageStub'
 import PortfolioGrid from '@/components/portfolio/PortfolioGrid'
 import GalleryAccordion from '@/components/GalleryAccordion.jsx'
+import LookbookGate from '@/components/LookbookGate'
 import { projects, PORTFOLIO_BUDGET_FOOTNOTE } from '@/data/portfolio'
 import { buildMetadata, siteConfig } from '@/lib/seo'
 import { routes } from '@/lib/routes'
@@ -57,6 +58,8 @@ export default function PortfolioPage() {
               <GalleryAccordion />
             </div>
           </section>
+
+          <LookbookGate />
 
           <p>
             <Link href={routes.portfolioAlbums} className="text-sm font-medium text-accent hover:underline">

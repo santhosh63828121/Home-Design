@@ -301,3 +301,76 @@ export const pricingFaqs: Record<'hub' | 'kitchen' | '2bhk' | '3bhk', Faq[]> = {
     },
   ],
 }
+
+// ---- 4-TIER DESIGN PACKAGES (doc §4.6) -------------------------------------
+/**
+ * The Essential / Elite / Luxury / Signature feature grid. Per-sq.ft figures are
+ * INDICATIVE (gated by PRICING_INDICATIVE — they carry `*` + the footnote) until
+ * RGL confirms the unit on the handwritten grid (§2.1). The warranty row is
+ * `pending` because the single warranty offer is an open decision (§2.3) — it is
+ * shown for structure but flagged, never published as a firm term.
+ */
+export type DesignTier = {
+  id: 'essential' | 'elite' | 'luxury' | 'signature'
+  name: string
+  blurb: string
+  perSqft: { min: Money; max: Money } | null // null = Custom BOQ
+  featured?: boolean
+}
+
+export type TierRow = {
+  label: string
+  /** [essential, elite, luxury, signature] */
+  cells: [string, string, string, string]
+  pending?: boolean // value depends on an open §2.x decision
+}
+
+export const designTiers: DesignTier[] = [
+  { id: 'essential', name: 'Essential', blurb: 'Quality modular interiors, honestly priced.', perSqft: { min: 700, max: 900 } },
+  { id: 'elite', name: 'Elite', blurb: 'Branded hardware and a layered design plan.', perSqft: { min: 1200, max: 1500 }, featured: true },
+  { id: 'luxury', name: 'Luxury', blurb: 'Imported finishes and full design direction.', perSqft: { min: 1800, max: 2500 } },
+  { id: 'signature', name: 'Signature', blurb: 'Bespoke, client-specified, MD-led.', perSqft: null },
+]
+
+export const tierFeatures: TierRow[] = [
+  { label: 'Material core', cells: ['HDHMR', 'Premium BWP ply', 'Marine / import ply', 'Client-specified'] },
+  { label: 'Shutter finish', cells: ['Economy laminates', 'Greenlam / Merino', 'European laminates', 'Curated'] },
+  { label: 'Hardware', cells: ['Standard', 'Hettich / Hafele', 'Blum full system', 'Brand of choice'] },
+  { label: 'Countertop', cells: ['Granite (2cm)', 'Quartz', 'Italian marble', 'Client-specified'] },
+  { label: 'Lighting', cells: ['Basic points', 'Layered plan', 'Full lux-calculated', 'Bespoke'] },
+  { label: 'Warranty', cells: ['5 years', '8 years', '10 years', '10 years +'], pending: true },
+  { label: 'Project manager', cells: ['Shared', 'Dedicated', 'Dedicated + Design Dir', 'MD-level oversight'] },
+  { label: '3D walkthrough', cells: ['Included', 'Included', 'Premium renders', 'VR walkthrough'] },
+]
+
+/** Per-sq.ft label with the indicative marker — gated like all pricing. */
+export function perSqftLabel(t: DesignTier, indicative: boolean = PRICING_INDICATIVE): string {
+  if (!t.perSqft) return 'Custom BOQ'
+  const star = indicative ? '*' : ''
+  return `${formatINR(t.perSqft.min)}–${formatINR(t.perSqft.max)}/sq.ft${star}`
+}
+
+// ---- RESIDENTIAL PROJECT TIMELINES (doc §4.6) ------------------------------
+/**
+ * Planning targets in calendar days, with factory and site work running in
+ * parallel (so TOTAL is less than the column sum). These are NOT promises until
+ * operations confirm them and they reconcile with any published delivery
+ * guarantee (§2.3) — rendered with that caveat.
+ */
+export const timelineConfigs = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', 'Villa G+1', 'Villa G+2'] as const
+
+export type TimelinePhase = { phase: string; days: readonly [number, number, number, number, number, number] }
+
+export const residentialTimeline: TimelinePhase[] = [
+  { phase: 'Discovery + design', days: [7, 10, 12, 14, 15, 20] },
+  { phase: '3D + approval', days: [7, 7, 10, 10, 12, 14] },
+  { phase: 'BOQ + agreement', days: [3, 3, 4, 5, 5, 7] },
+  { phase: 'Procurement', days: [5, 7, 8, 10, 10, 12] },
+  { phase: 'Factory manufacturing', days: [12, 15, 18, 20, 25, 30] },
+  { phase: 'Civil + MEP', days: [12, 15, 20, 22, 30, 40] },
+  { phase: 'Installation', days: [5, 7, 8, 10, 14, 18] },
+  { phase: 'QC + styling + handover', days: [3, 3, 4, 4, 5, 7] },
+]
+
+/** Approx. totals (parallelised, so not the column sum). */
+export const timelineTotals: readonly [number, number, number, number, number, number] = [35, 45, 50, 55, 65, 80]

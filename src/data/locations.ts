@@ -264,4 +264,316 @@ export const cities: City[] = [
   },
 ]
 
-export const getCity = (slug: string) => cities.find((c) => c.slug === slug)
+/**
+ * CHENNAI SUBURBS (doc §7.2) — neighbourhood-level local SEO. Same engine and
+ * service-area schema as the cities; each carries genuinely distinct copy built
+ * from the real character of the area (housing mix, localities, area-specific
+ * FAQs). Avadi is RGL's home base.
+ */
+export const suburbs: City[] = [
+  {
+    slug: 'interior-designers-avadi',
+    projectKey: 'avadi',
+    name: 'Avadi',
+    geo: { lat: 13.1147, lng: 80.0982 },
+    tagline: 'Our home ground in north-west Chennai.',
+    metaDescription:
+      'Interior designers in Avadi, Chennai — RGL Decors, based here. Modular kitchens, wardrobes and full-home interiors for independent houses and new apartments. Free 3D design.',
+    intro:
+      'Avadi is our home ground. As a fast-growing township in north-west Chennai — anchored by its defence and railway establishments — Avadi has a healthy mix of long-held independent houses and a wave of new apartments, and being based here means quick site visits, measurements and installs with almost no travel overhead on your project.',
+    housing:
+      'Independent houses and plots sit alongside newer mid-segment apartments. Many Avadi projects are full-home builds for first homes or generational family houses, where smart storage and durable, value-honest finishes matter most.',
+    areas: ['Avadi', 'Thirumullaivoyal', 'Pattabiram', 'Paruthipattu', 'Ambattur', 'Sevvapet'],
+    nearby: 'We also cover the wider north-west belt — Thiruninravur, Pattabiram and the Poonamallee side.',
+    faqs: [
+      {
+        q: 'Is RGL Decors actually based in Avadi?',
+        a: 'Yes — Avadi is our home base, so for projects here you get the fastest possible site visits, measurements and installation scheduling, with our team minutes away.',
+      },
+      {
+        q: 'Do you design interiors for independent houses in Avadi?',
+        a: 'Absolutely. A large share of Avadi homes are independent houses, and we design and factory-build complete interiors for them — from modular kitchens and wardrobes to false ceilings, painting and full turnkey fit-outs.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-anna-nagar',
+    projectKey: 'anna-nagar',
+    name: 'Anna Nagar',
+    geo: { lat: 13.085, lng: 80.2101 },
+    tagline: 'Premium interiors for one of Chennai’s most planned neighbourhoods.',
+    metaDescription:
+      'Interior designers in Anna Nagar, Chennai — RGL Decors for premium apartments and independent bungalows. Modular kitchens, wardrobes and turnkey interiors with free 3D design.',
+    intro:
+      'Anna Nagar is one of Chennai’s most established and planned neighbourhoods, and its homeowners expect interiors to match — refined, durable and beautifully detailed. From premium apartments around the Tower Park to independent bungalows on the leafy avenues, we deliver design-led interiors with the finish and accountability this address calls for.',
+    housing:
+      'A mix of upscale apartments and older independent bungalows. Many Anna Nagar projects are premium full-home interiors or thoughtful renovations of established homes, where material quality and craftsmanship lead the brief.',
+    areas: ['Anna Nagar West', 'Shanthi Colony', 'Thirumangalam', 'Anna Nagar East', 'Blue Star Colony'],
+    nearby: 'We also cover the adjacent Mogappair, Aminjikarai and Kilpauk neighbourhoods.',
+    faqs: [
+      {
+        q: 'Do you handle premium and bespoke interiors in Anna Nagar?',
+        a: 'Yes — Anna Nagar homeowners typically want premium finishes and bespoke detailing, and our Luxury and Signature tiers cover imported finishes, designer hardware and full design direction.',
+      },
+      {
+        q: 'Can you renovate an older Anna Nagar bungalow?',
+        a: 'We do. Many Anna Nagar homes are well-built older bungalows, and we handle full renovations — reworking layouts, modular systems, ceilings and finishes while respecting the home’s character.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-porur',
+    projectKey: 'porur',
+    name: 'Porur',
+    geo: { lat: 13.0382, lng: 80.1565 },
+    tagline: 'Interiors for Porur’s fast-growing IT-corridor homes.',
+    metaDescription:
+      'Interior designers in Porur, Chennai — RGL Decors for gated-community apartments and new homes near the IT corridor. Modular kitchens, wardrobes and turnkey interiors, free 3D design.',
+    intro:
+      'Porur has transformed into one of west Chennai’s busiest residential and IT hubs, with gated communities and new apartments filling up fast around the Mount-Poonamallee Road belt. We design and factory-build interiors that suit working families settling into these homes — efficient, low-maintenance and ready to move into on a predictable timeline.',
+    housing:
+      'Largely new apartments and gated-community flats, with some independent houses. Porur projects are often time-sensitive move-in fit-outs for IT professionals, where a guaranteed timeline and a complete, hands-off turnkey scope matter.',
+    areas: ['Porur', 'Iyyappanthangal', 'Mugalivakkam', 'Ramapuram', 'Kundrathur'],
+    nearby: 'We also serve Vadapalani, Valasaravakkam and the Poonamallee stretch.',
+    faqs: [
+      {
+        q: 'Can you finish a Porur apartment before my move-in date?',
+        a: 'Yes — because units are factory-built, most apartment interiors install within our planned timeline. Share your move-in date at the consultation and we’ll plan the schedule around it.',
+      },
+      {
+        q: 'Do you work in Porur gated communities?',
+        a: 'Regularly. We follow each community’s working hours and access rules, coordinate with the facility team, and keep the site clean throughout — common in Porur’s gated developments.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-velachery',
+    projectKey: 'velachery',
+    name: 'Velachery',
+    geo: { lat: 12.9791, lng: 80.2204 },
+    tagline: 'Smart interiors for Velachery’s compact, well-connected homes.',
+    metaDescription:
+      'Interior designers in Velachery, Chennai — RGL Decors for mid-segment apartments and compact homes near the IT belt. Space-smart modular kitchens, wardrobes and interiors. Free 3D design.',
+    intro:
+      'Velachery is one of south Chennai’s most connected and densely-built residential pockets, popular with families and professionals for its proximity to the Taramani–OMR IT belt. Homes here are often compact, so our work is all about making every inch count — clever storage, space-expanding layouts and finishes that keep a smaller home feeling open.',
+    housing:
+      'Predominantly mid-segment apartments, many of them compact 2 and 3BHKs. Velachery briefs lean toward space-maximising modular kitchens, tall wardrobes and multi-use units that earn their footprint.',
+    areas: ['Velachery', 'Pallikaranai', 'Madipakkam', 'Taramani', 'Guindy'],
+    nearby: 'We also cover Adambakkam, Keelkattalai and the Medavakkam side.',
+    faqs: [
+      {
+        q: 'How do you make a small Velachery apartment feel bigger?',
+        a: 'With layout-first design — floor-to-ceiling storage, handleless modular units, lighter finishes and well-planned lighting. You see it all in your 3D walkthrough before anything is built.',
+      },
+      {
+        q: 'Do you design compact 2BHK interiors in Velachery?',
+        a: 'Yes — compact 2 and 3BHKs are the most common Velachery brief. We specialise in storage-smart, move-in-ready interiors that fit the space and the budget.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-omr',
+    projectKey: 'omr',
+    name: 'OMR',
+    geo: { lat: 12.9009, lng: 80.2279 },
+    tagline: 'Interiors for the OMR IT corridor’s high-rise homes.',
+    metaDescription:
+      'Interior designers on OMR, Chennai — RGL Decors for gated high-rise apartments along the IT corridor. NRI-friendly, factory-built modular interiors with free 3D design and remote tracking.',
+    intro:
+      'The OMR IT corridor — from Perungudi down to Sholinganallur, Navalur and Siruseri — is Chennai’s fastest-growing premium residential belt, full of gated high-rises bought by young professionals and NRI investors. We design and factory-build interiors for these homes with the precision and remote-friendly process this audience expects, including weekly video updates for owners who can’t be on site.',
+    housing:
+      'High-rise gated-community apartments dominate, many bought as first premium homes or NRI investments. OMR briefs often combine a premium finish with a fully remote-managed, milestone-tracked delivery.',
+    areas: ['Sholinganallur', 'Navalur', 'Siruseri', 'Perungudi', 'Thoraipakkam', 'Karapakkam'],
+    nearby: 'We also serve the Padur, Kelambakkam and Semmancheri stretch further down OMR.',
+    faqs: [
+      {
+        q: 'I’m an NRI buying on OMR — can you manage the project remotely?',
+        a: 'Yes. We run NRI projects end-to-end remotely: 3D approvals online, milestone payments, weekly WhatsApp photo updates and a video handover. Many of our OMR clients are overseas throughout.',
+      },
+      {
+        q: 'Do you work within OMR gated high-rises?',
+        a: 'Routinely. We handle society approvals, follow building work-hour rules, protect common areas and coordinate service lifts — standard practice across OMR’s gated towers.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-ecr',
+    projectKey: 'ecr',
+    name: 'ECR',
+    geo: { lat: 12.9494, lng: 80.2585 },
+    tagline: 'Coastal-grade interiors for ECR villas and beach homes.',
+    metaDescription:
+      'Interior designers on ECR, Chennai — RGL Decors for sea-facing villas, beach houses and second homes. Coastal-grade, humidity-resistant interiors with free 3D design and a 10-year warranty.',
+    intro:
+      'The East Coast Road is Chennai’s premium coastal belt — sea-facing villas, beach houses and weekend second homes from Neelankarai down to Kovalam. The brief here is as much about engineering as aesthetics: salt air and humidity are tough on interiors, so we specify marine-grade substrates, moisture-barrier backings and anti-corrosive hardware built to last by the sea.',
+    housing:
+      'Independent villas, beach houses and farmhouse-style second homes, often large and design-led. ECR projects prioritise coastal durability alongside a luxury finish — exactly what our CoastalShield material approach is built for.',
+    areas: ['Neelankarai', 'Injambakkam', 'Akkarai', 'Uthandi', 'Kovalam', 'Muttukadu'],
+    nearby: 'We also cover the Palavakkam, Thiruvanmiyur-end and the stretch toward Mahabalipuram.',
+    faqs: [
+      {
+        q: 'How do you protect ECR interiors from sea humidity and salt air?',
+        a: 'We use marine-grade BWP/Gurjan substrates, moisture-barrier backings and anti-corrosive hardware engineered for coastal conditions — so your interiors hold up to ECR’s salt air and humidity.',
+      },
+      {
+        q: 'Do you design second homes and villas on ECR?',
+        a: 'Yes — sea-facing villas and weekend homes are a core ECR brief. We handle full turnkey villa interiors, and remote-manage them for owners who live elsewhere in the city or abroad.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-adyar',
+    projectKey: 'adyar',
+    name: 'Adyar',
+    geo: { lat: 13.0064, lng: 80.2574 },
+    tagline: 'Refined interiors for Adyar’s established homes.',
+    metaDescription:
+      'Interior designers in Adyar, Chennai — RGL Decors for premium apartments and established independent homes. Renovations, modular interiors and turnkey fit-outs with free 3D design.',
+    intro:
+      'Adyar is one of Chennai’s most desirable and established neighbourhoods — leafy, central and home to a discerning, design-aware crowd. Many homes here are older independent houses ripe for renovation alongside premium apartments, so our work spans careful remodels that respect a home’s character and crisp new fit-outs with a refined, understated finish.',
+    housing:
+      'Established independent houses and premium apartments. Adyar briefs frequently involve renovation and remodelling of older homes, where layout rework and quality craftsmanship matter as much as new modular systems.',
+    areas: ['Adyar', 'Besant Nagar', 'Thiruvanmiyur', 'Kotturpuram', 'Gandhi Nagar'],
+    nearby: 'We also cover the Sastri Nagar, Indira Nagar and RA Puram pockets.',
+    faqs: [
+      {
+        q: 'Do you renovate older homes in Adyar?',
+        a: 'Yes — a large share of Adyar work is renovation of established homes. We rework layouts, upgrade modular systems, ceilings and finishes, and manage civil work, all to a single standard.',
+      },
+      {
+        q: 'Can you match an understated, design-led look for an Adyar home?',
+        a: 'Absolutely. Our brand is sophisticated rather than showy — curated materials, clean detailing and a refined palette, which suits the understated luxury Adyar homeowners tend to prefer.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-t-nagar',
+    projectKey: 't-nagar',
+    name: 'T. Nagar',
+    geo: { lat: 13.0418, lng: 80.2341 },
+    tagline: 'Space-smart interiors for T. Nagar’s central, compact homes.',
+    metaDescription:
+      'Interior designers in T. Nagar, Chennai — RGL Decors for compact central apartments and older homes. Space-saving modular interiors and renovations with free 3D design and clean installs.',
+    intro:
+      'T. Nagar is the dense, vibrant heart of central Chennai — as much a commercial landmark as a residential one. Homes here are often older and space-constrained, tucked above or between the bustle, so our work focuses on smart, space-saving interiors and tidy renovations that work within tight footprints and busy, access-restricted streets.',
+    housing:
+      'Older apartments and compact homes, many in need of renovation or redevelopment. T. Nagar briefs reward space-efficient modular design, vertical storage and finishes that lift a compact, central home.',
+    areas: ['T. Nagar', 'Pondy Bazaar', 'West Mambalam', 'Mambalam', 'Nungambakkam'],
+    nearby: 'We also cover Kodambakkam, Saidapet and the Ashok Nagar side.',
+    faqs: [
+      {
+        q: 'Can you work around T. Nagar’s tight access and busy streets?',
+        a: 'Yes — we plan deliveries and installs around access constraints and society hours, and because units arrive factory-finished, on-site time and disruption stay minimal even in congested T. Nagar.',
+      },
+      {
+        q: 'Do you design compact and older T. Nagar homes?',
+        a: 'That’s our common brief here — space-saving modular kitchens, tall wardrobes and clever storage, plus full renovations of older central homes.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-chromepet',
+    projectKey: 'chromepet',
+    name: 'Chromepet',
+    geo: { lat: 12.9516, lng: 80.1402 },
+    tagline: 'Value-honest interiors for Chromepet’s suburban homes.',
+    metaDescription:
+      'Interior designers in Chromepet, Chennai — RGL Decors for independent houses and mid-segment apartments along the GST Road belt. Modular kitchens, wardrobes and turnkey interiors, free 3D design.',
+    intro:
+      'Chromepet anchors Chennai’s southern suburban belt along the GST Road, with a practical mix of independent houses and mid-segment apartments owned by settled families. Briefs here are value-conscious and durability-led, and our transparent, itemised pricing — with no hidden costs — is exactly what Chromepet homeowners tell us they were looking for.',
+    housing:
+      'Independent houses and mid-segment apartments. Chromepet projects are typically full-home interiors for family homes, where honest pricing, sensible material grades and lasting build quality lead the decision.',
+    areas: ['Chromepet', 'Pallavaram', 'Hasthinapuram', 'Chitlapakkam', 'Selaiyur'],
+    nearby: 'We also cover Pammal, Anakaputhur and the Tambaram side.',
+    faqs: [
+      {
+        q: 'Is RGL affordable for a Chromepet family home?',
+        a: 'Our pricing is fully itemised and starts from the Essential tier, so you choose the material grade that fits your budget — and the BOQ you approve is the price you pay, with no hidden extras.',
+      },
+      {
+        q: 'Do you design independent houses in Chromepet?',
+        a: 'Yes — independent family homes are a core Chromepet brief, and we handle complete interiors for them, from modular kitchens and wardrobes to ceilings, painting and full turnkey work.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-mogappair',
+    projectKey: 'mogappair',
+    name: 'Mogappair',
+    geo: { lat: 13.0878, lng: 80.1757 },
+    tagline: 'Interiors for Mogappair’s planned residential homes.',
+    metaDescription:
+      'Interior designers in Mogappair, Chennai — RGL Decors for planned-layout apartments and independent homes near Anna Nagar. Modular kitchens, wardrobes and turnkey interiors, free 3D design.',
+    intro:
+      'Mogappair is a well-planned, family-friendly residential pocket in north-west Chennai, popular with middle and upper-middle households drawn to its orderly layout and proximity to Anna Nagar. Homes range from planned-development apartments to independent houses, and we deliver polished, well-detailed interiors with the dependable timeline and finish settled families here expect.',
+    housing:
+      'Planned-layout apartments and independent houses, generally mid-to-premium. Mogappair briefs favour a clean, contemporary finish with practical storage for growing families.',
+    areas: ['Mogappair East', 'Mogappair West', 'Golden George Nagar', 'Nolambur', 'Ambattur'],
+    nearby: 'We also cover Padi, Korattur and the Anna Nagar West extension.',
+    faqs: [
+      {
+        q: 'Do you serve both apartments and independent houses in Mogappair?',
+        a: 'Yes — Mogappair has both, and we design and factory-build complete interiors for either, from compact apartment fit-outs to full independent-home turnkey projects.',
+      },
+      {
+        q: 'How close is your team to Mogappair?',
+        a: 'Very — our Avadi base is a short drive away, so site visits, measurements and installation scheduling in Mogappair are quick and easy to coordinate.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-tambaram',
+    projectKey: 'tambaram',
+    name: 'Tambaram',
+    geo: { lat: 12.9229, lng: 80.1275 },
+    tagline: 'Interiors for Tambaram’s fast-growing southern homes.',
+    metaDescription:
+      'Interior designers in Tambaram, Chennai — RGL Decors for new apartments and independent houses around the GST Road and railway belt. Modular kitchens, wardrobes and turnkey interiors, free 3D design.',
+    intro:
+      'Tambaram is one of south Chennai’s fastest-growing suburban hubs — a major railway and road junction with new apartments and independent houses spreading out along the GST Road and toward Mudichur and Perungalathur. We design and factory-build move-in-ready interiors for these new homes, with value-honest pricing and a timeline families can plan around.',
+    housing:
+      'A growing mix of new apartments and independent houses as the suburb expands. Tambaram briefs are commonly full-home fit-outs for new family homes, balancing budget, durability and a fresh, contemporary look.',
+    areas: ['East Tambaram', 'West Tambaram', 'Selaiyur', 'Mudichur', 'Perungalathur', 'Chitlapakkam'],
+    nearby: 'We also cover Medavakkam, Camp Road and the Vandalur stretch.',
+    faqs: [
+      {
+        q: 'Do you cover the newer developments around Tambaram?',
+        a: 'Yes — including the Mudichur, Perungalathur and Camp Road growth corridors, where a lot of new homes are coming up. We handle full interiors for new apartments and independent houses alike.',
+      },
+      {
+        q: 'Can you keep a Tambaram project within a sensible budget?',
+        a: 'Our itemised pricing starts at the Essential tier and scales to your choice, so you control the grade and the cost — and the approved BOQ is exactly what you pay.',
+      },
+    ],
+  },
+  {
+    slug: 'interior-designers-nungambakkam',
+    projectKey: 'nungambakkam',
+    name: 'Nungambakkam',
+    geo: { lat: 13.0596, lng: 80.2426 },
+    tagline: 'High-end interiors for Nungambakkam’s premium central homes.',
+    metaDescription:
+      'Interior designers in Nungambakkam, Chennai — RGL Decors for premium central apartments and bungalows. Luxury modular interiors, renovations and turnkey fit-outs with free 3D design.',
+    intro:
+      'Nungambakkam is one of central Chennai’s most upmarket addresses — a blend of premium apartments, gracious older bungalows, boutiques and consulates around the Khader Nawaz Khan Road set. Homeowners here expect a high-end, design-led finish, and we deliver luxury interiors with curated materials, designer hardware and the discreet, white-glove process this neighbourhood calls for.',
+    housing:
+      'Premium apartments and established bungalows, skewing high-end. Nungambakkam briefs centre on luxury finishes, bespoke detailing and careful renovation of distinguished older homes.',
+    areas: ['Nungambakkam', 'Sterling Road', 'College Road', 'Thousand Lights', 'Egmore'],
+    nearby: 'We also cover Kilpauk, Chetpet and the Greams Road pocket.',
+    faqs: [
+      {
+        q: 'Do you offer luxury and bespoke interiors in Nungambakkam?',
+        a: 'Yes — our Luxury and Signature tiers cover imported finishes, designer hardware, full design direction and MD-level oversight, suited to Nungambakkam’s high-end homes.',
+      },
+      {
+        q: 'Can you renovate a heritage-style bungalow in Nungambakkam?',
+        a: 'We can. We handle sensitive renovations of older, characterful homes — reworking layouts and services while preserving the home’s architectural personality.',
+      },
+    ],
+  },
+]
+
+/** Every location page (TN cities + Chennai suburbs) — drives hub, sitemap, schema. */
+export const allLocations: City[] = [...cities, ...suburbs]
+
+export const getCity = (slug: string) => allLocations.find((c) => c.slug === slug)

@@ -31,6 +31,16 @@ export type Space = 'Apartment' | 'Villa' | 'Office' | 'Commercial'
 export type Bhk = '1BHK' | '2BHK' | '3BHK' | null
 export type BudgetBand = '₹3–6L' | '₹6–12L' | '₹12L+ / Custom'
 
+/** Structured case-study narrative (doc §4.5) — all parts optional. */
+export type ProjectNarrative = {
+  brief?: string // client brief
+  challenge?: string // design challenge
+  solution?: string // our solution
+  result?: string // result
+}
+/** A material in the project's palette. */
+export type MaterialSpec = { name: string; note?: string }
+
 export type Project = {
   slug: string
   client: string
@@ -50,6 +60,19 @@ export type Project = {
   featured?: boolean
   media: ProjectMedia
   testimonial?: ProjectTestimonial | null
+
+  /** STAT-BLOCK extras (doc §4.5) — optional; the row renders only when set,
+   *  so we never publish a guessed area / timeline / tier for a placeholder. */
+  location?: string
+  areaSqft?: number
+  timeline?: string
+  tier?: string
+  /** Structured narrative — renders only when supplied (no fabricated stories). */
+  narrative?: ProjectNarrative
+  /** Material palette — renders only when supplied. */
+  materials?: MaterialSpec[]
+  /** 360° virtual-tour embed URL — renders only when supplied. */
+  tour360?: string
 }
 
 /** Budget bands are indicative buckets (we don't publish clients' actual spend). */
@@ -68,7 +91,7 @@ export const projects: Project[] = [
     scope: 'Full restaurant / hotel interior, designed and presented as a 3D walkthrough.',
     summary:
       'A complete hospitality fit-out for Mr. Divakar — dining, service and ambience designed end to end and previewed as an HD 3D walkthrough before execution.',
-    services: ['false-ceiling-and-lighting', 'finished-furniture'],
+    services: ['indoor-outdoor-lighting', 'finished-furniture'],
     featured: true,
     media: {}, // photos / walkthrough video to be added
     testimonial: null,
@@ -116,7 +139,7 @@ export const projects: Project[] = [
     scope: 'Commercial office fit-out plus a full 3BHK villa interior.',
     summary:
       'A dual project for Mr. Muthu — a functional commercial office fit-out and a complete 3BHK villa interior, delivered with factory precision.',
-    services: ['finished-furniture', 'false-ceiling-and-lighting'],
+    services: ['finished-furniture', 'indoor-outdoor-lighting'],
     featured: true,
     media: {},
     testimonial: null,
@@ -135,6 +158,15 @@ export const hasBeforeAfter = (p: Project) => (p.media.beforeAfter?.length ?? 0)
 export const hasRenderVsReal = (p: Project) => !!p.media.renderVsReal
 export const hasVideo = (p: Project) => !!p.media.youTubeId
 export const hasTestimonial = (p: Project) => !!p.testimonial
+export const hasNarrative = (p: Project) =>
+  !!p.narrative && Object.values(p.narrative).some(Boolean)
+export const hasMaterials = (p: Project) => (p.materials?.length ?? 0) > 0
+export const hasTour = (p: Project) => !!p.tour360
+
+/** Top-level category (doc §4.5 filter) — derived from the space. */
+export type Category = 'Residential' | 'Commercial'
+export const projectCategory = (p: Project): Category =>
+  p.space === 'Office' || p.space === 'Commercial' ? 'Commercial' : 'Residential'
 export const projectServiceLinks = (p: Project) =>
   p.services.map((slug) => ({ slug, href: routes.service(slug) }))
 
@@ -142,17 +174,19 @@ export const projectServiceLinks = (p: Project) =>
 const uniq = <T,>(arr: T[]) => Array.from(new Set(arr))
 
 export const facets = {
+  category: uniq(projects.map(projectCategory)),
   space: uniq(projects.map((p) => p.space)),
   style: uniq(projects.map((p) => p.style)),
   bhk: uniq(projects.map((p) => p.bhk).filter((b): b is Exclude<Bhk, null> => b !== null)),
   budget: uniq(projects.map((p) => p.budgetBand)),
 }
 
-export type Filters = { space?: string; style?: string; bhk?: string; budget?: string }
+export type Filters = { category?: string; space?: string; style?: string; bhk?: string; budget?: string }
 
 export function filterProjects(list: Project[], f: Filters): Project[] {
   return list.filter(
     (p) =>
+      (!f.category || projectCategory(p) === f.category) &&
       (!f.space || p.space === f.space) &&
       (!f.style || p.style === f.style) &&
       (!f.bhk || p.bhk === f.bhk) &&

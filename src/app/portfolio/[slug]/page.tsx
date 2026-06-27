@@ -14,6 +14,9 @@ import {
   hasRenderVsReal,
   hasVideo,
   hasGallery,
+  hasNarrative,
+  hasMaterials,
+  hasTour,
 } from '@/data/portfolio'
 import { serviceCategories } from '@/data/business'
 import { buildMetadata, siteConfig, clampDesc } from '@/lib/seo'
@@ -53,11 +56,17 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
     { name: 'Portfolio', path: routes.portfolio },
     { name: p.title, path: routes.portfolioProject(p.slug) },
   ]
+  // Stat block (doc §4.5). Optional rows render only when set — never a guessed
+  // area / timeline / tier for a placeholder project.
   const facts = [
     { k: 'Client', v: p.client },
-    { k: 'Space', v: p.space },
+    { k: 'Type', v: p.space },
     p.bhk ? { k: 'Configuration', v: p.bhk } : null,
+    p.location ? { k: 'Location', v: p.location } : null,
+    p.areaSqft ? { k: 'Area', v: `${p.areaSqft.toLocaleString('en-IN')} sq.ft` } : null,
     { k: 'Style', v: p.style },
+    p.tier ? { k: 'Tier', v: p.tier } : null,
+    p.timeline ? { k: 'Timeline', v: p.timeline } : null,
     { k: 'Budget band', v: p.budgetBand },
   ].filter(Boolean) as { k: string; v: string }[]
 
@@ -100,6 +109,46 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                 <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink/80">{p.summary}</p>
                 <p className="mt-3 max-w-2xl text-ink/70">{p.scope}</p>
               </section>
+
+              {/* Structured narrative — renders only when supplied (§4.5) */}
+              {hasNarrative(p) && (
+                <section>
+                  <h2 className="font-serif text-2xl font-bold sm:text-3xl">The story</h2>
+                  <div className="mt-5 space-y-6">
+                    {(
+                      [
+                        ['The brief', p.narrative?.brief],
+                        ['The design challenge', p.narrative?.challenge],
+                        ['Our solution', p.narrative?.solution],
+                        ['The result', p.narrative?.result],
+                      ] as const
+                    )
+                      .filter(([, v]) => v)
+                      .map(([label, v]) => (
+                        <div key={label}>
+                          <h3 className="font-caps text-xs uppercase tracking-wide2 text-teal">{label}</h3>
+                          <p className="mt-2 max-w-2xl leading-relaxed text-ink/80">{v}</p>
+                        </div>
+                      ))}
+                  </div>
+                </section>
+              )}
+
+              {/* 360° virtual tour — only when a URL exists */}
+              {hasTour(p) && (
+                <section>
+                  <h2 className="font-serif text-2xl font-bold sm:text-3xl">360° virtual tour</h2>
+                  <div className="mt-5 aspect-video w-full overflow-hidden rounded-2xl border border-divider">
+                    <iframe
+                      src={p.tour360}
+                      title={`${p.title} — 360° tour`}
+                      loading="lazy"
+                      allowFullScreen
+                      className="h-full w-full"
+                    />
+                  </div>
+                </section>
+              )}
 
               {/* Walkthrough video — only when an id exists */}
               {hasVideo(p) && (
@@ -145,6 +194,21 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                   <h2 className="font-serif text-2xl font-bold sm:text-3xl">Gallery</h2>
                   <div className="mt-5">
                     <ProjectGallery images={p.media.gallery} />
+                  </div>
+                </section>
+              )}
+
+              {/* Material palette — only when supplied */}
+              {hasMaterials(p) && (
+                <section>
+                  <h2 className="font-serif text-2xl font-bold sm:text-3xl">Material palette</h2>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {p.materials!.map((m) => (
+                      <div key={m.name} className="rounded-xl border border-divider bg-white p-4 shadow-card">
+                        <p className="font-serif text-base text-ink">{m.name}</p>
+                        {m.note && <p className="mt-1 text-sm text-muted">{m.note}</p>}
+                      </div>
+                    ))}
                   </div>
                 </section>
               )}

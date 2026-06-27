@@ -138,7 +138,7 @@ export default function Navbar() {
           </a>
           <Link
             href={routes.getQuote}
-            className="hidden h-12 items-center gap-2 rounded-full bg-[#2D6A5A] px-6 font-caps text-[13px] font-semibold tracking-caps text-white transition-colors hover:bg-[#235446] md:inline-flex lg:h-[52px] lg:px-7"
+            className="btn-gold hidden h-12 items-center gap-2 rounded-full px-6 font-caps text-[13px] font-semibold tracking-caps transition-colors md:inline-flex lg:h-[52px] lg:px-7"
           >
             <PencilRuler size={16} aria-hidden="true" /> Get Free Quote
           </Link>

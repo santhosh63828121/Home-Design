@@ -3,6 +3,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
 
+export { formatPostDate } from './blog-format'
+
 /**
  * BLOG DATA LAYER — single source of truth for posts.
  * ----------------------------------------------------------------------------
@@ -148,9 +150,3 @@ export function getRelatedPosts(slug: string, limit = 3): PostMeta[] {
   return picked.slice(0, limit)
 }
 
-/** Pretty date, e.g. "19 June 2026". */
-export function formatPostDate(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
-}

@@ -7,7 +7,9 @@
     --background: #f8f6f1;
     --text: #1a1a1a;
     --accent: #2d6a5a;
-    --muted: #888888;
+    --gold: #c8973a;
+    --teal: #1b6f72;
+    --muted: #6b6b6b;
     --white: #ffffff;
     --divider: #e8e4de;
   }
@@ -43,9 +45,9 @@
 }
 
 @layer components {
-  /* Editorial small-caps label used across sections. */
+  /* Editorial small-caps label used across sections — teal accent (doc §5.2). */
   .eyebrow {
-    @apply font-caps text-xs uppercase tracking-wide3 text-accent;
+    @apply font-caps text-xs uppercase tracking-wide3 text-teal;
   }
 
   .btn-pill {
@@ -54,6 +56,13 @@
 
   .btn-pill:hover {
     transform: scale(1.03);
+  }
+
+  /* Premium gold CTA — ink (charcoal) text, NOT white: gold #C8973A fails WCAG AA
+     with white but clears ~5.6:1 with ink. Used for the primary conversion
+     buttons (Book / Get Free Quote); green stays the structural brand button. */
+  .btn-gold {
+    @apply bg-gold text-ink hover:bg-gold-dark;
   }
 }
 

@@ -2,7 +2,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowUpRight, Clock } from 'lucide-react'
 import { routes } from '@/lib/routes'
-import { formatPostDate, type PostMeta } from '@/lib/blog'
+import { formatPostDate } from '@/lib/blog-format'
+import type { PostMeta } from '@/lib/blog'
 
 /** Article preview card — used on the blog index and in related-posts rows. */
 export default function BlogCard({ post }: { post: PostMeta }) {

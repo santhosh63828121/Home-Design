@@ -8,6 +8,12 @@ import {
   PRICING_INDICATIVE,
   PRICING_FOOTNOTE,
   getPackage,
+  designTiers,
+  tierFeatures,
+  perSqftLabel,
+  residentialTimeline,
+  timelineConfigs,
+  timelineTotals,
   type Package,
 } from '@/data/pricing'
 
@@ -52,6 +58,118 @@ export function PriceRangesTable({ ids }: { ids?: string[] }) {
         </table>
       </div>
       <PriceFootnote className="mt-3" />
+    </div>
+  )
+}
+
+/**
+ * 4-tier design-package feature grid (doc §4.6). Per-sq.ft figures are indicative
+ * (carry `*` + the footnote); the warranty row is flagged `†` because the single
+ * warranty offer is still an open decision (§2.3). Scrolls horizontally on mobile.
+ */
+export function TierGrid() {
+  return (
+    <div>
+      <div className="overflow-x-auto rounded-2xl border border-divider bg-white shadow-card">
+        <table className="w-full min-w-[760px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-divider">
+              <th className="px-4 py-5 align-bottom font-caps text-xs uppercase tracking-wide2 text-muted">
+                Feature
+              </th>
+              {designTiers.map((t) => (
+                <th key={t.id} className={`px-4 py-5 align-bottom ${t.featured ? 'bg-gold/10' : ''}`}>
+                  {t.featured && (
+                    <span className="mb-2 inline-block rounded-full bg-gold px-2.5 py-0.5 font-caps text-[10px] font-semibold uppercase tracking-wide2 text-ink">
+                      Most popular
+                    </span>
+                  )}
+                  <span className="block font-serif text-lg text-ink">{t.name}</span>
+                  <span className="mt-1 block text-xs font-normal text-muted">{t.blurb}</span>
+                  <span className="mt-3 block whitespace-nowrap font-caps text-sm font-semibold text-accent">
+                    {perSqftLabel(t)}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-divider">
+            {tierFeatures.map((row) => (
+              <tr key={row.label}>
+                <th scope="row" className="px-4 py-3 text-left font-medium text-ink/80">
+                  {row.label}
+                  {row.pending && <sup className="ml-0.5 text-[10px] text-gold-dark">†</sup>}
+                </th>
+                {row.cells.map((c, i) => (
+                  <td key={i} className={`px-4 py-3 text-ink/80 ${designTiers[i].featured ? 'bg-gold/5' : ''}`}>
+                    {c}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-3 space-y-1">
+        <PriceFootnote />
+        <p className="text-xs text-muted">
+          <span className="text-gold-dark">†</span> Warranty terms are confirmed in your written
+          quotation.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+/** Residential timeline table (doc §4.6) — planning targets, parallelised. */
+export function ResidentialTimelines() {
+  return (
+    <div>
+      <div className="overflow-x-auto rounded-2xl border border-divider bg-white shadow-card">
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead className="bg-background">
+            <tr>
+              <th className="px-4 py-3 font-caps text-xs uppercase tracking-wide2 text-muted">Phase</th>
+              {timelineConfigs.map((c) => (
+                <th
+                  key={c}
+                  className="whitespace-nowrap px-4 py-3 text-right font-caps text-xs uppercase tracking-wide2 text-muted"
+                >
+                  {c}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-divider">
+            {residentialTimeline.map((r) => (
+              <tr key={r.phase}>
+                <th scope="row" className="whitespace-nowrap px-4 py-2.5 text-left font-medium text-ink/80">
+                  {r.phase}
+                </th>
+                {r.days.map((d, i) => (
+                  <td key={i} className="px-4 py-2.5 text-right text-ink/70">
+                    {d}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            <tr className="border-t-2 border-divider bg-background/60">
+              <th scope="row" className="px-4 py-3 text-left font-semibold text-ink">
+                Total (days)
+              </th>
+              {timelineTotals.map((t, i) => (
+                <td key={i} className="px-4 py-3 text-right font-semibold text-accent">
+                  ~{t}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 text-xs text-muted">
+        Calendar days, with factory and site work running in parallel (so the total is less than the
+        column sum). Planning targets, not promises — confirmed by our operations team at kickoff.
+      </p>
     </div>
   )
 }

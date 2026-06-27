@@ -10,14 +10,15 @@ import { ProjectCover } from './ProjectVisuals'
 
 type FacetKey = keyof Filters
 const FILTER_GROUPS: { key: FacetKey; label: string; values: string[] }[] = [
-  { key: 'space', label: 'Space', values: facets.space },
+  { key: 'category', label: 'Category', values: facets.category },
+  { key: 'space', label: 'Type', values: facets.space },
   { key: 'style', label: 'Style', values: facets.style },
   { key: 'bhk', label: 'BHK', values: facets.bhk },
   { key: 'budget', label: 'Budget', values: facets.budget },
 ]
 
 /**
- * Filterable case-study grid (Space · Style · BHK · Budget). Cards are
+ * Filterable case-study grid (Category · Type · Style · BHK · Budget). Cards are
  * server-rendered for SEO; filtering happens client-side with a layout
  * animation. Image slots sit on a skeleton shimmer so they load gracefully when
  * real photos arrive (until then, a branded placeholder shows — never a fake
@@ -98,7 +99,9 @@ export default function PortfolioGrid({ projects }: { projects: Project[] }) {
                       {p.space}
                       {p.bhk ? ` · ${p.bhk}` : ''} · {p.style}
                     </p>
-                    <h3 className="mt-2 font-serif text-lg">{p.title}</h3>
+                    {/* h2 (not h3): cards sit directly under the page h1 — an h3
+                        would skip a level (heading-order / WCAG). */}
+                    <h2 className="mt-2 font-serif text-lg">{p.title}</h2>
                     <p className="mt-1 text-sm text-muted">
                       {p.client} · {p.budgetBand}
                     </p>

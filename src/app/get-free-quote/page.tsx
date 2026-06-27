@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Phone, ShieldCheck, Clock, CheckCircle2, BadgeIndianRupee, Clapperboard } from 'lucide-react'
 import Logo from '@/components/ui/Logo.jsx'
-import ContactSection from '@/components/ContactSection.jsx'
+import MultiStepLeadForm from '@/components/MultiStepLeadForm'
 import { buildMetadata } from '@/lib/seo'
 import { routes } from '@/lib/routes'
 import { business } from '@/data/business'
@@ -72,9 +72,9 @@ export default function GetFreeQuotePage() {
           })}
         </ul>
 
-        {/* The lead form — Phase-0 Server Action (validate → persist → email → WhatsApp) */}
-        <div className="mt-12">
-          <ContactSection />
+        {/* Multi-step consultation form → submitLead (validate → persist → email → WhatsApp) */}
+        <div className="mx-auto mt-12 max-w-2xl">
+          <MultiStepLeadForm />
         </div>
       </main>
 

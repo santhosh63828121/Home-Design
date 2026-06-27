@@ -3,7 +3,14 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import PageStub from '@/components/page/PageStub'
 import CostCalculator from '@/components/pricing/CostCalculator'
-import { PriceRangesTable, IncludedExcluded, FinishTiers, EmiCallout } from '@/components/pricing/blocks'
+import {
+  PriceRangesTable,
+  IncludedExcluded,
+  FinishTiers,
+  EmiCallout,
+  TierGrid,
+  ResidentialTimelines,
+} from '@/components/pricing/blocks'
 import PricingFaqs from '@/components/pricing/PricingFaqs'
 import { buildMetadata, siteConfig } from '@/lib/seo'
 import { routes } from '@/lib/routes'
@@ -65,6 +72,19 @@ export default function PricingHubPage() {
           {/* Calculator */}
           <CostCalculator defaultPreset="2bhk" />
 
+          {/* 4-tier design packages (doc §4.6) */}
+          <section>
+            <h2 className="font-serif text-2xl font-bold sm:text-3xl">Four ways to work with us</h2>
+            <p className="mt-2 max-w-2xl text-ink/70">
+              Every tier is fully transparent — the materials, hardware and finishes you get at each
+              level, with an indicative per-sq.ft range. Your free site visit turns it into an exact,
+              itemised BOQ.
+            </p>
+            <div className="mt-6">
+              <TierGrid />
+            </div>
+          </section>
+
           {/* Ranges table */}
           <section>
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">Transparent package ranges</h2>
@@ -106,6 +126,18 @@ export default function PricingHubPage() {
 
           {/* EMI */}
           <EmiCallout />
+
+          {/* Project timelines (doc §4.6) */}
+          <section>
+            <h2 className="font-serif text-2xl font-bold sm:text-3xl">How long it takes</h2>
+            <p className="mt-2 max-w-2xl text-ink/70">
+              Indicative residential timelines from kickoff to handover. Factory and site work run in
+              parallel to keep them tight.
+            </p>
+            <div className="mt-6">
+              <ResidentialTimelines />
+            </div>
+          </section>
 
           {/* Detailed pricing links + related */}
           <section>

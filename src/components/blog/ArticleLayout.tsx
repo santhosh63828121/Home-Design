@@ -4,7 +4,6 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import { ArrowRight, ArrowLeft, Calendar, Clock, PenLine } from 'lucide-react'
 import Navbar from '@/components/Navbar.jsx'
 import Footer from '@/components/Footer.jsx'
-import SkipLink from '@/components/page/SkipLink'
 import { routes } from '@/lib/routes'
 import { siteConfig } from '@/lib/seo'
 import { formatPostDate, type Post, type PostMeta } from '@/lib/blog'
@@ -20,7 +19,6 @@ export default function ArticleLayout({ post, related }: { post: Post; related: 
 
   return (
     <>
-      <SkipLink />
       <Navbar />
       <main id="main" className="bg-background pt-28">
         <article className="mx-auto w-full max-w-7xl px-5 py-12 sm:px-8 lg:px-12">

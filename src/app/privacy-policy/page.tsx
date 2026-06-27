@@ -4,6 +4,7 @@ import LegalLayout, { LegalSection, Placeholder } from '@/components/legal/Legal
 import { buildMetadata } from '@/lib/seo'
 import { routes } from '@/lib/routes'
 import { business } from '@/data/business'
+import { analyticsEnabled, activeAnalyticsTools } from '@/lib/analytics'
 
 const UPDATED = '2026-06-23'
 
@@ -15,6 +16,9 @@ export const metadata: Metadata = buildMetadata({
 })
 
 export default function PrivacyPolicyPage() {
+  const tools = activeAnalyticsTools()
+  const toolsList = tools.length > 1 ? `${tools.slice(0, -1).join(', ')} and ${tools.slice(-1)}` : tools[0]
+
   return (
     <LegalLayout
       title="Privacy Policy"
@@ -26,7 +30,11 @@ export default function PrivacyPolicyPage() {
       summary={
         <>
           <p>• We only collect what you type into our enquiry forms — your <strong>name, email address, subject and message</strong> — plus a little technical data to prevent spam.</p>
-          <p>• We use it to reply to you and prepare your free 3D design and quote. We <strong>don&apos;t sell your data</strong>, and this website doesn&apos;t run advertising or analytics trackers.</p>
+          <p>• We use it to reply to you and prepare your free 3D design and quote. We <strong>don&apos;t sell your data</strong>
+          {analyticsEnabled
+            ? <>, and we use privacy-respecting analytics ({toolsList}) to understand how the site is used.</>
+            : <>, and this website doesn&apos;t run advertising or analytics trackers.</>}
+          </p>
           <p>• Some pages embed <strong>Google Maps</strong> and <strong>YouTube</strong>, which are operated by those companies under their own privacy policies.</p>
           <p>• You can ask us to access, correct or delete your information at any time.</p>
         </>
@@ -101,18 +109,29 @@ export default function PrivacyPolicyPage() {
       </LegalSection>
 
       <LegalSection id="cookies" heading="4. Cookies and tracking">
-        <p>
-          <strong>This website does not set its own cookies and does not use first-party analytics
-          or advertising trackers.</strong> We do not use Google Analytics or similar tools on this
-          site. The only cookies that may be set are those placed by the embedded third-party content
-          described above (Google Maps, and YouTube once you choose to play a video).
-        </p>
-        <p className="text-sm">
-          <Placeholder>
-            RGL to update before launch if any analytics, tag manager or advertising pixel is added
-            to the site — this section must then list it.
-          </Placeholder>
-        </p>
+        {analyticsEnabled ? (
+          <>
+            <p>
+              To understand how visitors use the site and to improve it, we use the following
+              analytics and tag tools: <strong>{toolsList}</strong>. These may set their own cookies
+              or similar identifiers and collect usage data (such as pages viewed and approximate
+              location) under their respective providers&apos; privacy policies. We use this data in
+              aggregate to improve the website — not to identify you personally.
+            </p>
+            <p>
+              Besides these, the only other cookies that may be set are those placed by embedded
+              third-party content described above (Google Maps, and YouTube once you choose to play a
+              video). You can block or clear cookies in your browser settings at any time.
+            </p>
+          </>
+        ) : (
+          <p>
+            <strong>This website does not set its own cookies and does not use first-party analytics
+            or advertising trackers.</strong> We do not use Google Analytics or similar tools on this
+            site. The only cookies that may be set are those placed by the embedded third-party content
+            described above (Google Maps, and YouTube once you choose to play a video).
+          </p>
+        )}
       </LegalSection>
 
       <LegalSection id="retention" heading="5. How long we keep your information">

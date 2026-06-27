@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import { Info, AlertTriangle } from 'lucide-react'
 import Navbar from '@/components/Navbar.jsx'
 import Footer from '@/components/Footer.jsx'
-import SkipLink from '@/components/page/SkipLink'
 import { routes } from '@/lib/routes'
 import { business } from '@/data/business'
 import { JsonLd, breadcrumbSchema } from '@/lib/structured-data'
@@ -37,7 +36,6 @@ export default function LegalLayout({
 
   return (
     <>
-      <SkipLink />
       <Navbar />
       <main id="main" className="bg-background pt-28">
         <article className="mx-auto w-full max-w-3xl px-5 py-12 sm:px-8">

@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import Navbar from '@/components/Navbar.jsx'
 import Footer from '@/components/Footer.jsx'
-import SkipLink from '@/components/page/SkipLink'
 import MagneticButton from '@/components/MagneticButton'
 import { routes } from '@/lib/routes'
 import { siteConfig } from '@/lib/seo'
@@ -33,7 +32,6 @@ export default function PageStub({
 }) {
   return (
     <>
-      <SkipLink />
       <Navbar />
       <main id="main" className="bg-background pt-28">
         <section className="mx-auto w-full max-w-7xl px-5 py-12 sm:px-8 lg:px-12">
@@ -71,7 +69,7 @@ export default function PageStub({
           <div className="mt-8 flex flex-wrap gap-3">
             <MagneticButton
               href={cta.href}
-              className="btn-pill bg-accent text-white hover:bg-accent-dark"
+              className="btn-pill btn-gold"
             >
               {cta.label} <ArrowRight size={16} aria-hidden="true" />
             </MagneticButton>

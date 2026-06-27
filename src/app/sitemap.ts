@@ -3,7 +3,7 @@ import { siteConfig } from '@/lib/seo'
 import { staticRoutes, routes } from '@/lib/routes'
 import { serviceCategories } from '@/data/business'
 import { projects } from '@/data/portfolio'
-import { cities } from '@/data/locations'
+import { allLocations } from '@/data/locations'
 import { getAllPosts } from '@/lib/blog'
 
 /** Auto-generated sitemap.xml — static routes + service / city / project pages. */
@@ -25,8 +25,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }))
 
-  const cityEntries: MetadataRoute.Sitemap = cities.map((c) => ({
-    url: url(routes.city(c.slug as string)),
+  const cityEntries: MetadataRoute.Sitemap = allLocations.map((c) => ({
+    url: url(routes.city(c.slug)),
     lastModified: now,
     changeFrequency: 'monthly',
     priority: 0.7,

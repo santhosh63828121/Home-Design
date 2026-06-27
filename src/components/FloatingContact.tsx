@@ -31,7 +31,7 @@ export default function FloatingContact() {
 
       <Link
         href={routes.getQuote}
-        className="flex items-center gap-2 rounded-full bg-accent px-5 py-3 font-caps text-sm font-semibold tracking-caps text-white shadow-feature transition-transform hover:scale-105"
+        className="btn-gold flex items-center gap-2 rounded-full px-5 py-3 font-caps text-sm font-semibold tracking-caps shadow-feature transition-transform hover:scale-105"
       >
         <PencilRuler size={18} aria-hidden="true" />
         <span className="hidden sm:inline">Get Free Quote</span>

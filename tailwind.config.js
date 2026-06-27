@@ -10,14 +10,20 @@ export default {
       colors: {
         background: '#F8F6F1',
         ink: '#1A1A1A',
-        accent: '#2D6A5A',
+        accent: '#2D6A5A', // green — dominant brand (structure, links, most buttons)
         'accent-dark': '#235446',
+        // Hybrid retheme (RGL doc §5.2): gold = premium CTAs/labels, teal = accents.
+        gold: '#C8973A',
+        'gold-dark': '#B0832F', // hover for gold fills
+        teal: '#1B6F72',
+        'teal-dark': '#155659',
         muted: '#6B6B6B', /* darkened from #888 to clear WCAG AA 4.5:1 on light bgs */
         divider: '#E8E4DE',
       },
       fontFamily: {
         // Driven by next/font CSS variables (see app/layout.tsx).
-        serif: ['var(--font-playfair)', 'Georgia', 'serif'],
+        // serif = display headings → Cormorant Garamond (doc §5.3).
+        serif: ['var(--font-cormorant)', 'Georgia', 'serif'],
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         caps: ['var(--font-dmsans)', 'system-ui', 'sans-serif'],
       },

@@ -8,6 +8,7 @@ import { serviceCategories, cities } from '@/data/business'
 export const routes = {
   home: '/',
   about: '/about',
+  process: '/process',
   services: '/services',
   pricing: '/interior-design-cost-chennai',
   portfolio: '/portfolio',
@@ -16,8 +17,10 @@ export const routes = {
   locations: '/interior-designers',
   testimonials: '/testimonials',
   blog: '/blog',
+  faq: '/faq',
   contact: '/contact',
   getQuote: '/get-free-quote',
+  styleQuiz: '/design-style-quiz',
   careers: '/careers',
   refer: '/refer-and-earn',
   privacy: '/privacy-policy',
@@ -36,14 +39,19 @@ export const routes = {
 
 export type NavItem = { label: string; href: string }
 
-/** Primary header navigation (every item resolves to a real route). */
+/**
+ * Primary header navigation — the doc's canonical 7-item menu (§1.2 / §3.1).
+ * Every item resolves to a real route. 3D Walkthrough and Locations are
+ * intentionally demoted to the footer (still real routes) so the top menu stays
+ * clean, per §3.1.
+ */
 export const mainNav: NavItem[] = [
+  { label: 'Home', href: routes.home },
+  { label: 'About Us', href: routes.about },
   { label: 'Services', href: routes.services },
-  { label: 'Pricing', href: routes.pricing },
   { label: 'Portfolio', href: routes.portfolio },
-  { label: '3D Walkthrough', href: routes.walkthrough },
-  { label: 'Locations', href: routes.locations },
-  { label: 'About', href: routes.about },
+  { label: 'Pricing', href: routes.pricing },
+  { label: 'Blogs', href: routes.blog },
   { label: 'Contact', href: routes.contact },
 ]
 
@@ -63,11 +71,14 @@ export const footerColumns: { heading: string; links: NavItem[] }[] = [
     heading: 'Company',
     links: [
       { label: 'About', href: routes.about },
+      { label: 'Process', href: routes.process },
       { label: 'Portfolio', href: routes.portfolio },
       { label: '3D Walkthrough', href: routes.walkthrough },
       { label: 'Pricing', href: routes.pricing },
       { label: 'Testimonials', href: routes.testimonials },
+      { label: 'Style Quiz', href: routes.styleQuiz },
       { label: 'Blog', href: routes.blog },
+      { label: 'FAQ', href: routes.faq },
       { label: 'Careers', href: routes.careers },
       { label: 'Refer & Earn', href: routes.refer },
       { label: 'Contact', href: routes.contact },
@@ -94,6 +105,7 @@ export const footerColumns: { heading: string; links: NavItem[] }[] = [
 export const staticRoutes: string[] = [
   routes.home,
   routes.about,
+  routes.process,
   routes.services,
   routes.pricing,
   routes.kitchenPrice,
@@ -105,8 +117,10 @@ export const staticRoutes: string[] = [
   routes.locations,
   routes.testimonials,
   routes.blog,
+  routes.faq,
   routes.contact,
   routes.getQuote,
+  routes.styleQuiz,
   routes.careers,
   routes.refer,
   routes.privacy,

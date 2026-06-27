@@ -4,18 +4,18 @@ import { ArrowUpRight } from 'lucide-react'
 import PageStub from '@/components/page/PageStub'
 import { buildMetadata } from '@/lib/seo'
 import { routes } from '@/lib/routes'
-import { serviceCategories } from '@/data/business'
+import { serviceGroups, servicesPositioning } from '@/data/services'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Interior Design Services in Chennai',
   description:
-    'Explore all RGL Decors interior design services in Chennai — modular kitchens, wardrobes, TV units, storage, smart homes and full-home turnkey interiors.',
+    'Every interior service under one roof in Chennai — residential, commercial, modular, civil, MEP, outdoor, soft furnishings and after-sales, by RGL Decors.',
   path: routes.services,
   keywords: [
     'Interior Design Services Chennai',
     'Home Interior Designers Chennai',
+    'Turnkey Interior Chennai',
     'Modular Kitchen Chennai',
-    'Wardrobe Designs Chennai',
   ],
 })
 
@@ -24,26 +24,55 @@ export default function ServicesIndexPage() {
     <PageStub
       title="Interior Design Services in Chennai"
       kicker="RGL Decors · Services"
-      intro="End-to-end interiors crafted in our automated factory and installed across Chennai and Tamil Nadu — every category below has a dedicated page, with free 3D walkthroughs, a 10-year warranty and 45-day delivery."
+      intro={`${servicesPositioning} Eight categories, one accountable partner — designed and factory-built by RGL Decors, with free 3D walkthroughs and a single, itemised quote.`}
       crumbs={[
         { name: 'Home', path: routes.home },
         { name: 'Services', path: routes.services },
       ]}
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {serviceCategories.map((s) => (
-          <Link
-            key={s.slug}
-            href={routes.service(s.slug)}
-            className="group flex items-center justify-between gap-3 rounded-2xl border border-divider bg-white px-5 py-5 shadow-card transition-transform duration-300 hover:-translate-y-1"
+      <div className="space-y-6">
+        {serviceGroups.map((g) => (
+          <section
+            key={g.id}
+            className="rounded-2xl border border-divider bg-white p-6 shadow-card sm:p-7"
           >
-            <span className="font-serif text-lg">{s.name}</span>
-            <ArrowUpRight
-              size={18}
-              className="shrink-0 text-accent transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              aria-hidden="true"
-            />
-          </Link>
+            <div className="flex items-start gap-4">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-teal/10 font-serif text-lg font-bold text-teal">
+                {g.letter}
+              </span>
+              <div className="min-w-0">
+                <h2 className="font-serif text-xl font-bold sm:text-2xl">{g.name}</h2>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink/70">{g.body}</p>
+              </div>
+            </div>
+
+            <ul className="mt-5 flex flex-wrap gap-2">
+              {g.items.map((item) =>
+                item.slug ? (
+                  <li key={item.name}>
+                    <Link
+                      href={routes.service(item.slug)}
+                      className="group inline-flex items-center gap-1.5 rounded-full border border-teal/30 bg-teal/[0.04] px-3.5 py-1.5 text-sm text-ink transition-colors hover:border-teal hover:bg-teal/10"
+                    >
+                      {item.name}
+                      <ArrowUpRight
+                        size={14}
+                        className="text-teal transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </li>
+                ) : (
+                  <li
+                    key={item.name}
+                    className="inline-flex items-center rounded-full border border-divider bg-background px-3.5 py-1.5 text-sm text-muted"
+                  >
+                    {item.name}
+                  </li>
+                ),
+              )}
+            </ul>
+          </section>
         ))}
       </div>
     </PageStub>

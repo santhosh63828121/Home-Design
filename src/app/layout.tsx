@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Playfair_Display, Inter, DM_Sans } from 'next/font/google'
+import { Cormorant_Garamond, Inter, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { siteConfig } from '@/lib/seo'
 import { buildMetadata } from '@/lib/seo'
@@ -12,11 +12,14 @@ import {
 import FloatingContact from '@/components/FloatingContact'
 import MotionProvider from '@/components/MotionProvider'
 import ScrollProgress from '@/components/ScrollProgress'
+import Analytics, { GtmNoScript } from '@/components/Analytics'
 
-const playfair = Playfair_Display({
+// Display headings — Cormorant Garamond (doc §5.3). Heavier weights so it reads
+// well at hero/section sizes (Cormorant is delicate at 400).
+const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-playfair',
+  weight: ['500', '600', '700'],
+  variable: '--font-cormorant',
   display: 'swap',
 })
 const inter = Inter({
@@ -56,8 +59,17 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable} ${dmSans.variable}`}>
+    <html lang="en" className={`${cormorant.variable} ${inter.variable} ${dmSans.variable}`}>
+      <head>
+        {/* Early-connect to the image CDN. Every hero/portfolio/blog image is
+            served from images.unsplash.com; opening the TLS connection during
+            HTML parse (instead of when the first <img> is discovered) trims the
+            image off the LCP critical path. Zero UI/markup impact. */}
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
       <body>
+        <GtmNoScript />
         <MotionProvider>
           <ScrollProgress />
           {children}
@@ -66,6 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JsonLd id="ld-organization" data={organizationSchema()} />
         <JsonLd id="ld-website" data={websiteSchema()} />
         <JsonLd id="ld-localbusiness" data={localBusinessSchema()} />
+        <Analytics />
       </body>
     </html>
   )
