@@ -4,7 +4,18 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { ROOMS } from '../cinematic/config.js'
+import { GALLERY } from '../data/content.js'
 import './cinematic.css'
+
+// Single room image for the lightweight mobile hero (reuses the site's existing
+// living-room photo — no new asset). One request only, requested at a smaller
+// size/quality than the gallery thumbnail so it stays cheap on mobile data; used
+// as a CSS background-image so desktop (where the mobile hero is display:none)
+// never downloads it.
+const MOBILE_HERO_IMAGE = (
+  GALLERY.find((g) => g.id === 'living')?.image ||
+  'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6'
+).replace(/[?].*$/, '') + '?auto=format&fit=crop&w=900&q=55'
 
 /**
  * CinematicExperience — a TRUE one-take walkthrough of a single 3D home.
@@ -94,27 +105,30 @@ export default function CinematicExperience() {
   // only when WebGL is unavailable.
   return (
     <div id="walkthrough" className={`cine-hero${forceStatic ? ' cine-force-static' : ''}`}>
-      {/* Static hero — shown on mobile + reduced-motion (and no-WebGL). SSR'd, so
-          it's the LCP element on mobile and paints without a client swap. h2 (not
-          h1): ReleaseHero owns the page's single <h1>. */}
-      {/* <section className="cinematic cinematic--static cine-hero-static" aria-label="Home walkthrough">
-        <div className="cinematic__staticInner">
-          <p className="scene__eyebrow">RGL Decors · The Walkthrough</p>
-         
-          <p className="cinematic__staticTitle">A Walk Through One Luxury Home</p>
-          <ul className="cinematic__staticList">
-            {ROOMS.map((r) => (
-              <li key={r.id}>
-                <span>{r.name}</span>
-                <p>{r.body}</p>
-              </li>
-            ))}
-          </ul>
-          <a href="#story" className="scene__cta" onClick={(e) => handleCta(e, '#story')}>
-            Continue <span aria-hidden="true">→</span>
+      {/* Mobile / reduced-motion / no-WebGL hero — a lightweight, GPU-only
+          animated walkthrough: a CSS cross-fade + slow Ken Burns zoom over the
+          site's room imagery, with the copy rising in. NO three.js, NO Framer —
+          pure CSS, so it paints at first paint (it's the SSR'd LCP element on
+          mobile, not gated behind hydration) and keeps navigation/speed intact.
+          The title is a <p> (not a heading) so ReleaseHero keeps the page's
+          single <h1> and heading order stays clean. */}
+      <section className="cinematic cinematic--static cine-hero-static" aria-label="Home walkthrough">
+        <div className="cine-m-slides" aria-hidden="true">
+          <div className="cine-m-slide" style={{ backgroundImage: `url(${MOBILE_HERO_IMAGE})` }} />
+        </div>
+        <div className="cine-m-veil" aria-hidden="true" />
+        <div className="cinematic__staticInner cine-m-content">
+          <p className="scene__eyebrow cine-m-rise">RGL Decors · The Walkthrough</p>
+          <p className="cinematic__staticTitle cine-m-rise">A Walk Through One Luxury Home</p>
+          <p className="cine-m-sub cine-m-rise">
+            From the entrance to the living room, kitchen and master suite — every
+            space crafted by RGL Decors.
+          </p>
+          <a href="#story" className="scene__cta cine-m-rise" onClick={(e) => handleCta(e, '#story')}>
+            Explore the home <span aria-hidden="true">→</span>
           </a>
         </div>
-      </section> */}
+      </section>
 
       {/* WebGL hero — shown on desktop; the engine inits client-side. */}
       <section ref={wrapperRef} aria-label="Luxury home walkthrough" className="cinematic cine-hero-webgl">

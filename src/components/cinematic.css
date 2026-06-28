@@ -201,8 +201,11 @@
    Static fallback — reduced motion / no WebGL.
    ========================================================================== */
 .cinematic--static {
+  position: relative;
+  overflow: hidden;
   height: auto;
   min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
   background: radial-gradient(120% 100% at 50% 0%, #1c1712 0%, #0a0806 70%);
@@ -215,10 +218,12 @@
 }
 
 .cinematic__staticTitle {
-  font-family: var(--font-playfair), Georgia, serif;
-  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: clamp(2.4rem, 8vw, 3.6rem);
+  font-weight: 700;
   line-height: 1.05;
-  margin: 0.6rem 0 2rem;
+  margin: 0.6rem 0 0;
+  color: #f6f2ea;
 }
 
 .cinematic__staticList {
@@ -245,4 +250,81 @@
   margin: 0.4rem 0 0;
   color: rgba(246, 242, 234, 0.8);
   line-height: 1.6;
+}
+
+/* ============================================================================
+   Lightweight ANIMATED mobile hero (CSS/GPU only — no WebGL, no Framer).
+   Shown wherever .cine-hero-static is shown (mobile / reduced-motion / no-WebGL).
+   Slides use background-image, so on desktop — where .cine-hero-static is
+   display:none — the browser never downloads them (zero desktop cost).
+   ========================================================================== */
+.cine-m-slides {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.cine-m-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  /* Visible immediately (it's the SSR'd LCP paint on mobile) with a slow, cheap,
+     compositor-only Ken Burns drift — one transform animation, no per-frame
+     layout/paint, so it costs effectively nothing on the main thread. */
+  transform: scale(1.02);
+  animation: cineMZoom 24s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes cineMZoom {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.09); }
+}
+
+/* Legibility veil over the imagery. */
+.cine-m-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(10, 8, 6, 0.5) 0%, rgba(10, 8, 6, 0.32) 35%, rgba(10, 8, 6, 0.8) 100%);
+}
+
+.cine-m-content {
+  position: relative;
+  z-index: 2;
+}
+
+.cine-m-sub {
+  margin: 1.1rem 0 2rem;
+  max-width: 30rem;
+  color: rgba(246, 242, 234, 0.82);
+  line-height: 1.6;
+}
+
+/* Copy rises in. Pure CSS (runs at first paint, not gated by JS hydration). */
+.cine-m-rise {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: cineMRise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.cine-m-content .cine-m-rise:nth-child(1) { animation-delay: 0.05s; }
+.cine-m-content .cine-m-rise:nth-child(2) { animation-delay: 0.16s; }
+.cine-m-content .cine-m-rise:nth-child(3) { animation-delay: 0.27s; }
+.cine-m-content .cine-m-rise:nth-child(4) { animation-delay: 0.38s; }
+@keyframes cineMRise {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduced motion: no cross-fade, no zoom, no rise — first room shown statically. */
+@media (prefers-reduced-motion: reduce) {
+  .cine-m-slide {
+    animation: none;
+    transform: none;
+  }
+  .cine-m-rise {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
