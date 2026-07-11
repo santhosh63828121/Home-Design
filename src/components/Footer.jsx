@@ -90,7 +90,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.name}
-                  className="text-white/60 transition-colors hover:text-white"
+                  className="lux-icon text-white/60 transition-colors hover:text-white"
                 >
                   <Icon size={20} aria-hidden="true" />
                 </a>

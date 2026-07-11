@@ -24,7 +24,7 @@ export default function ServicesIndexPage() {
     <PageStub
       title="Interior Design Services in Chennai"
       kicker="RGL Decors · Services"
-      intro={`${servicesPositioning} Eight categories, one accountable partner — designed and factory-built by RGL Decors, with free 3D walkthroughs and a single, itemised quote.`}
+      intro={`${servicesPositioning} At RGL Décors, interiors are not just built — they are crafted as living reflections of identity, lifestyle and status. Since 2018 we have delivered end-to-end design and execution under one roof, so every detail speaks the same language of elegance. We listen, design, craft and care.`}
       crumbs={[
         { name: 'Home', path: routes.home },
         { name: 'Services', path: routes.services },

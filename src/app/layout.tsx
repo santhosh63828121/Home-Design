@@ -13,6 +13,7 @@ import FloatingContact from '@/components/FloatingContact'
 import MotionProvider from '@/components/MotionProvider'
 import ScrollProgress from '@/components/ScrollProgress'
 import Analytics, { GtmNoScript } from '@/components/Analytics'
+import CustomCursor from '@/components/CustomCursor'
 
 // Display headings — Cormorant Garamond (doc §5.3). Heavier weights so it reads
 // well at hero/section sizes (Cormorant is delicate at 400).
@@ -72,6 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GtmNoScript />
         <MotionProvider>
           <ScrollProgress />
+          <CustomCursor />
           {children}
           <FloatingContact />
         </MotionProvider>

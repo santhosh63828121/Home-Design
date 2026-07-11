@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { PencilRuler, ClipboardCheck, Factory, Headset, Mail, Heart } from 'lucide-react'
 import PageStub from '@/components/page/PageStub'
+import CareerForm from '@/components/CareerForm'
 import { buildMetadata } from '@/lib/seo'
 import { routes } from '@/lib/routes'
 import { business } from '@/data/business'
@@ -16,12 +17,12 @@ const teams = [
   {
     icon: PencilRuler,
     title: 'Interior Design',
-    text: 'Designers who can take a brief from concept to a 99%-accurate 3D walkthrough and a buildable plan.',
+    text: 'Designers who can take a brief from concept to an immersive 3D walkthrough and a buildable plan.',
   },
   {
     icon: ClipboardCheck,
     title: 'Project Management',
-    text: 'Coordinators who keep every project on track for the 45-day move-in promise, on site and in the factory.',
+    text: 'Coordinators who keep factory production and site works running in parallel, so the handover date holds.',
   },
   {
     icon: Factory,
@@ -38,7 +39,7 @@ const teams = [
 const values = [
   'We show clients the real thing before we build it — no overpromising.',
   'We sweat the details: 100+ quality checks before anything leaves the factory.',
-  'We keep our word on timelines, pricing and warranty.',
+  'We keep our word on timelines, costing and warranty.',
   'We treat every home — and every teammate — with respect.',
 ]
 
@@ -50,13 +51,13 @@ export default function CareersPage() {
   return (
     <PageStub
       title="Build Dream Homes With Us"
-      kicker="RGL Decors · Careers"
-      intro="We're a Chennai interior-design firm that designs in 3D, builds in an automated factory and stands behind a 10-year warranty. If you care about doing interiors the honest, precise way, we'd like to hear from you."
+      kicker="RGL Décors · Careers"
+      intro="We're a Chennai interior studio that designs in immersive 3D, builds on an automated factory line and stands behind its work long after handover. If you care about doing interiors the honest, precise way, we'd like to hear from you."
       crumbs={[
         { name: 'Home', path: routes.home },
         { name: 'Careers', path: routes.careers },
       ]}
-      cta={{ label: 'Send Your Résumé', href: applyHref }}
+      cta={{ label: 'Apply Now', href: '#apply' }}
     >
       <div className="space-y-14">
         {/* Teams we hire for */}
@@ -94,15 +95,25 @@ export default function CareersPage() {
           </ul>
         </section>
 
-        {/* No-fabricated-postings: honest open-application CTA */}
+        {/* Application form — résumé + portfolio upload (PDF §Career page) */}
+        <section id="apply" className="scroll-mt-28">
+          <h2 className="font-serif text-2xl font-bold sm:text-3xl">Apply to join us</h2>
+          <p className="mt-2 max-w-2xl text-ink/70">
+            We hire as we grow, so apply even if there isn&apos;t a posting for your role — tell us
+            what you do and attach your work. Every application is read.
+          </p>
+          <div className="mt-6">
+            <CareerForm />
+          </div>
+        </section>
+
+        {/* Prefer to send it the old-fashioned way */}
         <section className="rounded-2xl bg-ink px-7 py-10 text-center text-white sm:px-10">
           <Mail size={28} className="mx-auto text-amber-300" aria-hidden="true" />
-          <h2 className="mt-4 font-serif text-2xl font-bold sm:text-3xl">
-            No specific opening listed? Apply anyway.
-          </h2>
+          <h2 className="mt-4 font-serif text-2xl font-bold sm:text-3xl">Rather just email us?</h2>
           <p className="mx-auto mt-3 max-w-xl text-white/80">
-            We hire as we grow. Send your résumé and a short note about the kind of work you do —
-            we&apos;ll reach out when there&apos;s a fit.
+            Send your résumé and a short note about the kind of work you do — we&apos;ll reach out
+            when there&apos;s a fit.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <a href={applyHref} className="btn-pill bg-white font-bold text-accent hover:bg-white/90">

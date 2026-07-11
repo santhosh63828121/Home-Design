@@ -34,23 +34,24 @@ export default function ReleaseHero() {
           variants={fadeUp}
           className="font-caps text-xs uppercase tracking-[0.3em] text-[#c9a86a]"
         >
-          RGL Decors · Luxury Interiors
+          RGL Décors · Luxury Interiors
         </motion.p>
         <motion.h1
           id="release-heading"
           variants={fadeUp}
           className="mt-6 font-serif text-4xl font-bold leading-[1.04] sm:text-6xl"
         >
-          <span className="text-[#2D6A5A]">WHERE LUXURY</span>
+          <span className="text-[#2D6A5A]">MORE THAN</span>
           <br />
-          <span className="text-[#2D6A5A]">MEETS </span>
-          <span className="text-[#c9a86a]">PERFECTION.</span>
+          <span className="text-[#2D6A5A]">PREMIUM SPACES — </span>
+          <span className="text-[#c9a86a]">DESIGN TO DEFINE YOU.</span>
         </motion.h1>
         <motion.p
           variants={fadeUp}
           className="mx-auto mt-7 max-w-xl text-base leading-relaxed text-ink/70"
         >
-          Every space is thoughtfully crafted to reflect elegance, comfort, and timeless design.
+          We bring together design excellence, craftsmanship and end-to-end execution to create
+          spaces that truly feel yours.
         </motion.p>
       </motion.div>
     </section>

@@ -26,6 +26,11 @@ export const routes = {
   privacy: '/privacy-policy',
   terms: '/terms-and-conditions',
   refund: '/cancellation-refund-policy',
+  gst: '/gst-policy',
+  warranty: '/warranty',
+  cookies: '/cookie-policy',
+  sustainability: '/sustainability',
+  afterSales: '/after-sales-care',
   // pricing sub-pages
   kitchenPrice: '/modular-kitchen-price-chennai',
   cost2bhk: '/2bhk-interior-cost-chennai',
@@ -94,9 +99,14 @@ export const footerColumns: { heading: string; links: NavItem[] }[] = [
   {
     heading: 'Legal',
     links: [
-      { label: 'Privacy Policy', href: routes.privacy },
       { label: 'Terms & Conditions', href: routes.terms },
+      { label: 'Privacy Policy', href: routes.privacy },
       { label: 'Cancellation & Refund', href: routes.refund },
+      { label: 'GST Policy', href: routes.gst },
+      { label: 'Warranty', href: routes.warranty },
+      { label: 'Cookie Policy', href: routes.cookies },
+      { label: 'Sustainability', href: routes.sustainability },
+      { label: 'After-Sales Care', href: routes.afterSales },
     ],
   },
 ]
@@ -126,4 +136,9 @@ export const staticRoutes: string[] = [
   routes.privacy,
   routes.terms,
   routes.refund,
+  routes.gst,
+  routes.warranty,
+  routes.cookies,
+  routes.sustainability,
+  routes.afterSales,
 ]

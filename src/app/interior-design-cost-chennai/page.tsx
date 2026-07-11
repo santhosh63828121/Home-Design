@@ -61,7 +61,7 @@ export default function PricingHubPage() {
       <PageStub
         title="Interior Design Cost in Chennai"
         kicker="RGL Decors · Pricing"
-        intro="Most studios hide their pricing — we don't. Estimate your interior cost instantly below, see our transparent package ranges, material tiers and EMI options, then book a free site visit to turn the range into an exact, itemised quote."
+        intro="Luxury shouldn't be a mystery. While most studios hide behind vague estimates, we believe in clarity. Instantly estimate your interior cost, explore transparent package ranges, compare material tiers and check EMI options — all before a single site visit. Book a free site assessment and we'll turn that range into an exact, itemised quote: no hidden markups, no surprises, just precision and trust."
         crumbs={[
           { name: 'Home', path: routes.home },
           { name: 'Pricing', path: routes.pricing },

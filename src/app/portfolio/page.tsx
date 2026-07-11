@@ -33,8 +33,8 @@ export default function PortfolioPage() {
     <>
       <PageStub
         title="Our Interior Design Projects"
-        kicker="RGL Decors · Portfolio"
-        intro="Real homes and spaces we have delivered across Chennai and Tamil Nadu. Filter by space, style, BHK or budget to find a project like yours — detailed case studies open with each project."
+        kicker="RGL Décors · Signature Projects"
+        intro="Every photograph here is not just a showcase — it's a story of trust placed in us, and a lifestyle elevated through design. These are real homes, offices and spaces across Chennai and Tamil Nadu, each crafted with precision, emotion and identity. Explore by space, style, BHK or budget; each case study opens in detail."
         crumbs={[
           { name: 'Home', path: routes.home },
           { name: 'Portfolio', path: routes.portfolio },

@@ -1,7 +1,10 @@
 /**
- * THE 16-STEP PROCESS (doc §4.7) — single typed source for the /process page.
- * Durations are indicative planning guides; they reconcile with the timeline
- * tables in pricing.ts and any published delivery commitment (§2.3).
+ * HOW WE CRAFT — the client's ten-step process (PDF §How we craft), the single
+ * typed source for the /process page.
+ *
+ * `duration` values are INDICATIVE planning guides only. They are derived from
+ * the client's own day-by-day execution blueprint (PDF §The 45-Day Execution
+ * Blueprint) rather than invented, and the page labels them as indicative.
  */
 export type ProcessStep = {
   n: string
@@ -12,20 +15,74 @@ export type ProcessStep = {
 }
 
 export const processSteps: ProcessStep[] = [
-  { n: '01', stage: 'Discovery conversation', duration: '1–2 hrs', what: 'We listen to your vision, lifestyle, priorities and non-negotiables — the brief that drives everything.', clientRole: 'High — your brief leads' },
-  { n: '02', stage: 'Site visit & measure', duration: 'Half day', what: 'Laser-accurate measurement, plus light, ventilation, structure and utilities checked on site.', clientRole: 'Be present or send a video' },
-  { n: '03', stage: 'Space planning', duration: '3–5 days', what: 'Floor plans and traffic flow, with storage designed into the walls rather than added on.', clientRole: 'Approve the floor plan' },
-  { n: '04', stage: 'Concept & mood board', duration: '3–5 days', what: 'Two to three design directions — palettes, materials and a clear design language.', clientRole: 'Select a direction' },
-  { n: '05', stage: 'Material selection', duration: '1–2 sessions', what: 'Guided curation through our material library so every finish is chosen, not defaulted.', clientRole: 'Approvals required' },
-  { n: '06', stage: '3D design walkthrough', duration: '7–10 days', what: 'Photorealistic renders and an HD walkthrough video — you see the home before it’s built.', clientRole: 'Approve or revise' },
-  { n: '07', stage: 'BOQ preparation', duration: '3–5 days', what: 'A line-by-line itemised cost — every material, brand and quantity in writing.', clientRole: 'Review the pricing' },
-  { n: '08', stage: 'Budget approval', duration: '1 session', what: 'We adjust grades and scope together until the budget is exactly right.', clientRole: 'Final sign-off' },
-  { n: '09', stage: 'Agreement & payment plan', duration: '1 day', what: 'Sign the agreement, set the milestone schedule and lock the kickoff date.', clientRole: 'Sign + first milestone' },
-  { n: '10', stage: 'Procurement', duration: '5–10 days', what: 'We source verified materials and quality-check every delivery on arrival.', clientRole: 'None needed' },
-  { n: '11', stage: 'Factory manufacturing', duration: '12–20 days', what: 'Modular units are made in our automated factory under strict quality control.', clientRole: 'Factory visit welcome' },
-  { n: '12', stage: 'Site preparation', duration: 'Overlapping', what: 'Civil, ceiling, electrical, plumbing and tiling run in parallel to compress the timeline.', clientRole: 'Weekly updates' },
-  { n: '13', stage: 'Installation', duration: '7–14 days', what: 'Factory units installed to millimetre precision, with fittings and lighting.', clientRole: 'Site-visit milestone' },
-  { n: '14', stage: 'Quality inspection', duration: '1–2 days', what: 'A multi-point QC pass — drawers, hinges, surfaces and finish, all checked.', clientRole: 'Joint inspection' },
-  { n: '15', stage: 'Styling & handover', duration: '1 day', what: 'Décor, artwork and accessories styled in; photoshoot; then keys and manuals.', clientRole: 'Be present' },
-  { n: '16', stage: 'After-sales support', duration: 'Ongoing', what: '12-month support, AMC available, and fast warranty response when you need it.', clientRole: 'Call / WhatsApp anytime' },
+  {
+    n: '01',
+    stage: 'Discover & Brief',
+    duration: 'Days 1–5',
+    what: 'We begin by listening — your lifestyle, taste, budget and aspirations shape everything that follows. This isn’t just about interiors; it’s about understanding who you are, so your space reflects your identity.',
+    clientRole: 'High — your brief leads',
+  },
+  {
+    n: '02',
+    stage: 'Site Assessment & Feasibility',
+    duration: 'Days 1–5',
+    what: 'Our team visits your property to measure, assess and uncover opportunities most overlook. This ensures your vision is grounded in reality, with no surprises later.',
+    clientRole: 'Site access; be present if you can',
+  },
+  {
+    n: '03',
+    stage: 'Concept & Mood Boards',
+    duration: 'Days 6–10',
+    what: 'We present curated palettes, material stories and spatial concepts. This is where your identity begins to take visual form — elegant, aspirational and unmistakably yours.',
+    clientRole: 'Choose a direction',
+  },
+  {
+    n: '04',
+    stage: 'Design & 3D Visualisation',
+    duration: 'Days 6–10',
+    what: 'Immersive 3D walkthroughs bring your future space to life. You see every room before it’s built — precise, photoreal and aligned with your lifestyle.',
+    clientRole: 'Approve or revise',
+  },
+  {
+    n: '05',
+    stage: 'Design Finalisation & Costing',
+    duration: 'Day 10',
+    what: 'Detailed drawings, material specs and transparent costing are locked in together. No hidden markups, no vague estimates — just clarity before commitment.',
+    clientRole: 'Final sign-off',
+  },
+  {
+    n: '06',
+    stage: 'Procurement',
+    duration: 'From day 11',
+    what: 'Premium materials and trusted brands are sourced to match your approved design. Every item is tracked and quality-verified, ensuring durability and refinement.',
+    clientRole: 'None needed',
+  },
+  {
+    n: '07',
+    stage: 'Craft & Build',
+    duration: 'Days 11–42',
+    what: 'Factory-engineered production meets meticulous on-site execution. With 100+ quality checks and one accountable team, your interiors are crafted for elegance and lasting performance.',
+    clientRole: 'Weekly updates; factory visit welcome',
+  },
+  {
+    n: '08',
+    stage: 'Quality Inspection & Snagging',
+    duration: 'Days 43–45',
+    what: 'Before handover, we run a formal 100+ point inspection and a snagging walkthrough with you — ensuring perfection before you move in.',
+    clientRole: 'Joint walkthrough',
+  },
+  {
+    n: '09',
+    stage: 'Styling & Final Finish',
+    duration: 'Days 43–45',
+    what: 'Curated furnishings, lighting accents and décor details complete the space. Your interiors feel finished and elevated from day one.',
+    clientRole: 'Be present',
+  },
+  {
+    n: '10',
+    stage: 'Handover & Aftercare',
+    duration: 'Day 45, then ongoing',
+    what: 'Keys, documentation and your written warranty are delivered with confidence — followed by complimentary one-year post-service care. This isn’t just project completion; it’s the handover of a lifestyle.',
+    clientRole: 'Call / WhatsApp anytime',
+  },
 ]

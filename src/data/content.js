@@ -119,12 +119,14 @@ export const PRICING = [
     period: '/starting',
     featured: false,
     cta: 'GET STARTED',
+    // Warranty/delivery bullets retired: the confirmed warranty is 5-yr hardware /
+    // 1-yr carcass (see /warranty), so a "10-Year Warranty" bullet contradicted it.
     features: [
       'Free 3D Design',
       'Modular Kitchen',
       '1 Bedroom Wardrobe',
-      '10-Year Warranty',
-      '45-Day Delivery',
+      'Itemised, Transparent Costing',
+      'One-Year Post-Service Care',
     ],
   },
   {
@@ -138,10 +140,10 @@ export const PRICING = [
     features: [
       'Free 3D Walkthrough',
       'Full Home — Living + Kitchen + 2 Beds',
-      '1000+ Design Options',
+      'Curated Material & Finish Library',
       'Dedicated Designer',
-      '10-Year Warranty',
-      '45-Day Delivery',
+      'Itemised, Transparent Costing',
+      'One-Year Post-Service Care',
       'Project Manager',
     ],
   },

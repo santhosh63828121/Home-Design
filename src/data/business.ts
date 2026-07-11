@@ -27,19 +27,35 @@ export const business = {
   tagline: 'Dreams Delivered',
   taglineLong: 'Complete interiors solution for your dream home. One place. Any budget.',
   niche: 'Interior designers · modular kitchens · wardrobes · turnkey / full-home interiors',
-  established: 2021,
+  established: 2018,
   nap: {
     phoneDisplay: '+91 86374 20482',
     phoneE164: '+918637420482',
     tel: 'tel:+918637420482',
-    email: 'rgldecors@gmail.com',
+    /** Primary enquiry inbox. rgldecors.com is the single authoritative domain. */
+    email: 'enquiry@rgldecors.com',
+    emailSecondary: 'rgldecors@gmail.com',
     whatsappChat: 'https://wa.me/message/YCV7Y4IV2343N1', // brand click-to-chat (no prefill)
     whatsappPhone: '918637420482', // for wa.me deep links WITH a prefilled message
     addressLocality: 'Chennai',
     addressRegion: 'Tamil Nadu',
     addressCountry: 'IN',
-    postalCode: '600001',
+    postalCode: '600041',
     hoursLabel: 'Mon–Sat: 9:00 AM – 7:00 PM',
+  },
+  /** Direct lines / desks (client-supplied). Rendered on the contact page. */
+  contacts: {
+    departments: [
+      { role: 'Creative Director', name: 'Lokeshwaran', email: 'lokeshwaran@rgldecors.com' },
+      { role: 'Sales', name: 'Sabarinathan', email: 'sabarinathan@rgldecors.com' },
+      { role: 'Project Manager', name: 'Srikrishna', email: 'srikrishna@rgldecors.com' },
+      { role: 'Admin Head', name: 'Ranjitha Raju', email: 'ranjitha.raju@rgldecors.com' },
+    ],
+    phones: [
+      { label: 'Company', display: '+91 86374 20482', e164: '+918637420482' },
+      { label: 'Project Manager', display: '+91 74484 00338', e164: '+917448400338' },
+      { label: 'Sales Head', display: '+91 74484 00339', e164: '+917448400339' },
+    ],
   },
   geo: { latitude: 13.0827, longitude: 80.2707 },
   openingHours: {
@@ -52,58 +68,71 @@ export const business = {
 
 // ---- Social profiles (exact URLs from spec §2) -----------------------------
 export const socials: Social[] = [
-  { name: 'Facebook', icon: 'Facebook', url: 'https://www.facebook.com/RGL-Décors-110995801229346/' },
+  // URLs per the client's PDF §RGL Decors Social Media Link.
+  { name: 'Facebook', icon: 'Facebook', url: 'https://www.facebook.com/rgldecorshomeinteriors/' },
   { name: 'Instagram', icon: 'Instagram', url: 'https://www.instagram.com/rgl_decors/' },
   { name: 'YouTube', icon: 'Youtube', url: 'https://www.youtube.com/channel/UCs_DL58FGnUhGFieKO_Yg2w' },
   { name: 'Twitter', icon: 'Twitter', url: 'https://twitter.com/DecorsRgl' },
-  { name: 'Pinterest', icon: 'Music2', url: 'https://in.pinterest.com/rgldecors/' },
+  { name: 'Pinterest', icon: 'Music2', url: 'https://in.pinterest.com/rgldecors/_created/' },
 ]
 export const sameAs = socials.map((s) => s.url)
 
-// ---- The 8 USPs (verbatim) -------------------------------------------------
+// ---- The 8 USPs (client PDF §Usp + §How We Craft) ---------------------------
+/**
+ * HONESTY: the earlier "10-year warranty", "45-day guaranteed move-in" and
+ * "market-lowest-price guarantee" USPs are RETIRED. The client's own Warranty
+ * Details page states 5-year hardware / 1-year shutters & carcass, so a
+ * decade-long headline claim contradicted the legal page. Warranty is now
+ * referenced qualitatively here; the exact terms live on /warranty only.
+ */
 export const usps: Usp[] = [
   {
-    icon: 'Clapperboard',
-    title: 'Free 3D Walkthrough',
+    icon: 'Wrench',
+    title: 'Premium Turnkey Execution',
     description:
-      "India's 1st enterprise to provide a complete 3D interior walkthrough in HD with 99% accuracy — free of cost.",
+      'A complete turnkey interior experience — designed, managed and delivered by one accountable RGL team, under one roof.',
   },
   {
-    icon: 'Clock',
-    title: 'On-Time Delivery',
-    description: 'Guaranteed move-in within 45 days. T&C apply.',
-  },
-  {
-    icon: 'BadgeIndianRupee',
-    title: 'Best Price',
-    description: 'Market-lowest-price guarantee versus competitors, with superior materials.',
+    icon: 'Clapperboard',
+    title: 'Technology-Led Visualisation',
+    description:
+      'Visualise before you build — immersive 3D walkthroughs that turn render into reality, so you see every room before it exists.',
   },
   {
     icon: 'Factory',
-    title: 'Precision Build',
+    title: 'Factory-Engineered Precision',
     description:
-      'Everything manufactured in a modular automated factory — smooth, error-free, bubble-free panels.',
+      'Panels cut, drilled and 360° edge-banded in an automated factory — warranty-backed joinery engineered for the coast.',
+  },
+  {
+    icon: 'Palette',
+    title: 'Curated Materials & Quality',
+    description:
+      'Every finish, fitting, surface and fixture is selected for durability, elegance and everyday performance.',
   },
   {
     icon: 'ShieldCheck',
-    title: '10-Year Warranty',
-    description: 'On all core materials. Hassle-free for a decade (physical damage excluded).',
+    title: 'One-Year Post-Service Care',
+    description:
+      'Complimentary one-year post-service care — because premium living deserves premium aftercare, long after handover.',
   },
   {
     icon: 'CheckCircle2',
     title: '100+ Quality Checks',
-    description: 'Every single product passes 100+ quality checks before delivery.',
-  },
-  {
-    icon: 'Palette',
-    title: '1000+ Finishes',
-    description: 'Choose from 1000+ laminate colours, textures, styles and design options.',
-  },
-  {
-    icon: 'Wrench',
-    title: '100% Free Customization',
     description:
-      'Fully customised wardrobes, modular kitchens and units engineered to fit any space.',
+      'A formal 100+ point inspection and a snagging walkthrough with you, before you ever move in.',
+  },
+  {
+    icon: 'Clock',
+    title: 'On-Time Delivery Record',
+    description:
+      'Factory production runs in parallel with site works, tracked by a single project engineer — so your date holds.',
+  },
+  {
+    icon: 'BadgeIndianRupee',
+    title: 'Transparent Costing',
+    description:
+      'Detailed drawings, material specs and itemised costing locked in together. No hidden markups, no vague estimates.',
   },
 ]
 
@@ -147,49 +176,37 @@ export const serviceAreas: ServiceArea[] = [
 /** Cities that get an individual location page (excludes the state-wide entry). */
 export const cities = serviceAreas.filter((a) => !a.statewide)
 
-// ---- Company stats (count-up bar) ------------------------------------------
+// ---- Trust ribbon / company stats (count-up bar) -----------------------------
 /**
- * HONESTY RULE: only genuinely supportable, verifiable figures live in
- * `companyStats` — these are the ones we render and animate. Each maps directly
- * to a real brand claim (warranty / move-in / QC) or to a fact we can stand
- * behind (the 8 city pages we actually built, founded 2021).
+ * The client's Trust Ribbon (PDF §Trust ribbon), confirmed for publication.
  *
- * Numbers we DON'T have yet (homes delivered, designers on the team, client
- * satisfaction %) are NOT invented. They sit in `unverifiedStats` behind
- * `STATS_VERIFIED = false`, wired to the data layer but never rendered. When the
- * business confirms real figures, fill the `value`s and flip the flag — the
- * About page picks them up automatically, from this one place.
+ * NOTE on "10+ Years of Experience": RGL Décors was founded in 2018, so this is
+ * deliberately labelled as the TEAM's craft experience, not the company's age —
+ * the two are different claims and only the former is true. Do not relabel it to
+ * "10+ Years in Business".
  */
 export type Stat = { value: number; suffix?: string; label: string }
 
 export const citiesServedCount = cities.length // = 8, real (we built these pages)
 
 export const companyStats: Stat[] = [
-  { value: 10, suffix: '-Year', label: 'Materials Warranty' },
-  { value: 45, suffix: '-Day', label: 'Guaranteed Move-In' },
-  { value: 100, suffix: '+', label: 'Quality Checks' },
+  { value: 10, suffix: '+', label: 'Years of Experience' },
+  { value: 150, suffix: '+', label: 'Homes Transformed' },
+  { value: 80, suffix: '%', label: 'Client Satisfaction' },
   { value: citiesServedCount, suffix: '', label: 'Cities Served' },
 ]
 
-/** Real, qualitative facts safe to state in prose (no fabricated quantities). */
+/** Qualitative facts safe to state in prose. */
 export const companyFacts = {
-  foundedYear: business.established, // 2021 — real
+  foundedYear: business.established, // 2018 — client-confirmed
   foundedLabel: `Founded in Chennai in ${business.established}`,
-  accuracyClaim: '99% 3D walkthrough accuracy',
-  finishesClaim: '1000+ finishes & laminates',
+  accuracyClaim: 'render-to-reality 3D accuracy',
+  finishesClaim: 'a curated library of finishes & laminates',
   entryPrice: business.entryPriceSignal, // 'From ₹50,000'
 } as const
 
-/**
- * Unverified metrics — DO NOT RENDER while STATS_VERIFIED is false. Placeholder
- * values are 0 so a stray render reads as obviously empty, never a fake number.
- */
-export const STATS_VERIFIED = false
-export const unverifiedStats: Stat[] = [
-  { value: 0, suffix: '+', label: 'Homes Delivered' },
-  { value: 0, suffix: '+', label: 'In-House Designers' },
-  { value: 0, suffix: '%', label: 'Client Satisfaction' },
-]
+/** Client has confirmed the trust-ribbon figures above (PDF §Trust ribbon). */
+export const STATS_VERIFIED = true
 
 // ---- SEO keyword universe (centralised) ------------------------------------
 export const seoKeywords = [

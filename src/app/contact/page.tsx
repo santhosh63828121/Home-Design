@@ -61,9 +61,9 @@ export default function ContactPage() {
 
   return (
     <PageStub
-      title="Get Your Free Interior Quote"
-      kicker="RGL Decors · Contact"
-      intro="Tell us about your home and our team will get back to you with a free 3D design and a transparent quote. Prefer to talk? Call or WhatsApp us directly."
+      title="Start Your Design Journey"
+      kicker="RGL Décors · Contact"
+      intro="Tell us about your space and our team will come back to you with an immersive 3D design and a transparent, itemised quote. Prefer to talk? Call or WhatsApp us directly — or write to the desk you need below."
       crumbs={[
         { name: 'Home', path: routes.home },
         { name: 'Contact', path: routes.contact },
@@ -100,6 +100,59 @@ export default function ContactPage() {
               </a>
             )
           })}
+        </section>
+
+        {/* Direct desks + lines (client-supplied, PDF §Contact us) */}
+        <section className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-2xl border border-divider bg-white p-6 shadow-card">
+            <h2 className="font-serif text-lg">Speak to the right desk</h2>
+            <ul className="mt-4 space-y-3">
+              {business.contacts.departments.map((d) => (
+                <li key={d.email} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-divider pb-3 last:border-0 last:pb-0">
+                  <span className="text-sm text-ink">
+                    <span className="font-medium">{d.role}</span>
+                    <span className="text-muted"> · {d.name}</span>
+                  </span>
+                  <a
+                    href={`mailto:${d.email}`}
+                    className="text-sm font-medium text-accent underline-offset-2 hover:underline"
+                  >
+                    {d.email}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-divider bg-white p-6 shadow-card">
+            <h2 className="font-serif text-lg">Direct lines</h2>
+            <ul className="mt-4 space-y-3">
+              {business.contacts.phones.map((p) => (
+                <li key={p.e164} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-divider pb-3 last:border-0 last:pb-0">
+                  <span className="text-sm font-medium text-ink">{p.label}</span>
+                  <a
+                    href={`tel:${p.e164}`}
+                    className="text-sm font-medium text-accent underline-offset-2 hover:underline"
+                  >
+                    {p.display}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 border-t border-divider pt-4 text-sm text-muted">
+              General enquiries:{' '}
+              <a href={`mailto:${business.nap.email}`} className="font-medium text-accent hover:underline">
+                {business.nap.email}
+              </a>{' '}
+              ·{' '}
+              <a
+                href={`mailto:${business.nap.emailSecondary}`}
+                className="font-medium text-accent hover:underline"
+              >
+                {business.nap.emailSecondary}
+              </a>
+            </p>
+          </div>
         </section>
 
         {/* Hours + location + map */}

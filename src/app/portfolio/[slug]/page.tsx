@@ -117,10 +117,14 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                   <div className="mt-5 space-y-6">
                     {(
                       [
-                        ['The brief', p.narrative?.brief],
+                        ['Overview', p.narrative?.overview],
+                        ['The client’s goal', p.narrative?.goal ?? p.narrative?.brief],
                         ['The design challenge', p.narrative?.challenge],
-                        ['Our solution', p.narrative?.solution],
-                        ['The result', p.narrative?.result],
+                        ['Our design thinking', p.narrative?.thinking ?? p.narrative?.solution],
+                        ['Material selection', p.narrative?.materials],
+                        ['Execution', p.narrative?.execution],
+                        ['The outcome', p.narrative?.outcome ?? p.narrative?.result],
+                        ['The client’s experience', p.narrative?.experience],
                       ] as const
                     )
                       .filter(([, v]) => v)

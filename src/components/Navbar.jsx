@@ -30,22 +30,45 @@ export default function Navbar() {
   const isHome = pathname === '/'
   const [overDark, setOverDark] = useState(isHome)
   const [open, setOpen] = useState(false)
+  // Auto-hide: the bar slides away as you scroll down and returns the moment you
+  // scroll up — so the content gets the full viewport but the nav is never far.
+  const [hidden, setHidden] = useState(false)
 
   useEffect(() => {
-    // Only the home walkthrough has a dark hero; content pages are always solid.
-    if (!isHome) {
-      setOverDark(false)
-      return
+    const walkthrough = isHome ? document.getElementById('walkthrough') : null
+    let lastY = window.scrollY
+    let raf = 0
+
+    const update = () => {
+      const y = window.scrollY
+
+      // Adaptive colour (home only) — unchanged behaviour.
+      if (isHome) {
+        const rect = walkthrough?.getBoundingClientRect()
+        setOverDark(rect ? rect.bottom > 140 : y < 80)
+      } else {
+        setOverDark(false)
+      }
+
+      // Direction-aware hide. Never hide near the top, and never while the
+      // mobile menu is open (you'd be hiding the close button).
+      const delta = y - lastY
+      if (y < 120) setHidden(false)
+      else if (delta > 6) setHidden(true)
+      else if (delta < -6) setHidden(false)
+      lastY = y
     }
-    const walkthrough = document.getElementById('walkthrough')
+
     const onScroll = () => {
-      const rect = walkthrough?.getBoundingClientRect()
-      setOverDark(rect ? rect.bottom > 140 : window.scrollY < 80)
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(update)
     }
-    onScroll()
+
+    update()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll, { passive: true })
     return () => {
+      cancelAnimationFrame(raf)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
@@ -70,7 +93,12 @@ export default function Navbar() {
     // Header spans the viewport but only paints the centred pill. px-6 gives the
     // pill width: calc(100% - 48px); pointer-events-none lets clicks fall through
     // the transparent gutter to the hero behind it.
-    <header className="pointer-events-none fixed inset-x-0 top-4 z-50 px-6">
+    // translate-y + opacity only → composited; the fixed bar never triggers layout.
+    <header
+      className={`pointer-events-none fixed inset-x-0 top-4 z-50 px-6 will-change-transform transition-[transform,opacity] duration-500 ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none ${
+        hidden && !open ? '-translate-y-[140%] opacity-0' : 'translate-y-0 opacity-100'
+      }`}
+    >
       <nav
         aria-label="Primary"
         className={`pointer-events-auto relative mx-auto flex h-[66px] w-full max-w-[1440px] items-center justify-between rounded-full px-6 transition-[background,box-shadow,border-color] duration-500 lg:h-[78px] 2xl:max-w-[1600px] ${
@@ -140,7 +168,7 @@ export default function Navbar() {
             href={routes.getQuote}
             className="btn-gold hidden h-12 items-center gap-2 rounded-full px-6 font-caps text-[13px] font-semibold tracking-caps transition-colors md:inline-flex lg:h-[52px] lg:px-7"
           >
-            <PencilRuler size={16} aria-hidden="true" /> Get Free Quote
+            <PencilRuler size={16} aria-hidden="true" /> Start Design Journey
           </Link>
 
           {/* Hamburger — mobile + tablet (below lg). Keeps its ARIA + #mobile-menu
@@ -216,7 +244,7 @@ export default function Navbar() {
                   href={routes.getQuote}
                   className="btn-pill col-span-2 justify-center bg-accent font-semibold text-white"
                 >
-                  <PencilRuler size={16} aria-hidden="true" /> Get Free Quote
+                  <PencilRuler size={16} aria-hidden="true" /> Start Design Journey
                 </Link>
               </motion.li>
             </motion.ul>

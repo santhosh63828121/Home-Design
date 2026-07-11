@@ -11,7 +11,8 @@ export default function BlogCard({ post }: { post: PostMeta }) {
   return (
     <Link
       href={routes.blogPost(slug)}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-divider bg-white shadow-card transition-transform duration-300 hover:-translate-y-1"
+      data-cursor="view"
+      className="group lux-media flex h-full flex-col overflow-hidden rounded-2xl border border-divider bg-white shadow-card"
     >
       <div className="skeleton relative aspect-[16/10] w-full overflow-hidden bg-background">
         {fm.cover ? (

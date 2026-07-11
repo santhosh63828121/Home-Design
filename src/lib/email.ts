@@ -49,11 +49,15 @@ function renderConfirmation(lead: LeadEmail) {
  * Provider-agnostic delivery. Resend (REST) → Nodemailer SMTP → no-op. NEVER
  * throws. Returns {sent:false} when no provider is configured.
  */
+/** A file to attach (résumé / portfolio). `content` is base64-encoded. */
+export type MailAttachment = { filename: string; content: string }
+
 async function deliver(opts: {
   to: string
   subject: string
   text: string
   replyTo?: string
+  attachments?: MailAttachment[]
 }): Promise<{ sent: boolean; via?: string }> {
   try {
     if (process.env.RESEND_API_KEY) {
@@ -69,6 +73,8 @@ async function deliver(opts: {
           ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
           subject: opts.subject,
           text: opts.text,
+          // Resend takes base64 in `content`.
+          ...(opts.attachments?.length ? { attachments: opts.attachments } : {}),
         }),
       })
       if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`)
@@ -92,6 +98,11 @@ async function deliver(opts: {
         replyTo: opts.replyTo,
         subject: opts.subject,
         text: opts.text,
+        // Nodemailer wants a Buffer.
+        attachments: opts.attachments?.map((a) => ({
+          filename: a.filename,
+          content: Buffer.from(a.content, 'base64'),
+        })),
       })
       return { sent: true, via: 'smtp' }
     }
@@ -102,6 +113,32 @@ async function deliver(opts: {
     console.error('[lead] email delivery failed (lead still saved):', err)
     return { sent: false }
   }
+}
+
+/**
+ * Career application → the studio inbox, with the résumé/portfolio attached.
+ * NEVER throws. No-ops (returning {sent:false}) when no provider is configured —
+ * the application text is still persisted by the caller.
+ */
+export async function sendApplicationEmail(args: {
+  name: string
+  email: string
+  subject: string
+  body: string
+  attachments?: MailAttachment[]
+}): Promise<{ sent: boolean; via?: string }> {
+  const to = process.env.CAREERS_NOTIFY_EMAIL || process.env.LEAD_NOTIFY_EMAIL
+  if (!to) {
+    console.info('[careers] No CAREERS_NOTIFY_EMAIL / LEAD_NOTIFY_EMAIL set — skipping email.')
+    return { sent: false }
+  }
+  return deliver({
+    to,
+    subject: args.subject,
+    text: args.body,
+    replyTo: args.email,
+    attachments: args.attachments,
+  })
 }
 
 /** Notify the studio of a new enquiry. */

@@ -31,12 +31,28 @@ export type Space = 'Apartment' | 'Villa' | 'Office' | 'Commercial'
 export type Bhk = '1BHK' | '2BHK' | '3BHK' | null
 export type BudgetBand = '₹3–6L' | '₹6–12L' | '₹12L+ / Custom'
 
-/** Structured case-study narrative (doc §4.5) — all parts optional. */
+/**
+ * Structured case-study storyboard. Every part is OPTIONAL and renders only when
+ * supplied — so a project with no story shows its gallery and stat block, never
+ * an invented narrative.
+ *
+ * HONESTY GATE: these projects belong to real, named clients. We do not write
+ * their goals, challenges, outcomes or experience for them. RGL supplies the real
+ * story per project (§2.2 "To supply"), and the case study lights up on its own.
+ */
 export type ProjectNarrative = {
-  brief?: string // client brief
-  challenge?: string // design challenge
-  solution?: string // our solution
-  result?: string // result
+  overview?: string // the project at a glance
+  goal?: string // what the client wanted
+  challenge?: string // the design challenge
+  thinking?: string // our design thinking
+  materials?: string // why these materials were chosen
+  execution?: string // how it was built
+  outcome?: string // the result
+  experience?: string // the client's experience of the process
+  /** Legacy field names kept so existing data keeps rendering. */
+  brief?: string
+  solution?: string
+  result?: string
 }
 /** A material in the project's palette. */
 export type MaterialSpec = { name: string; note?: string }

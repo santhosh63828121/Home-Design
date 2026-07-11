@@ -88,7 +88,8 @@ export default function PortfolioGrid({ projects }: { projects: Project[] }) {
             >
               <Link
                 href={routes.portfolioProject(p.slug)}
-                className="group block overflow-hidden rounded-2xl border border-divider bg-white shadow-card transition-transform duration-300 hover:-translate-y-1"
+                data-cursor="view"
+                className="group lux-media block overflow-hidden rounded-2xl border border-divider bg-white shadow-card"
               >
                 <div className="skeleton relative aspect-[4/3] w-full overflow-hidden">
                   <ProjectCover project={p} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />

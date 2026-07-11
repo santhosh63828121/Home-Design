@@ -32,7 +32,7 @@ const ContactSection = dynamic(() => import('@/components/ContactSection.jsx'))
 // city page's "Interior Designers in Chennai | RGL Decors" (no title collision).
 export const metadata: Metadata = buildMetadata({
   description:
-    'RGL Decors — trusted interior designers in Chennai for modular kitchens, wardrobes and full-home turnkey interiors. Free 3D walkthroughs, 10-year warranty.',
+    'More than premium spaces — design to define you. RGL Decors brings design excellence, craftsmanship and end-to-end turnkey execution to homes across Chennai.',
   path: '/',
 })
 

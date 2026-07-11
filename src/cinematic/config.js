@@ -48,13 +48,18 @@ export const WAYPOINTS = [
  * `range` is the scroll-progress window (0–1) during which the label is shown
  * and the camera adapts to that room's exposure.
  */
+/**
+ * Room copy is the client's own (PDF §Hero / §Rooms). The camera path, ranges,
+ * exposure, sides and CTA targets are UNCHANGED — only the words differ, so the
+ * walkthrough animation and timing are byte-for-byte identical.
+ */
 export const ROOMS = [
   {
     id: 'entrance',
-    name: 'The Entrance',
-    eyebrow: 'RGL DECORS · ONE-TAKE WALKTHROUGH',
-    title: 'Welcome\nHome',
-    body: 'Step through the front door and walk the whole home in a single, continuous take.',
+    name: 'Foyer / Entrance',
+    eyebrow: 'RGL DÉCORS · ONE-TAKE WALKTHROUGH',
+    title: 'More Than\nPremium Spaces',
+    body: 'Your entrance is more than a doorway — it is the first impression of your identity. We design foyers that announce your lifestyle, setting the tone for everything that follows inside.',
     cta: { label: 'Explore The Home', target: '#story' },
     side: 'left',
     range: [0.0, 0.42],
@@ -66,7 +71,7 @@ export const ROOMS = [
     name: 'Living Room',
     eyebrow: 'SCENE 02 · LIVING ROOM',
     title: 'Living Room',
-    body: 'Sculptural sofa, marble floors and light pouring through full-height glass.',
+    body: 'We craft living rooms that become the soul of your home — spaces where elegance meets identity, and every detail reflects your stature.',
     cta: { label: 'View Interior Details', target: '#gallery' },
     side: 'right',
     range: [0.42, 0.58],
@@ -74,10 +79,10 @@ export const ROOMS = [
   },
   {
     id: 'kitchen',
-    name: 'Designer Kitchen',
+    name: 'Kitchen',
     eyebrow: 'SCENE 03 · THE KITCHEN',
-    title: 'Designer Kitchen',
-    body: 'A honed-marble island, handleless cabinetry and warm pendant light.',
+    title: 'Kitchen',
+    body: 'More than a place to cook — the heart of your home, designed to reflect warmth and sophistication. We blend premium functionality with the identity of your family’s story.',
     cta: { label: 'Discover Materials', target: '#why' },
     side: 'left',
     range: [0.58, 0.73],
@@ -85,10 +90,10 @@ export const ROOMS = [
   },
   {
     id: 'bedroom',
-    name: 'Master Bedroom',
-    eyebrow: 'SCENE 04 · MASTER SUITE',
-    title: 'Master Bedroom',
-    body: 'A private sanctuary wrapped in wood, layered textures and soft evening light.',
+    name: 'Bedroom',
+    eyebrow: 'SCENE 04 · THE BEDROOM',
+    title: 'Bedroom',
+    body: 'Bedrooms that whisper comfort and luxury — sanctuaries where your individuality is beautifully mirrored. Every detail reflects not just how you rest, but who you are.',
     cta: { label: 'Experience Comfort', target: '#story' },
     side: 'right',
     range: [0.73, 0.88],
@@ -96,11 +101,11 @@ export const ROOMS = [
   },
   {
     id: 'bathroom',
-    name: 'Spa Bathroom',
-    eyebrow: 'SCENE 05 · SPA BATH',
-    title: 'Spa Bathroom',
-    body: 'Book-matched marble, a freestanding tub and calm, reflective light.',
-    cta: { label: 'Book Consultation', target: '#contact' },
+    name: 'Bathroom',
+    eyebrow: 'SCENE 05 · THE BATHROOM',
+    title: 'Bathroom',
+    body: 'Bathrooms designed as private retreats — elegant spaces that elevate your daily rituals into a reflection of refined living. Not just functionality, but a symbol of how you live.',
+    cta: { label: 'Book Private Consultation', target: '#contact' },
     side: 'left',
     range: [0.88, 1.0],
     exposure: 0.78,

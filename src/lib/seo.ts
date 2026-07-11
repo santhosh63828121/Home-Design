@@ -12,8 +12,11 @@ export const siteConfig = {
   legalName: business.legalName,
   shortName: business.brand,
   url: (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.rgldecors.com').replace(/\/$/, ''),
+  // Feeds every default meta description AND the Organization / LocalBusiness
+  // schema. Deliberately free of the retired "10-year warranty" / "45-day
+  // delivery" claims — warranty terms now live only on /warranty.
   description:
-    'RGL Decors — trusted interior designers in Chennai for modular kitchens, wardrobes and full turnkey interiors. Free 3D walkthroughs, 10-year warranty and 45-day delivery.',
+    'RGL Decors — premium turnkey interior designers in Chennai. Design excellence, craftsmanship and end-to-end execution, with immersive 3D walkthroughs.',
   tagline: 'Interior Designers in Chennai',
   locale: 'en_IN',
   themeColor: '#2D6A5A',

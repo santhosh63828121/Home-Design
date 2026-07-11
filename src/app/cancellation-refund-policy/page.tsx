@@ -5,12 +5,12 @@ import { buildMetadata } from '@/lib/seo'
 import { routes } from '@/lib/routes'
 import { business } from '@/data/business'
 
-const UPDATED = '2026-06-23'
+const UPDATED = '2026-07-12'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Cancellation & Refund Policy',
   description:
-    'How cancellations and refunds work for RGL Decors interior projects in Chennai — the free stage, what happens after you book, and how refunds are processed.',
+    'How cancellations and refunds work for RGL Decors interior projects — the free stage, design-fee terms, and refund windows once procurement has begun.',
   path: routes.refund,
 })
 
@@ -25,104 +25,88 @@ export default function RefundPolicyPage() {
       ]}
       summary={
         <>
-          <p>• The <strong>design and quote stage is free</strong> — there&apos;s nothing to pay and you can walk away at any time, no charge.</p>
-          <p>• Once you book and production begins, interiors are <strong>made to order for your home</strong>, so what can be refunded depends on how far the work has progressed.</p>
-          <p>• The exact advance, cancellation windows and refund amounts are set out in your written quotation — and are marked below for RGL to finalise.</p>
+          <p>• <strong>Consultation and the initial design concept are free.</strong> Walk away at that stage and you owe nothing.</p>
+          <p>• Once the <strong>design concept is delivered</strong>, the design fee is non-refundable.</p>
+          <p>• Cancel an execution order <strong>within 48 hours and before procurement</strong> → 90% refund.</p>
+          <p>• Because furniture is <strong>made to order</strong>, refunds are limited once material is cut.</p>
         </>
       }
     >
       <p>
-        This policy explains how cancellations and refunds work for interior projects with{' '}
-        {business.legalName} (&ldquo;RGL Decors&rdquo;). Because our interiors are manufactured to your
-        specific design and measurements, refund eligibility depends on the stage your project has
-        reached. The specific commercial terms for your project are those stated in your written
-        quotation or work order.
+        Bespoke interior work is governed by the Consumer Protection Act 2019. Because designs and
+        furniture are <strong>made to order</strong> — cut to your dimensions and unusable for anyone
+        else — refunds are necessarily limited once production begins. This page explains exactly
+        where those lines fall, so you can decide with full information.
       </p>
 
-      <LegalSection id="free-stage" heading="1. The free design and quote stage">
+      <LegalSection id="consultation" heading="1. Consultation">
         <p>
-          Requesting a quote, consultation or 3D walkthrough is <strong>completely free and carries no
-          obligation</strong>. Up to the point you accept a quotation and pay a booking advance, there
-          is nothing to pay and nothing to cancel — you can simply decide not to proceed.
+          The initial consultation, site discussion and design concept are{' '}
+          <strong>free and carry no obligation</strong>. If you decide not to proceed at this stage,
+          you owe us nothing and there is nothing to refund.
         </p>
       </LegalSection>
 
-      <LegalSection id="after-booking" heading="2. Cancelling after you've booked">
-        <p>
-          A project is booked once you accept a written quotation and pay the booking advance. If you
-          need to cancel after that, the amount that can be refunded depends on how much work has
-          already been done — design finalisation, material procurement and factory production each
-          commit costs on our side.
-        </p>
-        <p>The cancellation terms that apply are:</p>
-        <ul className="ml-5 list-disc space-y-1.5">
+      <LegalSection id="design" heading="2. Design services">
+        <ul className="ml-5 list-disc space-y-2">
           <li>
-            Booking advance:{' '}
-            <Placeholder>RGL to confirm advance % and whether it is refundable / partly refundable.</Placeholder>
+            Once the <strong>concept is delivered</strong>, the design fee is{' '}
+            <strong>non-refundable</strong> — the work has been done and handed to you.
           </li>
           <li>
-            Cancellation before production begins:{' '}
-            <Placeholder>RGL to confirm the window and refund amount (e.g. refund minus design/processing charge).</Placeholder>
-          </li>
-          <li>
-            Cancellation after production has begun:{' '}
-            <Placeholder>RGL to confirm — typically limited, as goods are made to order.</Placeholder>
+            <strong>Cancellation before design freeze:</strong> refund of the advance, less{' '}
+            <strong>25% administrative charges</strong>.
           </li>
         </ul>
       </LegalSection>
 
-      <LegalSection id="non-refundable" heading="3. What is generally non-refundable">
-        <p>
-          Because each project is custom-made for your home, the following are generally
-          non-refundable once incurred:
-        </p>
-        <ul className="ml-5 list-disc space-y-1.5">
-          <li>made-to-order units and materials already cut, manufactured or installed;</li>
-          <li>third-party items already purchased for your project (such as appliances and fittings); and</li>
+      <LegalSection id="execution" heading="3. Execution orders">
+        <ol className="ml-5 list-decimal space-y-2">
           <li>
-            any design or processing charge stated in your quotation —{' '}
-            <Placeholder>RGL to confirm the amount of any non-refundable design/processing fee.</Placeholder>
+            <strong>Within 48 hours of payment and before material procurement:</strong> 90% refund.
           </li>
-        </ul>
-      </LegalSection>
-
-      <LegalSection id="changes" heading="4. Changes to an order">
+          <li>
+            <strong>After procurement or cutting has begun:</strong> no refund. The procured
+            materials can be handed over to you at cost.
+          </li>
+          <li>
+            <strong>After installation begins:</strong> the order cannot be cancelled.
+          </li>
+        </ol>
         <p>
-          You can request changes before you approve the final design. Once a design is approved and
-          production has begun, changes may not be possible and may affect the price and timeline.
-          We&apos;ll always tell you the impact before proceeding.
+          The reason is simple and worth stating plainly: once a board has been cut to your wall, it
+          has no resale value to anyone else.
         </p>
       </LegalSection>
 
-      <LegalSection id="how-refunds-work" heading="5. How refunds are processed">
+      <LegalSection id="how" heading="4. How to cancel">
         <p>
-          Approved refunds are made to your original payment method. Refunds are processed within{' '}
-          <Placeholder>RGL to confirm refund processing time (e.g. 7–10 working days)</Placeholder>{' '}
-          of the cancellation being agreed. Any bank or finance-partner charges may apply.
-        </p>
-      </LegalSection>
-
-      <LegalSection id="how-to-request" heading="6. How to request a cancellation or refund">
-        <p>
-          To cancel a project or request a refund, contact us at{' '}
+          Write to{' '}
           <a href={`mailto:${business.nap.email}`} className="font-medium text-accent hover:underline">
             {business.nap.email}
           </a>{' '}
-          or{' '}
+          from the email address on your quotation, or call{' '}
           <a href={business.nap.tel} className="font-medium text-accent hover:underline">
             {business.nap.phoneDisplay}
           </a>
-          , or through our{' '}
-          <Link href={routes.contact} className="font-medium text-accent hover:underline">contact page</Link>.
-          Please include your name and project details so we can locate your booking.
+          . The cancellation takes effect from the time we receive your written notice — which is why
+          the 48-hour window is measured in writing, not by phone.
+        </p>
+        <p className="text-sm">
+          <Placeholder>
+            RGL to confirm the refund processing time (e.g. within N working days to the original
+            payment method) and add it here.
+          </Placeholder>
         </p>
       </LegalSection>
 
-      <LegalSection id="statutory" heading="7. Your statutory rights">
+      <LegalSection id="related" heading="5. Related">
         <p>
-          Nothing in this policy limits any rights you have under applicable consumer protection law.
-          This policy works alongside our{' '}
-          <Link href={routes.terms} className="font-medium text-accent hover:underline">Terms &amp; Conditions</Link>.
+          See also our{' '}
+          <Link href={routes.terms} className="font-medium text-accent hover:underline">terms &amp; conditions</Link>{' '}
+          (which govern termination and variations) and our{' '}
+          <Link href={routes.warranty} className="font-medium text-accent hover:underline">warranty</Link>{' '}
+          (which covers defects rather than cancellation).
         </p>
       </LegalSection>
     </LegalLayout>
