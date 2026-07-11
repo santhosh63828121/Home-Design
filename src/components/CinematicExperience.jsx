@@ -42,13 +42,17 @@ export default function CinematicExperience() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    // Which hero shows is decided by CSS media queries (mobile + reduced-motion →
-    // static, desktop → WebGL) so the correct hero is in the SSR HTML and paints
-    // immediately — no client-side swap, no LCP penalty, no desktop flash. JS only
-    // (a) inits the engine when the WebGL hero is the active one, and (b) forces
-    // the static hero when WebGL is unavailable (which CSS can't detect).
+    // Which hero shows is decided by CSS media queries (reduced-motion → static,
+    // everyone else → WebGL) so the correct hero is in the SSR HTML and paints
+    // immediately — no client-side swap, no flash. JS only (a) inits the engine
+    // when the WebGL hero is the active one, and (b) forces the static hero when
+    // WebGL is unavailable (which CSS can't detect).
+    //
+    // MOBILE: the 3D walkthrough now runs on phones too. HouseScene already
+    // detects mobile (innerWidth < 768) and drops to a cheaper profile — no
+    // antialiasing, pixel-ratio capped at 1.5, shadow maps off, and a plain
+    // single-pass render (skipping the bloom + motion-blur composer).
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const isMobile = window.matchMedia('(max-width: 767px)').matches
     const hasWebGL = (() => {
       try {
         const c = document.createElement('canvas')
@@ -59,10 +63,10 @@ export default function CinematicExperience() {
     })()
 
     if (!hasWebGL) {
-      setForceStatic(true) // desktop without WebGL → show the static hero too
+      setForceStatic(true) // no WebGL → fall back to the animated static hero
       return
     }
-    if (prefersReduced || isMobile) return // CSS already shows static; skip the engine
+    if (prefersReduced) return // CSS already shows the static hero; skip the engine
 
     let cancelled = false
     // Defensive fallback: never leave the canvas faded-out if onReady is missed.

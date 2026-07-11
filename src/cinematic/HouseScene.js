@@ -61,7 +61,9 @@ export default class HouseScene {
 
   init() {
     const renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: !this.mobile, powerPreference: 'high-performance' })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2))
+    // Mobile renders at 1:1 pixel ratio — on phones the fragment cost scales with
+    // the square of DPR, and 1.0 vs 1.5 is a ~2.25x reduction in pixels shaded.
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.mobile ? 1 : 2))
     renderer.useLegacyLights = false
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = this.rooms[0].exposure
@@ -557,7 +559,11 @@ export default class HouseScene {
 
   // ---- optional real assets --------------------------------------------
   _loadAssets() {
-    if (ASSETS.hdri) {
+    // MOBILE BUDGET: the HDRI is ~5.5 MB and RGBELoader parses it on the main
+    // thread. On a phone that alone pushes LCP/TBT into the tens of seconds, so
+    // mobile keeps the procedural lighting (the same graceful path already used
+    // when the HDRI fails to load). Desktop still gets the full golden-hour IBL.
+    if (ASSETS.hdri && !this.mobile) {
       new RGBELoader().load(
         ASSETS.hdri,
         (hdr) => {
@@ -614,6 +620,11 @@ export default class HouseScene {
   /** Load real modelled furniture, auto-fit to scale, seat on floor, place. */
   _loadProps() {
     if (!PROPS || !PROPS.length) return
+    // MOBILE BUDGET: the furniture GLBs total ~7 MB and are parsed on the main
+    // thread. Phones keep the lightweight procedural stand-ins already built into
+    // the scene (the same path used when a prop fails to load), so the walkthrough
+    // still reads correctly at a fraction of the cost.
+    if (this.mobile) return
     const loader = new GLTFLoader()
     const V = THREE.Vector3
     const s = this.renderer.shadowMap.enabled

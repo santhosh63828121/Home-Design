@@ -15,28 +15,32 @@
 }
 
 /* Hybrid hero switch — both heroes are in the SSR HTML; CSS shows exactly one so
-   the correct hero paints immediately (mobile LCP) with no client swap. Default
-   (desktop, motion OK): WebGL. Mobile or reduced-motion: the lightweight static
-   hero. .cine-force-static (added by JS only when WebGL is unavailable) forces
-   the static hero on desktop too. */
-.cine-hero-static {
+   the correct hero paints immediately with no client swap. Default (including
+   MOBILE, where the 3D walkthrough now runs on a cheaper render profile): WebGL.
+   Reduced-motion: the lightweight animated static hero. .cine-force-static (added
+   by JS only when WebGL is unavailable) forces the static hero on any device. */
+/* NOTE: these are deliberately child-combinator selectors (.cine-hero > …) so they
+   carry TWO classes of specificity. A single-class `.cine-hero-static` rule would
+   tie with `.cinematic--static { display: flex }` further down this file and LOSE
+   on source order — leaving both heroes rendered on top of each other. */
+.cine-hero > .cine-hero-static {
   display: none;
 }
-.cine-hero-webgl {
+.cine-hero > .cine-hero-webgl {
   display: block;
 }
-@media (max-width: 767px), (prefers-reduced-motion: reduce) {
-  .cine-hero-static {
-    display: block;
+@media (prefers-reduced-motion: reduce) {
+  .cine-hero > .cine-hero-static {
+    display: flex;
   }
-  .cine-hero-webgl {
+  .cine-hero > .cine-hero-webgl {
     display: none;
   }
 }
-.cine-force-static .cine-hero-static {
-  display: block;
+.cine-hero.cine-force-static > .cine-hero-static {
+  display: flex;
 }
-.cine-force-static .cine-hero-webgl {
+.cine-hero.cine-force-static > .cine-hero-webgl {
   display: none;
 }
 
