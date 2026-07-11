@@ -77,14 +77,23 @@ export default function PortfolioGrid({ projects }: { projects: Project[] }) {
       {/* Grid */}
       <motion.div layout className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
-          {visible.map((p) => (
+          {visible.map((p, i) => (
+            // Scroll-revealed rather than mount-revealed: each card rises + scales
+            // in as it enters the viewport, cascading by index. `once: true` so it
+            // never re-animates on scroll-back. The layout/exit animation for the
+            // filter chips is untouched.
             <motion.div
               key={p.slug}
               layout
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.96, y: 24 }}
+              whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
               exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.45,
+                ease: [0.22, 1, 0.36, 1],
+                delay: Math.min(i, 5) * 0.07, // cap the cascade so late cards aren't slow
+              }}
             >
               <Link
                 href={routes.portfolioProject(p.slug)}

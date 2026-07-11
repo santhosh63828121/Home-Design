@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import PageStub from '@/components/page/PageStub'
+import SectionReveal from '@/components/SectionReveal'
 import CostCalculator from '@/components/pricing/CostCalculator'
 import {
   PriceRangesTable,
@@ -73,7 +74,7 @@ export default function PricingHubPage() {
           <CostCalculator defaultPreset="2bhk" />
 
           {/* 4-tier design packages (doc §4.6) */}
-          <section>
+          <SectionReveal as="section" variant="fadeUp" amount={0.15}>
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">Four ways to work with us</h2>
             <p className="mt-2 max-w-2xl text-ink/70">
               Every tier is fully transparent — the materials, hardware and finishes you get at each
@@ -83,10 +84,10 @@ export default function PricingHubPage() {
             <div className="mt-6">
               <TierGrid />
             </div>
-          </section>
+          </SectionReveal>
 
           {/* Ranges table */}
-          <section>
+          <SectionReveal as="section" variant="fadeUp" amount={0.15}>
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">Transparent package ranges</h2>
             <p className="mt-2 max-w-2xl text-ink/70">
               Honest starting ranges for the most-requested scopes. Your free 3D design comes with an
@@ -95,10 +96,10 @@ export default function PricingHubPage() {
             <div className="mt-6">
               <PriceRangesTable />
             </div>
-          </section>
+          </SectionReveal>
 
           {/* What&apos;s included / excluded */}
-          <section>
+          <SectionReveal as="section" variant="fadeUp" amount={0.15}>
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">What&apos;s included &amp; excluded</h2>
             <div className="mt-6 grid gap-5 lg:grid-cols-2">
               <div>
@@ -110,10 +111,10 @@ export default function PricingHubPage() {
                 <IncludedExcluded id="premium-3bhk" />
               </div>
             </div>
-          </section>
+          </SectionReveal>
 
           {/* Material tiers */}
-          <section>
+          <SectionReveal as="section" variant="fadeUp" amount={0.15}>
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">Material &amp; finish tiers</h2>
             <p className="mt-2 max-w-2xl text-ink/70">
               The finish you choose is the biggest lever on cost. Pick a tier in the calculator to see
@@ -122,13 +123,13 @@ export default function PricingHubPage() {
             <div className="mt-6">
               <FinishTiers />
             </div>
-          </section>
+          </SectionReveal>
 
           {/* EMI */}
           <EmiCallout />
 
           {/* Project timelines (doc §4.6) */}
-          <section>
+          <SectionReveal as="section" variant="scaleIn" amount={0.15}>
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">How long it takes</h2>
             <p className="mt-2 max-w-2xl text-ink/70">
               Indicative residential timelines from kickoff to handover. Factory and site work run in
@@ -137,10 +138,10 @@ export default function PricingHubPage() {
             <div className="mt-6">
               <ResidentialTimelines />
             </div>
-          </section>
+          </SectionReveal>
 
           {/* Detailed pricing links + related */}
-          <section>
+          <SectionReveal as="section" variant="fadeUp" amount={0.15}>
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">Explore detailed pricing</h2>
             <div className="mt-5 flex flex-wrap gap-3">
               {subPages.map((s) => (
@@ -167,7 +168,7 @@ export default function PricingHubPage() {
                 See our projects <ArrowRight size={14} aria-hidden="true" />
               </Link>
             </div>
-          </section>
+          </SectionReveal>
 
           {/* FAQs */}
           <PricingFaqs faqs={pricingFaqs.hub} id="pricing-hub" />

@@ -13,6 +13,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import PageStub from '@/components/page/PageStub'
+import SectionReveal from '@/components/SectionReveal'
+import RevealItem from '@/components/RevealItem'
 import StatsSection from '@/components/StatsSection.jsx'
 import { buildMetadata, siteConfig } from '@/lib/seo'
 import { routes } from '@/lib/routes'
@@ -74,7 +76,7 @@ export default function AboutPage() {
       <div className="space-y-16">
         {/* The RGL Story — client copy (PDF §The RGL Story) */}
         <section className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
-          <div className="space-y-5 text-ink/80">
+          <SectionReveal variant="fadeRight" className="space-y-5 text-ink/80">
             <h2 className="font-serif text-2xl font-bold text-ink sm:text-3xl">
               Crafting spaces, shaping identities
             </h2>
@@ -95,9 +97,13 @@ export default function AboutPage() {
               selected for durability, elegance and everyday performance — because a home should
               still feel like yours a decade after the last panel goes in.
             </p>
-          </div>
+          </SectionReveal>
 
-          <aside className="space-y-4 rounded-2xl border border-divider bg-white p-7 shadow-card">
+          <SectionReveal
+            as="aside"
+            variant="fadeLeft"
+            className="space-y-4 rounded-2xl border border-divider bg-white p-7 shadow-card"
+          >
             <h3 className="font-serif text-xl">Our promise</h3>
             <p className="text-sm text-ink/75">
               At RGL Décors, we don&apos;t just design interiors. We design identities.
@@ -120,51 +126,66 @@ export default function AboutPage() {
               We deliver homes and workplaces that are not only premium, but powerful symbols of
               superior living.
             </p>
-          </aside>
+          </SectionReveal>
         </section>
 
         {/* Honest count-up stats (full-bleed band) */}
-        <section className="-mx-5 sm:-mx-8 lg:-mx-12">
+        <SectionReveal as="section" variant="fadeUp" className="-mx-5 sm:-mx-8 lg:-mx-12">
           <StatsSection />
-        </section>
+        </SectionReveal>
 
         {/* Why homeowners choose us — the 8 real USPs */}
         <section>
-          <h2 className="font-serif text-2xl font-bold sm:text-3xl">Why homeowners choose us</h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SectionReveal>
+            <h2 className="font-serif text-2xl font-bold sm:text-3xl">Why homeowners choose us</h2>
+          </SectionReveal>
+          <SectionReveal stagger className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {usps.map((u) => {
               const Icon = USP_ICONS[u.icon] ?? CheckCircle2
               return (
-                <div key={u.title} className="rounded-2xl border border-divider bg-white p-6 shadow-card">
+                <RevealItem
+                  key={u.title}
+                  className="lux-lift rounded-2xl border border-divider bg-white p-6 shadow-card"
+                >
                   <span className="grid h-11 w-11 place-items-center rounded-full bg-accent/10 text-accent">
                     <Icon size={20} aria-hidden="true" />
                   </span>
                   <h3 className="mt-4 font-serif text-lg">{u.title}</h3>
                   <p className="mt-1 text-sm text-ink/70">{u.description}</p>
-                </div>
+                </RevealItem>
               )
             })}
-          </div>
+          </SectionReveal>
         </section>
 
         {/* Mini process */}
         <section>
-          <h2 className="font-serif text-2xl font-bold sm:text-3xl">How we work</h2>
-          <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SectionReveal>
+            <h2 className="font-serif text-2xl font-bold sm:text-3xl">How we work</h2>
+          </SectionReveal>
+          <SectionReveal stagger as="ol" className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {processSteps.map((s) => (
-              <li key={s.n} className="rounded-2xl border border-divider bg-white p-6 shadow-card">
+              <RevealItem
+                as="li"
+                key={s.n}
+                className="lux-lift rounded-2xl border border-divider bg-white p-6 shadow-card"
+              >
                 <span className="grid h-9 w-9 place-items-center rounded-full bg-accent font-caps text-sm font-bold text-white">
                   {s.n}
                 </span>
                 <h3 className="mt-3 font-serif text-base">{s.title}</h3>
                 <p className="mt-1 text-sm text-muted">{s.text}</p>
-              </li>
+              </RevealItem>
             ))}
-          </ol>
+          </SectionReveal>
         </section>
 
         {/* Closing CTA */}
-        <section className="rounded-2xl bg-accent px-7 py-10 text-center text-white sm:px-10">
+        <SectionReveal
+          as="section"
+          variant="scaleIn"
+          className="rounded-2xl bg-accent px-7 py-10 text-center text-white sm:px-10"
+        >
           <h2 className="font-serif text-2xl font-bold sm:text-3xl">Visualise before you build</h2>
           <p className="mx-auto mt-3 max-w-xl text-white/85">
             Book a private consultation and we&apos;ll turn your space into an immersive 3D
@@ -181,7 +202,7 @@ export default function AboutPage() {
               See Our Work
             </Link>
           </div>
-        </section>
+        </SectionReveal>
       </div>
 
       {/* Breadcrumb JSON-LD is already emitted by PageStub. */}

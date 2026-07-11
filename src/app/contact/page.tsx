@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Phone, MessageCircle, Mail, Clock, MapPin, Timer } from 'lucide-react'
 import PageStub from '@/components/page/PageStub'
+import SectionReveal from '@/components/SectionReveal'
+import RevealItem from '@/components/RevealItem'
 import ContactSection from '@/components/ContactSection.jsx'
 import { buildMetadata, siteConfig } from '@/lib/seo'
 import { routes } from '@/lib/routes'
@@ -80,16 +82,16 @@ export default function ContactPage() {
         </div>
 
         {/* Direct channels */}
-        <section className="grid gap-4 sm:grid-cols-3">
+        <SectionReveal stagger as="section" className="grid gap-4 sm:grid-cols-3">
           {channels.map((c) => {
             const Icon = c.icon
             const external = c.href.startsWith('http')
             return (
+              <RevealItem key={c.label}>
               <a
-                key={c.label}
                 href={c.href}
                 {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                className="group rounded-2xl border border-divider bg-white p-6 shadow-card transition-transform duration-300 hover:-translate-y-1"
+                className="group block rounded-2xl border border-divider bg-white p-6 shadow-card"
               >
                 <span className="grid h-11 w-11 place-items-center rounded-full bg-accent/10 text-accent">
                   <Icon size={20} aria-hidden="true" />
@@ -98,13 +100,17 @@ export default function ContactPage() {
                 <p className="mt-1 font-serif text-lg text-ink group-hover:text-accent">{c.value}</p>
                 <p className="mt-1 text-sm text-muted">{c.hint}</p>
               </a>
+              </RevealItem>
             )
           })}
-        </section>
+        </SectionReveal>
 
         {/* Direct desks + lines (client-supplied, PDF §Contact us) */}
-        <section className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-divider bg-white p-6 shadow-card">
+        <section className="grid gap-6 overflow-x-clip lg:grid-cols-2">
+          <SectionReveal
+            variant="fadeRight"
+            className="lux-lift rounded-2xl border border-divider bg-white p-6 shadow-card"
+          >
             <h2 className="font-serif text-lg">Speak to the right desk</h2>
             <ul className="mt-4 space-y-3">
               {business.contacts.departments.map((d) => (
@@ -122,9 +128,12 @@ export default function ContactPage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </SectionReveal>
 
-          <div className="rounded-2xl border border-divider bg-white p-6 shadow-card">
+          <SectionReveal
+            variant="fadeLeft"
+            className="lux-lift rounded-2xl border border-divider bg-white p-6 shadow-card"
+          >
             <h2 className="font-serif text-lg">Direct lines</h2>
             <ul className="mt-4 space-y-3">
               {business.contacts.phones.map((p) => (
@@ -152,12 +161,15 @@ export default function ContactPage() {
                 {business.nap.emailSecondary}
               </a>
             </p>
-          </div>
+          </SectionReveal>
         </section>
 
         {/* Hours + location + map */}
-        <section className="grid gap-6 lg:grid-cols-[1fr_1.3fr]">
-          <div className="space-y-6 rounded-2xl border border-divider bg-white p-6 shadow-card">
+        <section className="grid gap-6 overflow-x-clip lg:grid-cols-[1fr_1.3fr]">
+          <SectionReveal
+            variant="fadeRight"
+            className="space-y-6 rounded-2xl border border-divider bg-white p-6 shadow-card"
+          >
             <div className="flex items-start gap-3">
               <Clock size={20} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
               <div>
@@ -176,9 +188,12 @@ export default function ContactPage() {
                 </p>
               </div>
             </div>
-          </div>
+          </SectionReveal>
 
-          <div className="overflow-hidden rounded-2xl border border-divider shadow-card">
+          <SectionReveal
+            variant="scaleIn"
+            className="overflow-hidden rounded-2xl border border-divider shadow-card"
+          >
             <iframe
               title="RGL Decors location on Google Maps"
               src={MAP_SRC}
@@ -186,13 +201,13 @@ export default function ContactPage() {
               referrerPolicy="no-referrer-when-downgrade"
               className="h-full min-h-[320px] w-full"
             />
-          </div>
+          </SectionReveal>
         </section>
 
         {/* Working lead form → Zod Server Action → persist + email + WhatsApp (Phase 0) */}
-        <section className="-mx-5 sm:-mx-8 lg:-mx-12">
+        <SectionReveal as="section" variant="fadeUp" className="-mx-5 sm:-mx-8 lg:-mx-12">
           <ContactSection />
-        </section>
+        </SectionReveal>
       </div>
 
       <JsonLd id="ld-contact" data={contactSchema} />

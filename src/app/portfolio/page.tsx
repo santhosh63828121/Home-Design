@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import PageStub from '@/components/page/PageStub'
+import SectionReveal from '@/components/SectionReveal'
 import PortfolioGrid from '@/components/portfolio/PortfolioGrid'
 import GalleryAccordion from '@/components/GalleryAccordion.jsx'
 import LookbookGate from '@/components/LookbookGate'
@@ -48,7 +49,7 @@ export default function PortfolioPage() {
           </section>
 
           {/* Design inspiration by space (category imagery, reusing GalleryAccordion) */}
-          <section>
+          <SectionReveal as="section" variant="fadeUp" amount={0.15}>
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">Explore interiors by space</h2>
             <p className="mt-2 max-w-2xl text-ink/70">
               Inspiration across the rooms we design every day. Browse the look, then see our real
@@ -57,15 +58,17 @@ export default function PortfolioPage() {
             <div className="mt-2">
               <GalleryAccordion />
             </div>
-          </section>
+          </SectionReveal>
 
-          <LookbookGate />
+          <SectionReveal variant="scaleIn" amount={0.2}>
+            <LookbookGate />
+          </SectionReveal>
 
-          <p>
-            <Link href={routes.portfolioAlbums} className="text-sm font-medium text-accent hover:underline">
+          <SectionReveal as="p" variant="fadeUp">
+            <Link href={routes.portfolioAlbums} className="lux-underline text-sm font-medium text-accent">
               Browse all photo albums →
             </Link>
-          </p>
+          </SectionReveal>
         </div>
       </PageStub>
 

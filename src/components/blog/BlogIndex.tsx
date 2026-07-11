@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import BlogCard from '@/components/blog/BlogCard'
 import type { PostMeta } from '@/lib/blog'
 import { categoryOrder, ALL_CATEGORIES } from '@/data/blogCategories'
@@ -12,6 +13,7 @@ import { categoryOrder, ALL_CATEGORIES } from '@/data/blogCategories'
  * clean below the page <h1>.
  */
 export default function BlogIndex({ posts }: { posts: PostMeta[] }) {
+  const reduce = useReducedMotion()
   const categories = useMemo(() => {
     const present = Array.from(
       new Set(posts.map((p) => p.frontmatter.category).filter((c): c is string => !!c)),
@@ -63,11 +65,25 @@ export default function BlogIndex({ posts }: { posts: PostMeta[] }) {
 
       <h2 className="sr-only">{active === ALL_CATEGORIES ? 'All articles' : `${active} articles`}</h2>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((p) => (
-          <BlogCard key={p.slug} post={p} />
+      {/* Cards rise in as they enter the viewport, cascading by index. Keyed on
+          the active filter so re-filtering replays the reveal for the new set. */}
+      <motion.div key={active} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((p, i) => (
+          <motion.div
+            key={p.slug}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24 }}
+            whileInView={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{
+              duration: 0.45,
+              ease: [0.22, 1, 0.36, 1],
+              delay: Math.min(i, 5) * 0.07,
+            }}
+          >
+            <BlogCard post={p} />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   )
 }

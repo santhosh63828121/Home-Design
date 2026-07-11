@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import PageStub from '@/components/page/PageStub'
+import SectionReveal from '@/components/SectionReveal'
 import { buildMetadata } from '@/lib/seo'
 import { routes } from '@/lib/routes'
 import { serviceGroups, servicesPositioning } from '@/data/services'
@@ -32,9 +33,14 @@ export default function ServicesIndexPage() {
     >
       <div className="space-y-6">
         {serviceGroups.map((g) => (
-          <section
+          // Each category reveals as you reach it — 15 groups cascading would be
+          // fatiguing, so they animate individually rather than as one stagger.
+          <SectionReveal
+            as="section"
+            variant="fadeUp"
+            amount={0.15}
             key={g.id}
-            className="rounded-2xl border border-divider bg-white p-6 shadow-card sm:p-7"
+            className="lux-lift rounded-2xl border border-divider bg-white p-6 shadow-card sm:p-7"
           >
             <div className="flex items-start gap-4">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-teal/10 font-serif text-lg font-bold text-teal">
@@ -72,7 +78,7 @@ export default function ServicesIndexPage() {
                 ),
               )}
             </ul>
-          </section>
+          </SectionReveal>
         ))}
       </div>
     </PageStub>
