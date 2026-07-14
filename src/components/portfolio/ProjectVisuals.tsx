@@ -45,10 +45,13 @@ export function ProjectCover({
   project,
   className = '',
   sizes = '(max-width: 768px) 100vw, 33vw',
+  priority = false,
 }: {
   project: Project
   className?: string
   sizes?: string
+  /** Set on the case-study opening plate — it is that page's LCP element. */
+  priority?: boolean
 }) {
   const cover = project.media.cover
   if (!cover) return <ProjectPlaceholder project={project} className={className} />
@@ -58,6 +61,9 @@ export function ProjectCover({
       alt={cover.alt}
       fill
       sizes={sizes}
+      priority={priority}
+      quality={priority ? 66 : 72}
+      loading={priority ? undefined : 'lazy'}
       placeholder={cover.blurDataURL ? 'blur' : 'empty'}
       blurDataURL={cover.blurDataURL}
       className="object-cover"

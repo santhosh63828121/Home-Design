@@ -22,7 +22,7 @@ export default function GalleryAccordion() {
       aria-labelledby="gallery-heading"
       className="bg-background py-20 sm:py-[100px]"
     >
-      <div className="mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
+      <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-12">
         <motion.div
           variants={fadeUp}
           initial="hidden"
@@ -78,7 +78,7 @@ export default function GalleryAccordion() {
                   }`}
                   aria-hidden="true"
                 />
-                <div className="absolute inset-x-0 bottom-0 p-5">
+                <div className="absolute inset-x-0 bottom-0 p-6">
                   <span className="font-caps text-sm uppercase tracking-caps text-white drop-shadow">
                     {panel.label}
                   </span>

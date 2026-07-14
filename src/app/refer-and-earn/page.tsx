@@ -49,7 +49,7 @@ export default function ReferAndEarnPage() {
     >
       <div className="space-y-14">
         <section>
-          <h2 className="font-serif text-2xl font-bold sm:text-3xl">How it works</h2>
+          <h2 className="font-serif text-2xl font-medium sm:text-3xl">How it works</h2>
           <ol className="mt-6 grid gap-4 sm:grid-cols-3">
             {steps.map((s, i) => {
               const Icon = s.icon
@@ -79,8 +79,8 @@ export default function ReferAndEarnPage() {
           </p>
         </section>
 
-        <section className="rounded-2xl bg-accent px-7 py-10 text-center text-white sm:px-10">
-          <h2 className="font-serif text-2xl font-bold sm:text-3xl">Know someone planning their home?</h2>
+        <section className="rounded-2xl bg-accent px-8 py-10 text-center text-white sm:px-10">
+          <h2 className="font-serif text-2xl font-medium sm:text-3xl">Know someone planning their home?</h2>
           <p className="mx-auto mt-3 max-w-xl text-white/85">
             Send us their details on WhatsApp, or ask any question about the programme.
           </p>
@@ -100,7 +100,7 @@ export default function ReferAndEarnPage() {
               Ask a Question
             </Link>
           </div>
-          <p className="mt-5 text-sm text-white/70">Or call us at {business.nap.phoneDisplay}</p>
+          <p className="mt-6 text-sm text-white/70">Or call us at {business.nap.phoneDisplay}</p>
         </section>
       </div>
     </PageStub>

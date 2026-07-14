@@ -19,7 +19,7 @@ export default function LookbookGate() {
     <section className="overflow-hidden rounded-2xl border border-divider bg-white shadow-card sm:grid sm:grid-cols-[1fr_1.1fr]">
       <div className="flex flex-col justify-center gap-3 bg-ink p-8 text-white sm:p-10">
         <BookOpen size={28} className="text-gold" aria-hidden="true" />
-        <h2 className="font-serif text-2xl font-bold">{LOOKBOOK.title}</h2>
+        <h2 className="font-serif text-2xl font-medium">{LOOKBOOK.title}</h2>
         <p className="text-sm text-white/80">{LOOKBOOK.blurb}</p>
         {!LOOKBOOK.available && (
           <p className="text-xs text-white/55">Publishing soon — leave your email and we’ll send it first.</p>

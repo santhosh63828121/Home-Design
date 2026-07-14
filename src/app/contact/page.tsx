@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
-import { Phone, MessageCircle, Mail, Clock, MapPin, Timer } from 'lucide-react'
+import { Phone, MessageCircle, Mail, ArrowUpRight } from 'lucide-react'
 import PageStub from '@/components/page/PageStub'
 import SectionReveal from '@/components/SectionReveal'
-import RevealItem from '@/components/RevealItem'
 import ContactSection from '@/components/ContactSection.jsx'
 import { buildMetadata, siteConfig } from '@/lib/seo'
 import { routes } from '@/lib/routes'
@@ -27,11 +26,26 @@ const whatsappHref = whatsappLink(
   "Hi RGL Decors, I'd like a free 3D design and quote for my home.",
 )
 
+/**
+ * CONTACT — a consultation desk, not a contact form.
+ * ============================================================================
+ * The old page opened with six shadowed boxes. This one opens with a sentence
+ * you can hold us to (the one-working-day reply), then three ways to reach a
+ * human, set as a ruled index. Below: the actual people — named, with their own
+ * lines and inboxes — because "our team will get back to you" is what a company
+ * says when it does not want you to know who is answering.
+ *
+ * The map is below the fold and already `loading="lazy"`; it stays that way.
+ *
+ * UNTOUCHED: the ContactPage JSON-LD, and `<ContactSection />` — whose form
+ * posts to the Zod-validated `submitContact` Server Action with its field names,
+ * honeypot and `useActionState` wiring exactly as they were.
+ */
 export default function ContactPage() {
   const channels = [
     {
       icon: Phone,
-      label: 'Call us',
+      label: 'Call',
       value: business.nap.phoneDisplay,
       href: business.nap.tel,
       hint: 'Mon–Sat, 9 AM – 7 PM',
@@ -41,7 +55,7 @@ export default function ContactPage() {
       label: 'WhatsApp',
       value: 'Chat with our team',
       href: whatsappHref,
-      hint: 'Fastest way to reach us',
+      hint: 'Usually the fastest way to reach us',
     },
     {
       icon: Mail,
@@ -65,147 +79,171 @@ export default function ContactPage() {
     <PageStub
       title="Start Your Design Journey"
       kicker="RGL Décors · Contact"
-      intro="Tell us about your space and our team will come back to you with an immersive 3D design and a transparent, itemised quote. Prefer to talk? Call or WhatsApp us directly — or write to the desk you need below."
+      intro="Tell us about the space and we will come back with an immersive 3D design and an itemised quote — no obligation, no pressure to decide on the call. Prefer to talk first? Call or WhatsApp us, or write straight to the desk you need."
       crumbs={[
         { name: 'Home', path: routes.home },
         { name: 'Contact', path: routes.contact },
       ]}
     >
-      <div className="space-y-12">
-        {/* Response-time promise */}
-        <div className="flex items-center gap-3 rounded-2xl border border-accent/20 bg-accent/[0.06] px-5 py-4">
-          <Timer size={20} className="shrink-0 text-accent" aria-hidden="true" />
-          <p className="text-sm text-ink/80">
-            <span className="font-semibold text-ink">{RESPONSE_PROMISE}</span> Need an answer sooner?
-            WhatsApp or call us during business hours and we&apos;ll respond right away.
-          </p>
-        </div>
+      <div className="space-y-24 lg:space-y-32">
+        {/* The promise, and the three ways to hold us to it. */}
+        <SectionReveal as="section" variant="fadeUp" amount={0.1}>
+          <div className="grid gap-10 border-t border-divider pt-12 lg:grid-cols-[auto_1fr] lg:gap-24">
+            <div>
+              <p className="eyebrow">Reach us</p>
+              <span aria-hidden="true" className="rule-gold mt-6" />
+              <h2 className="mt-8 max-w-[12ch] font-serif text-headline font-light text-ink">
+                One working <span className="italic text-accent">day</span>
+              </h2>
+            </div>
+            <p className="max-w-prose2 text-pretty leading-relaxed text-ink/70 lg:pt-14">
+              {RESPONSE_PROMISE} Need an answer sooner than that — a measurement, a material, a
+              price you are trying to sanity-check? Call or WhatsApp during business hours and you
+              will get one straight away.
+            </p>
+          </div>
 
-        {/* Direct channels */}
-        <SectionReveal stagger as="section" className="grid gap-4 sm:grid-cols-3">
-          {channels.map((c) => {
-            const Icon = c.icon
-            const external = c.href.startsWith('http')
-            return (
-              <RevealItem key={c.label}>
-              <a
-                href={c.href}
-                {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                className="group block rounded-2xl border border-divider bg-white p-6 shadow-card"
-              >
-                <span className="grid h-11 w-11 place-items-center rounded-full bg-accent/10 text-accent">
-                  <Icon size={20} aria-hidden="true" />
-                </span>
-                <p className="mt-4 font-caps text-[11px] uppercase tracking-wide2 text-muted">{c.label}</p>
-                <p className="mt-1 font-serif text-lg text-ink group-hover:text-accent">{c.value}</p>
-                <p className="mt-1 text-sm text-muted">{c.hint}</p>
-              </a>
-              </RevealItem>
-            )
-          })}
+          <ul className="mt-14 border-t border-divider">
+            {channels.map((c) => {
+              const Icon = c.icon
+              const external = c.href.startsWith('http')
+              return (
+                <li key={c.label}>
+                  <a
+                    href={c.href}
+                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    className="group relative flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-b border-divider py-8"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-x-0 bottom-[-1px] h-px origin-left scale-x-0 bg-gold transition-transform duration-700 ease-lux group-hover:scale-x-100"
+                    />
+
+                    <span className="flex min-w-0 items-center gap-6 transition-transform duration-700 ease-lux group-hover:translate-x-1.5">
+                      <Icon size={19} strokeWidth={1.25} className="shrink-0 text-accent" aria-hidden="true" />
+                      <span className="min-w-0">
+                        <span className="block font-caps text-[10px] uppercase tracking-wide2 text-muted">
+                          {c.label}
+                        </span>
+                        <span className="mt-1 block truncate font-serif text-title font-light text-ink">
+                          {c.value}
+                        </span>
+                      </span>
+                    </span>
+
+                    <span className="flex items-center gap-4 text-sm text-muted">
+                      {c.hint}
+                      <ArrowUpRight
+                        size={17}
+                        strokeWidth={1.25}
+                        aria-hidden="true"
+                        className="shrink-0 text-accent transition-transform duration-700 ease-lux group-hover:-translate-y-1 group-hover:translate-x-1"
+                      />
+                    </span>
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
         </SectionReveal>
 
-        {/* Direct desks + lines (client-supplied, PDF §Contact us) */}
-        <section className="grid gap-6 overflow-x-clip lg:grid-cols-2">
-          <SectionReveal
-            variant="fadeRight"
-            className="lux-lift rounded-2xl border border-divider bg-white p-6 shadow-card"
-          >
-            <h2 className="font-serif text-lg">Speak to the right desk</h2>
-            <ul className="mt-4 space-y-3">
-              {business.contacts.departments.map((d) => (
-                <li key={d.email} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-divider pb-3 last:border-0 last:pb-0">
-                  <span className="text-sm text-ink">
-                    <span className="font-medium">{d.role}</span>
-                    <span className="text-muted"> · {d.name}</span>
-                  </span>
-                  <a
-                    href={`mailto:${d.email}`}
-                    className="text-sm font-medium text-accent underline-offset-2 hover:underline"
-                  >
-                    {d.email}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </SectionReveal>
+        {/* The people, not "the team". Named desks and direct lines. */}
+        <SectionReveal as="section" variant="fadeUp" amount={0.1}>
+          <div className="border-t border-divider pt-12">
+            <p className="eyebrow">Speak to a person</p>
+            <span aria-hidden="true" className="rule-gold mt-6" />
+            <h2 className="mt-8 max-w-[14ch] font-serif text-headline font-light text-ink">
+              The desk you <span className="italic text-accent">need</span>
+            </h2>
+          </div>
 
-          <SectionReveal
-            variant="fadeLeft"
-            className="lux-lift rounded-2xl border border-divider bg-white p-6 shadow-card"
-          >
-            <h2 className="font-serif text-lg">Direct lines</h2>
-            <ul className="mt-4 space-y-3">
-              {business.contacts.phones.map((p) => (
-                <li key={p.e164} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-divider pb-3 last:border-0 last:pb-0">
-                  <span className="text-sm font-medium text-ink">{p.label}</span>
-                  <a
-                    href={`tel:${p.e164}`}
-                    className="text-sm font-medium text-accent underline-offset-2 hover:underline"
+          <div className="mt-14 grid gap-14 lg:grid-cols-2 lg:gap-24">
+            <div>
+              <h3 className="font-caps text-[10px] uppercase tracking-wide2 text-muted">By email</h3>
+              <ul className="mt-6 border-t border-divider">
+                {business.contacts.departments.map((d) => (
+                  <li
+                    key={d.email}
+                    className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-divider py-4"
                   >
-                    {p.display}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 border-t border-divider pt-4 text-sm text-muted">
-              General enquiries:{' '}
-              <a href={`mailto:${business.nap.email}`} className="font-medium text-accent hover:underline">
-                {business.nap.email}
-              </a>{' '}
-              ·{' '}
-              <a
-                href={`mailto:${business.nap.emailSecondary}`}
-                className="font-medium text-accent hover:underline"
-              >
-                {business.nap.emailSecondary}
-              </a>
-            </p>
-          </SectionReveal>
-        </section>
-
-        {/* Hours + location + map */}
-        <section className="grid gap-6 overflow-x-clip lg:grid-cols-[1fr_1.3fr]">
-          <SectionReveal
-            variant="fadeRight"
-            className="space-y-6 rounded-2xl border border-divider bg-white p-6 shadow-card"
-          >
-            <div className="flex items-start gap-3">
-              <Clock size={20} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
-              <div>
-                <h2 className="font-serif text-lg">Business hours</h2>
-                <p className="mt-1 text-sm text-ink/80">{business.nap.hoursLabel}</p>
-                <p className="text-sm text-muted">Sunday: closed</p>
-              </div>
+                    <span className="text-sm text-ink">
+                      {d.name}
+                      <span className="text-muted"> · {d.role}</span>
+                    </span>
+                    <a
+                      href={`mailto:${d.email}`}
+                      className="lux-underline text-sm text-accent"
+                    >
+                      {d.email}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-6 text-sm leading-relaxed text-muted">
+                General enquiries:{' '}
+                <a href={`mailto:${business.nap.email}`} className="lux-underline text-accent">
+                  {business.nap.email}
+                </a>{' '}
+                ·{' '}
+                <a
+                  href={`mailto:${business.nap.emailSecondary}`}
+                  className="lux-underline text-accent"
+                >
+                  {business.nap.emailSecondary}
+                </a>
+              </p>
             </div>
-            <div className="flex items-start gap-3 border-t border-divider pt-6">
-              <MapPin size={20} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
-              <div>
-                <h2 className="font-serif text-lg">Service area</h2>
-                <p className="mt-1 text-sm text-ink/80">
-                  {business.nap.addressLocality}, {business.nap.addressRegion} — serving homeowners
-                  across Chennai and {siteConfig.areaServed.length - 2}+ Tamil Nadu cities.
+
+            <div>
+              <h3 className="font-caps text-[10px] uppercase tracking-wide2 text-muted">
+                Direct lines
+              </h3>
+              <ul className="mt-6 border-t border-divider">
+                {business.contacts.phones.map((p) => (
+                  <li
+                    key={p.e164}
+                    className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-divider py-4"
+                  >
+                    <span className="text-sm text-ink">{p.label}</span>
+                    <a href={`tel:${p.e164}`} className="lux-underline text-sm text-accent">
+                      {p.display}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-10 border-t border-divider pt-6">
+                <p className="font-caps text-[10px] uppercase tracking-wide2 text-muted">Hours</p>
+                <p className="mt-2 text-sm text-ink">{business.nap.hoursLabel}</p>
+                <p className="text-sm text-muted">Sunday closed</p>
+
+                <p className="mt-6 font-caps text-[10px] uppercase tracking-wide2 text-muted">
+                  Where we work
+                </p>
+                <p className="mt-2 max-w-prose2 text-sm leading-relaxed text-ink/70">
+                  {business.nap.addressLocality}, {business.nap.addressRegion} — homes across Chennai
+                  and {siteConfig.areaServed.length - 2}+ Tamil Nadu cities.
                 </p>
               </div>
             </div>
-          </SectionReveal>
+          </div>
+        </SectionReveal>
 
-          <SectionReveal
-            variant="scaleIn"
-            className="overflow-hidden rounded-2xl border border-divider shadow-card"
-          >
+        {/* The map. Below the fold, lazy, and given the full measure. */}
+        <SectionReveal as="section" variant="fadeUp" amount={0.1}>
+          <div className="border border-divider">
             <iframe
               title="RGL Decors location on Google Maps"
               src={MAP_SRC}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              className="h-full min-h-[320px] w-full"
+              className="block h-full min-h-[24rem] w-full lg:min-h-[28rem]"
             />
-          </SectionReveal>
-        </section>
+          </div>
+        </SectionReveal>
 
-        {/* Working lead form → Zod Server Action → persist + email + WhatsApp (Phase 0) */}
-        <SectionReveal as="section" variant="fadeUp" className="-mx-5 sm:-mx-8 lg:-mx-12">
+        {/* Working lead form → Zod Server Action → persist + email + WhatsApp. */}
+        <SectionReveal variant="fadeUp" amount={0.05} className="bleed">
           <ContactSection />
         </SectionReveal>
       </div>

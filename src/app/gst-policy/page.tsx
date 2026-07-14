@@ -47,7 +47,7 @@ export default function GstPolicyPage() {
       </LegalSection>
 
       <LegalSection id="rates" heading="2. Applicable rates">
-        <ul className="ml-5 list-disc space-y-1.5">
+        <ul className="ml-6 list-disc space-y-1.5">
           <li>
             Interior design consultancy and professional services attract <strong>18% GST</strong>{' '}
             under SAC 9983 / 998391 (specialty design services, which includes interior design).
@@ -67,7 +67,7 @@ export default function GstPolicyPage() {
       </LegalSection>
 
       <LegalSection id="invoicing" heading="3. Invoicing">
-        <ul className="ml-5 list-disc space-y-1.5">
+        <ul className="ml-6 list-disc space-y-1.5">
           <li>A tax invoice is issued with the HSN/SAC code, our GSTIN and the place of supply.</li>
           <li>An advance invoice is raised on booking; the balance is invoiced against milestones.</li>
           <li>

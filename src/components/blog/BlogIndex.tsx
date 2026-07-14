@@ -1,19 +1,32 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import SectionReveal from '@/components/SectionReveal'
+import RevealItem from '@/components/RevealItem'
 import BlogCard from '@/components/blog/BlogCard'
 import type { PostMeta } from '@/lib/blog'
 import { categoryOrder, ALL_CATEGORIES } from '@/data/blogCategories'
 
 /**
- * Blog index with a category filter. Categories are derived from the posts that
- * actually exist (ordered by the canonical taxonomy), so a chip never leads to
- * an empty list. Cards are <h3> under a section <h2>, keeping heading order
- * clean below the page <h1>.
+ * THE JOURNAL INDEX — a spread of plates, not a card grid.
+ * ============================================================================
+ * Categories are derived from the posts that actually exist (ordered by the
+ * canonical taxonomy), so a chip never leads to an empty list. Cards are <h3>
+ * under the sr-only section <h2>, keeping heading order clean below the page <h1>.
+ *
+ * MOTION: the filter chips and the plates both stagger in through the house
+ * SectionReveal / RevealItem pair — one mechanism, not a second hand-rolled one.
+ * The grid is KEYED ON THE ACTIVE FILTER, which remounts the reveal so the
+ * cascade replays for the new set rather than the new cards appearing fully lit.
+ *
+ * Every third plate is dropped 4rem on the widest breakpoint, so the eye reads a
+ * curated spread rather than a product listing. The rhythm is index-driven, so it
+ * survives filtering.
+ *
+ * The chips used to be `border-teal bg-teal` — a retired hue that now silently
+ * resolves to olive. They are `accent` now, so the intent is legible in source.
  */
 export default function BlogIndex({ posts }: { posts: PostMeta[] }) {
-  const reduce = useReducedMotion()
   const categories = useMemo(() => {
     const present = Array.from(
       new Set(posts.map((p) => p.frontmatter.category).filter((c): c is string => !!c)),
@@ -31,59 +44,64 @@ export default function BlogIndex({ posts }: { posts: PostMeta[] }) {
 
   if (posts.length === 0) {
     return (
-      <p className="rounded-2xl border border-divider bg-white px-6 py-5 text-sm text-muted">
-        Our first articles are being written. Meanwhile, explore our services or get a free 3D
-        design and quote.
-      </p>
+      <SectionReveal variant="fadeUp" className="border-t border-divider pt-8">
+        <p className="max-w-prose2 text-pretty leading-relaxed text-muted">
+          Our first articles are being written. Meanwhile, explore our services or get a free 3D
+          design and quote.
+        </p>
+      </SectionReveal>
     )
   }
 
   return (
     <div>
       {categories.length > 2 && (
-        <nav aria-label="Filter articles by category" className="mb-8 flex flex-wrap gap-2">
-          {categories.map((c) => {
-            const on = c === active
-            return (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setActive(c)}
-                aria-pressed={on}
-                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                  on
-                    ? 'border-teal bg-teal text-white'
-                    : 'border-divider bg-white text-ink/70 hover:border-teal hover:text-teal'
-                }`}
-              >
-                {c}
-              </button>
-            )
-          })}
+        <nav aria-label="Filter articles by category">
+          <SectionReveal
+            stagger
+            amount={0.4}
+            className="flex flex-wrap items-center gap-x-3 gap-y-2 border-y border-divider py-6"
+          >
+            {categories.map((c) => {
+              const on = c === active
+              return (
+                <RevealItem key={c}>
+                  <button
+                    type="button"
+                    onClick={() => setActive(c)}
+                    aria-pressed={on}
+                    className={`rounded-full px-4 py-1.5 text-sm transition-colors duration-500 ${
+                      on
+                        ? 'bg-accent text-white'
+                        : 'border border-divider bg-white text-ink/75 hover:border-accent hover:text-accent'
+                    }`}
+                  >
+                    {c}
+                  </button>
+                </RevealItem>
+              )
+            })}
+          </SectionReveal>
         </nav>
       )}
 
       <h2 className="sr-only">{active === ALL_CATEGORIES ? 'All articles' : `${active} articles`}</h2>
 
-      {/* Cards rise in as they enter the viewport, cascading by index. Keyed on
-          the active filter so re-filtering replays the reveal for the new set. */}
-      <motion.div key={active} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {/* `overflow-x-clip` because the offset gold frame sits 20px to the right of
+          the last column's plate; clipping here is safe (overflow creates no
+          containing block, so the plates' transforms are untouched). */}
+      <SectionReveal
+        stagger
+        key={active}
+        amount={0.05}
+        className="mt-12 grid gap-x-12 gap-y-16 overflow-x-clip sm:grid-cols-2 lg:mt-16 lg:grid-cols-3 lg:gap-y-24"
+      >
         {filtered.map((p, i) => (
-          <motion.div
-            key={p.slug}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24 }}
-            whileInView={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{
-              duration: 0.45,
-              ease: [0.22, 1, 0.36, 1],
-              delay: Math.min(i, 5) * 0.07,
-            }}
-          >
+          <RevealItem key={p.slug} className={i % 3 === 1 ? 'lg:mt-16' : ''}>
             <BlogCard post={p} />
-          </motion.div>
+          </RevealItem>
         ))}
-      </motion.div>
+      </SectionReveal>
     </div>
   )
 }

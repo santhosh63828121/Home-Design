@@ -38,7 +38,7 @@ export default function AlbumsPage() {
               <div className="skeleton relative aspect-[4/3] w-full overflow-hidden">
                 <ProjectCover project={p} sizes="(max-width: 640px) 100vw, 33vw" />
               </div>
-              <div className="p-5">
+              <div className="p-6">
                 <h2 className="font-serif text-lg">{p.title}</h2>
                 <p className="mt-1 text-sm text-muted">
                   {count > 0 ? `${count} photos` : 'Album coming soon'}

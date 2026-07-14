@@ -80,7 +80,7 @@ export default function AfterSalesPage() {
           sealant <em>before</em> they turn into a cracked hinge plate or a rotted sink base.
         </p>
         <p>A paid AMC typically covers:</p>
-        <ul className="ml-5 list-disc space-y-1.5">
+        <ul className="ml-6 list-disc space-y-1.5">
           <li>Hinge alignment and re-levelling of sagging shutters</li>
           <li>Channel and sliding-track cleaning and lubrication</li>
           <li>Tightening of hinges, pull-outs and hydraulic lift-ups</li>
@@ -95,7 +95,7 @@ export default function AfterSalesPage() {
       </LegalSection>
 
       <LegalSection id="other" heading="4. Other after-sales services">
-        <ul className="ml-5 list-disc space-y-1.5">
+        <ul className="ml-6 list-disc space-y-1.5">
           <li>Warranty service and fast support</li>
           <li>Furniture maintenance and repairs</li>
           <li>Deep cleaning and move-in ready refresh</li>
@@ -105,7 +105,7 @@ export default function AfterSalesPage() {
 
       <LegalSection id="scope" heading="5. What an AMC does not cover">
         <p>So there are no surprises, an AMC generally excludes:</p>
-        <ul className="ml-5 list-disc space-y-1.5">
+        <ul className="ml-6 list-disc space-y-1.5">
           <li>Major physical damage — broken laminate or cracked stone from impact</li>
           <li>Water damage from a burst pipe or leaking RO system</li>
           <li>

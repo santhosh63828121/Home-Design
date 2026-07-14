@@ -46,7 +46,7 @@ export default function WarrantyPage() {
       </p>
 
       <LegalSection id="coverage" heading="1. What is covered">
-        <ul className="ml-5 list-disc space-y-2">
+        <ul className="ml-6 list-disc space-y-2">
           <li>
             <strong>Modular furniture (modular kitchens, wardrobes):</strong> a{' '}
             <strong>5-year warranty on hardware</strong> (Hettich / Häfele-equivalent hinges,
@@ -66,7 +66,7 @@ export default function WarrantyPage() {
       </LegalSection>
 
       <LegalSection id="not-covered" heading="2. What is not covered">
-        <ul className="ml-5 list-disc space-y-2">
+        <ul className="ml-6 list-disc space-y-2">
           <li>
             <strong>Upholstery, fabrics and natural wood:</strong> no warranty for colour fading,
             wear or moisture damage — these are natural, expected changes over time.
@@ -119,7 +119,7 @@ export default function WarrantyPage() {
 
       <LegalSection id="protect" heading="5. Protecting your warranty">
         <p>Simple habits keep your interiors — and your cover — in good standing:</p>
-        <ul className="ml-5 list-disc space-y-1.5">
+        <ul className="ml-6 list-disc space-y-1.5">
           <li>Wipe water spills promptly, especially at countertop joints and under the sink.</li>
           <li>Let soft-close mechanisms close on their own; don&apos;t force shutters shut.</li>
           <li>Don&apos;t overload drawers and shelves beyond their rated capacity.</li>

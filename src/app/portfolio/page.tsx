@@ -5,7 +5,7 @@ import SectionReveal from '@/components/SectionReveal'
 import PortfolioGrid from '@/components/portfolio/PortfolioGrid'
 import GalleryAccordion from '@/components/GalleryAccordion.jsx'
 import LookbookGate from '@/components/LookbookGate'
-import { projects, PORTFOLIO_BUDGET_FOOTNOTE } from '@/data/portfolio'
+import { projects, PORTFOLIO_BUDGET_FOOTNOTE, PORTFOLIO_MEDIA_NOTE } from '@/data/portfolio'
 import { buildMetadata, siteConfig } from '@/lib/seo'
 import { routes } from '@/lib/routes'
 import { JsonLd } from '@/lib/structured-data'
@@ -42,15 +42,26 @@ export default function PortfolioPage() {
         ]}
         cta={{ label: 'Get a Similar Design', href: routes.getQuote }}
       >
-        <div className="space-y-16">
+        <div className="space-y-24">
           <section>
             <PortfolioGrid projects={projects} />
-            <p className="mt-4 text-xs text-muted">{PORTFOLIO_BUDGET_FOOTNOTE}</p>
+            {/* Disclosure, not fine print. These are real, named clients — the
+                imagery currently attached to them is reference photography of the
+                specified design direction, not photographs of their homes. It is
+                said plainly here and again under every project gallery. Both
+                notes disappear the moment RGL supplies real photography (set
+                PORTFOLIO_MEDIA_NOTE to null). */}
+            <div className="mt-10 space-y-2 border-t border-divider pt-6">
+              <p className="text-xs leading-relaxed text-muted">{PORTFOLIO_BUDGET_FOOTNOTE}</p>
+              {PORTFOLIO_MEDIA_NOTE && (
+                <p className="text-xs leading-relaxed text-muted">{PORTFOLIO_MEDIA_NOTE}</p>
+              )}
+            </div>
           </section>
 
           {/* Design inspiration by space (category imagery, reusing GalleryAccordion) */}
           <SectionReveal as="section" variant="fadeUp" amount={0.15}>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">Explore interiors by space</h2>
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">Explore interiors by space</h2>
             <p className="mt-2 max-w-2xl text-ink/70">
               Inspiration across the rooms we design every day. Browse the look, then see our real
               projects above.

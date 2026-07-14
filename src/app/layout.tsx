@@ -15,17 +15,19 @@ import ScrollProgress from '@/components/ScrollProgress'
 import Analytics, { GtmNoScript } from '@/components/Analytics'
 import CustomCursor from '@/components/CustomCursor'
 
-// Display headings — Cormorant Garamond (doc §5.3). Heavier weights so it reads
-// well at hero/section sizes (Cormorant is delicate at 400).
+// Editorial display — Cormorant Garamond. The LIGHT weights are the point: at
+// display sizes (clamp up to 8.5rem) 300/400 reads like an architecture
+// monograph, while 600/700 reads like a wedding invitation. 500/600 are kept for
+// small headings, where light Cormorant would go weedy.
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
+  weight: ['300', '400', '500', '600'],
   variable: '--font-cormorant',
   display: 'swap',
 })
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600'],
   variable: '--font-inter',
   display: 'swap',
 })

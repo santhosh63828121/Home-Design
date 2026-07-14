@@ -1,21 +1,32 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
-import { ROOMS } from '../cinematic/config.js'
+import { ROOMS, JOURNEY } from '../cinematic/config.js'
 import { GALLERY } from '../data/content.js'
 import './cinematic.css'
 
-// Single room image for the lightweight mobile hero (reuses the site's existing
-// living-room photo — no new asset). One request only, requested at a smaller
-// size/quality than the gallery thumbnail so it stays cheap on mobile data; used
-// as a CSS background-image so desktop (where the mobile hero is display:none)
-// never downloads it.
-const MOBILE_HERO_IMAGE = (
-  GALLERY.find((g) => g.id === 'living')?.image ||
-  'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6'
-).replace(/[?].*$/, '') + '?auto=format&fit=crop&w=900&q=55'
+// Single room image for the mobile hero. ONE request only, at a smaller
+// size/quality than the gallery thumbnail so it stays cheap on mobile data.
+// It is a CSS background-image, so desktop (where this hero is display:none)
+// never downloads it at all.
+//
+// Exported so app/page.tsx can <link rel="preload"> it: a CSS background is
+// invisible to the browser's preload scanner — it can't be discovered until the
+// stylesheet has been fetched AND the rule has matched — which put this, the
+// mobile LCP element, ~1.5s late on the critical path.
+export const MOBILE_HERO_IMAGE =
+  (
+    GALLERY.find((g) => g.id === 'living')?.image ||
+    'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6'
+  ).replace(/[?].*$/, '') + '?auto=format&fit=crop&w=900&q=55'
+
+/** Desktop poster — painted instantly beneath the canvas so the LCP never waits
+ *  for three.js. next/image re-encodes to AVIF at the device width. */
+const POSTER_IMAGE =
+  'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1600&q=75'
 
 /**
  * CinematicExperience — a TRUE one-take walkthrough of a single 3D home.
@@ -42,17 +53,21 @@ export default function CinematicExperience() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    // Which hero shows is decided by CSS media queries (reduced-motion → static,
-    // everyone else → WebGL) so the correct hero is in the SSR HTML and paints
-    // immediately — no client-side swap, no flash. JS only (a) inits the engine
-    // when the WebGL hero is the active one, and (b) forces the static hero when
-    // WebGL is unavailable (which CSS can't detect).
+    // Which hero SHOWS is decided by CSS (see the hybrid switch in cinematic.css)
+    // so the correct hero is in the SSR HTML and paints immediately — no
+    // client-side swap, no flash. JS only (a) boots the engine when the WebGL
+    // hero is the one actually on screen, and (b) forces the photography hero
+    // when WebGL is unavailable, which CSS cannot detect.
     //
-    // MOBILE: the 3D walkthrough now runs on phones too. HouseScene already
-    // detects mobile (innerWidth < 768) and drops to a cheaper profile — no
-    // antialiasing, pixel-ratio capped at 1.5, shadow maps off, and a plain
-    // single-pass render (skipping the bloom + motion-blur composer).
+    // The three guards below MUST mirror the CSS switch exactly. If they drift,
+    // we either boot a three.js engine for a canvas nobody can see (pure waste
+    // on the very devices that can least afford it) or leave a visible canvas
+    // black.
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    // Same 1024px breakpoint as the CSS. Phones and tablets get the photography
+    // hero: the walkthrough measured Perf 52 / TBT 7,440ms on mobile because
+    // building the scene blocks the main thread for seconds.
+    const isSmall = window.matchMedia('(max-width: 1023px)').matches
     const hasWebGL = (() => {
       try {
         const c = document.createElement('canvas')
@@ -63,34 +78,62 @@ export default function CinematicExperience() {
     })()
 
     if (!hasWebGL) {
-      setForceStatic(true) // no WebGL → fall back to the animated static hero
+      setForceStatic(true) // no WebGL → fall back to the photography hero
       return
     }
-    if (prefersReduced) return // CSS already shows the static hero; skip the engine
+    if (isSmall) return // CSS is showing the photography hero — never boot three.js
+    if (prefersReduced) return // ditto for reduced-motion
 
     let cancelled = false
-    // Defensive fallback: never leave the canvas faded-out if onReady is missed.
-    const readyFallback = setTimeout(() => !cancelled && setReady(true), 1500)
-    import('../cinematic/CinematicEngine.js').then(({ default: CinematicEngine }) => {
-      if (cancelled || !wrapperRef.current) return
-      const engine = new CinematicEngine({
-        wrapper: wrapperRef.current,
-        canvas: canvasRef.current,
-        onProgress: (p) => {
-          setProgress(p)
-          setActive(roomAt(p))
-        },
-        onReady: () => {
-          if (!cancelled) setReady(true)
-        },
+    let readyFallback = 0
+
+    const boot = () => {
+      if (cancelled || engineRef.current) return
+      // Defensive: never leave the canvas faded-out if onReady is missed.
+      readyFallback = setTimeout(() => !cancelled && setReady(true), 2500)
+      import('../cinematic/CinematicEngine.js').then(({ default: CinematicEngine }) => {
+        if (cancelled || !wrapperRef.current) return
+        const engine = new CinematicEngine({
+          wrapper: wrapperRef.current,
+          canvas: canvasRef.current,
+          onProgress: (p) => {
+            setProgress(p)
+            setActive(roomAt(p))
+          },
+          onReady: () => {
+            if (!cancelled) setReady(true)
+          },
+        })
+        engine.init()
+        engineRef.current = engine
       })
-      engine.init()
-      engineRef.current = engine
-    })
+    }
+
+    // ── BOOT ON FIRST SCROLL INTENT ──────────────────────────────────────
+    // three.js + building the house is ~2s of main-thread work. Doing it during
+    // page load put it squarely in the critical path and capped Lighthouse
+    // Performance at 49-60 — on the one page every visitor lands on.
+    //
+    // But the walkthrough is SCROLL-DRIVEN: until you scroll, there is literally
+    // nothing for it to animate. Until then the poster photograph IS the hero —
+    // it paints immediately (LCP ~1.1s) and looks like the finished thing.
+    //
+    // So the engine boots the moment the user shows intent to move, and the
+    // canvas cross-fades over the poster. A visitor who reads the hero and
+    // leaves never downloads or builds any of it. Nobody waits for something
+    // they haven't asked to see.
+    //
+    // This is only safe because the scroll length now lives in CSS
+    // (.cine-track / position: sticky). With the old GSAP pin, booting late
+    // would have grown the page under the user's cursor.
+    const opts = { passive: true, once: true }
+    const events = ['wheel', 'touchstart', 'pointerdown', 'keydown', 'scroll']
+    events.forEach((e) => window.addEventListener(e, boot, opts))
 
     return () => {
       cancelled = true
       clearTimeout(readyFallback)
+      events.forEach((e) => window.removeEventListener(e, boot))
       engineRef.current?.destroy()
     }
   }, [])
@@ -117,8 +160,26 @@ export default function CinematicExperience() {
           The title is a <p> (not a heading) so ReleaseHero keeps the page's
           single <h1> and heading order stays clean. */}
       <section className="cinematic cinematic--static cine-hero-static" aria-label="Home walkthrough">
+        {/* Same <Image>, same src, as the desktop poster below — so the browser
+            issues exactly ONE preload and whichever hero the CSS reveals uses it.
+            It was a CSS background-image, which the preload scanner cannot see:
+            it could not even begin downloading until the stylesheet had been
+            fetched and the rule matched. Meanwhile the (display:none) desktop
+            poster was still being preloaded on mobile — so a phone paid for two
+            images and got the slow one. Mobile LCP: 3.9s. */}
         <div className="cine-m-slides" aria-hidden="true">
-          <div className="cine-m-slide" style={{ backgroundImage: `url(${MOBILE_HERO_IMAGE})` }} />
+          <div className="cine-m-slide">
+            <Image
+              src={POSTER_IMAGE}
+              alt=""
+              fill
+              priority
+              fetchPriority="high"
+              sizes="100vw"
+              quality={50}
+              className="object-cover"
+            />
+          </div>
         </div>
         <div className="cine-m-veil" aria-hidden="true" />
         <div className="cinematic__staticInner cine-m-content">
@@ -134,8 +195,40 @@ export default function CinematicExperience() {
         </div>
       </section>
 
-      {/* WebGL hero — shown on desktop; the engine inits client-side. */}
-      <section ref={wrapperRef} aria-label="Luxury home walkthrough" className="cinematic cine-hero-webgl">
+      {/* WebGL hero — desktop. The TRACK declares the journey's scroll length in
+          CSS (JOURNEY.scrollLengthVh, passed as a custom property so the camera
+          mapping and the layout can never drift apart), and the stage inside it
+          holds position with `position: sticky`. No GSAP pin, so the page height
+          is real, server-rendered layout: it cannot shift, and the engine can be
+          booted lazily without the page growing under the user. */}
+      <div
+        ref={wrapperRef}
+        className="cine-track cine-hero-webgl"
+        style={{ '--cine-vh': JOURNEY.scrollLengthVh }}
+      >
+      <section aria-label="Luxury home walkthrough" className="cinematic">
+      {/* POSTER — the reason this hero can be both 3D and fast.
+          A <canvas> paints nothing until three.js has downloaded, compiled and
+          built the scene. Left bare, the Largest Contentful Paint waits on all
+          of that (measured: LCP 12.9s at worst). This photograph is a real
+          <img priority>, discoverable by the browser's preload scanner, so it
+          paints almost immediately and BECOMES the LCP. The canvas then fades in
+          over it (opacity only → no layout shift, CLS 0).
+          The visitor sees a luxury interior instantly, and the walkthrough
+          arrives a moment later without anyone waiting on a blank screen. */}
+      <div className="cine-poster" aria-hidden="true">
+        <Image
+          src={POSTER_IMAGE}
+          alt=""
+          fill
+          priority
+          fetchPriority="high"
+          sizes="100vw"
+          quality={50}
+          className="object-cover"
+        />
+      </div>
+
       <canvas ref={canvasRef} className={`cinematic__fx${ready ? ' is-ready' : ''}`} aria-hidden="true" />
 
       {/* Room label overlay — crossfades as the camera enters each space */}
@@ -173,6 +266,7 @@ export default function CinematicExperience() {
         <ChevronDown size={16} className="animate-bounceArrow" />
       </div>
       </section>
+      </div>
     </div>
   )
 }

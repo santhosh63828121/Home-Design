@@ -28,10 +28,22 @@ const initialQty = (presetId: string): QtyMap => {
 const formInitial: ContactState = { ok: false }
 
 /**
- * Interactive cost estimator. Inputs (BHK preset · room quantities · finish
- * tier) feed the single-source estimate() and render a RANGE — never a hard
- * number — with the indicative footnote. "Get exact quote" captures the lead
- * through the Phase-0 contact Server Action (estimate auto-attached).
+ * THE ESTIMATOR — a bench, not a pricing widget.
+ * ============================================================================
+ * Left: the levers (home type · rooms · finish) as ruled rows, so choosing is an
+ * act of composition rather than filling in a form. Right: a deep-olive panel
+ * where the number lives — the one place on the page that goes dark, because a
+ * figure this consequential deserves the weight.
+ *
+ * Colour is measured, not chosen: on `olive-deep` the range is set in GOLD
+ * (5.67:1 ✓) and every supporting line is white/70 or lighter — white/60 is the
+ * documented floor. Gold is never used as text on the white side of this panel.
+ *
+ * UNCHANGED — and deliberately so: every input `name`, the honeypot, the two
+ * hidden fields carrying the subject + itemised summary, `useActionState`, and
+ * the `submitContact` Server Action. This is live lead capture; only its clothes
+ * changed. The estimate remains a RANGE with the indicative footnote attached —
+ * never a hard number.
  */
 export default function CostCalculator({
   defaultPreset = '2bhk',
@@ -76,202 +88,230 @@ export default function CostCalculator({
       .join('\n')
   }, [result, phone, note])
 
+  const chip = (active: boolean) =>
+    `rounded-full px-6 py-2 font-caps text-[11px] uppercase tracking-wide2 transition-colors duration-500 ${
+      active
+        ? 'bg-accent text-white'
+        : 'border border-divider bg-white text-ink/70 hover:border-accent hover:text-ink'
+    }`
+
+  const stepper =
+    'grid h-9 w-9 place-items-center rounded-full border border-divider text-ink transition-colors duration-500 hover:border-accent hover:text-accent disabled:pointer-events-none disabled:opacity-30'
+
+  const darkField =
+    'w-full border-b border-white/25 bg-transparent py-2 text-sm text-white placeholder-white/60 outline-none transition-colors focus:border-gold'
+
   return (
-    <div className="overflow-hidden rounded-3xl border border-divider bg-white shadow-form">
-      <div className="grid lg:grid-cols-[1.2fr_1fr]">
-        {/* Inputs */}
-        <div className="border-b border-divider p-6 sm:p-8 lg:border-b-0 lg:border-r">
-          <p className="eyebrow">Instant Estimate</p>
-          <h2 className="mt-2 font-serif text-2xl font-bold sm:text-3xl">Calculate your interior cost</h2>
+    <div className="grid border border-divider bg-white lg:grid-cols-[1.25fr_1fr]">
+      {/* ── The levers ─────────────────────────────────────────────────────── */}
+      <div className="border-b border-divider p-8 sm:p-10 lg:border-b-0 lg:border-r">
+        <p className="eyebrow">Instant estimate</p>
+        <span aria-hidden="true" className="rule-gold mt-6" />
+        <h2 className="mt-8 max-w-[14ch] font-serif text-title font-light text-ink">
+          Compose your <span className="italic text-accent">scope</span>
+        </h2>
 
-          {/* BHK preset */}
-          <div className="mt-6">
-            <p className="font-caps text-xs uppercase tracking-wide2 text-muted">Home type</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {bhkPresets.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => choosePreset(p.id)}
-                  aria-pressed={presetId === p.id}
-                  className={`rounded-full px-4 py-2 font-caps text-sm tracking-caps transition-colors ${
-                    presetId === p.id
-                      ? 'bg-accent text-white'
-                      : 'border border-divider bg-white text-ink hover:border-accent'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
+        {/* Home type */}
+        <div className="mt-8">
+          <p className="font-caps text-[10px] uppercase tracking-wide2 text-muted">Home type</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {bhkPresets.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => choosePreset(p.id)}
+                aria-pressed={presetId === p.id}
+                className={chip(presetId === p.id)}
+              >
+                {p.label}
+              </button>
+            ))}
           </div>
+        </div>
 
-          {/* Rooms */}
-          <div className="mt-6">
-            <p className="font-caps text-xs uppercase tracking-wide2 text-muted">Rooms &amp; units</p>
-            <ul className="mt-3 divide-y divide-divider">
-              {roomRates.map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-3 py-2.5">
-                  <div>
-                    <p className="text-sm font-medium text-ink">{r.name}</p>
-                    <p className="text-xs text-muted">
+        {/* Rooms & units */}
+        <div className="mt-10">
+          <p className="font-caps text-[10px] uppercase tracking-wide2 text-muted">Rooms &amp; units</p>
+          <ul className="mt-2">
+            {roomRates.map((r) => {
+              const n = qty[r.id] || 0
+              return (
+                <li
+                  key={r.id}
+                  className="flex items-center justify-between gap-4 border-b border-divider py-4"
+                >
+                  <div className="min-w-0">
+                    <p className={`text-sm ${n > 0 ? 'text-ink' : 'text-ink/60'}`}>{r.name}</p>
+                    <p className="mt-0.5 text-xs tabular-nums text-muted">
                       {formatINR(r.base.min)}–{formatINR(r.base.max)}
                       {r.unitLabel ? ` / ${r.unitLabel}` : ''}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex shrink-0 items-center gap-2">
                     <button
                       type="button"
                       aria-label={`Decrease ${r.name}`}
                       onClick={() => bump(r.id, -1, r.maxQty)}
-                      disabled={(qty[r.id] || 0) === 0}
-                      className="grid h-8 w-8 place-items-center rounded-full border border-divider text-ink disabled:opacity-40"
+                      disabled={n === 0}
+                      className={stepper}
                     >
-                      <Minus size={14} />
+                      <Minus size={13} strokeWidth={1.5} aria-hidden="true" />
                     </button>
-                    <span className="w-6 text-center text-sm font-semibold tabular-nums">
-                      {qty[r.id] || 0}
+                    <span
+                      className={`w-5 text-center font-caps text-sm tabular-nums ${
+                        n > 0 ? 'text-ink' : 'text-muted'
+                      }`}
+                    >
+                      {n}
                     </span>
                     <button
                       type="button"
                       aria-label={`Increase ${r.name}`}
                       onClick={() => bump(r.id, 1, r.maxQty)}
-                      disabled={(qty[r.id] || 0) >= r.maxQty}
-                      className="grid h-8 w-8 place-items-center rounded-full border border-divider text-ink disabled:opacity-40"
+                      disabled={n >= r.maxQty}
+                      className={stepper}
                     >
-                      <Plus size={14} />
+                      <Plus size={13} strokeWidth={1.5} aria-hidden="true" />
                     </button>
                   </div>
                 </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Finish */}
-          <div className="mt-6">
-            <p className="font-caps text-xs uppercase tracking-wide2 text-muted">Finish</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {finishTiers.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setFinishId(t.id)}
-                  aria-pressed={finishId === t.id}
-                  title={t.blurb}
-                  className={`rounded-full px-4 py-2 font-caps text-sm tracking-caps transition-colors ${
-                    finishId === t.id
-                      ? 'bg-ink text-white'
-                      : 'border border-divider bg-white text-ink hover:border-ink'
-                  }`}
-                >
-                  {t.name}
-                </button>
-              ))}
-            </div>
-          </div>
+              )
+            })}
+          </ul>
         </div>
 
-        {/* Output + lead capture */}
-        <div className="bg-accent p-6 text-white sm:p-8">
-          {state.ok ? (
-            <div role="status" className="flex h-full flex-col items-center justify-center gap-3 text-center">
-              <CheckCircle2 size={40} aria-hidden="true" />
-              <p className="font-serif text-xl">Estimate sent!</p>
-              <p className="text-sm text-white/85">{state.message}</p>
-              {state.whatsappUrl && (
-                <a
-                  href={state.whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-pill mt-2 bg-[#25D366] text-white hover:bg-[#1ebe57]"
-                >
-                  <MessageCircle size={16} aria-hidden="true" /> Continue on WhatsApp
-                </a>
-              )}
-            </div>
-          ) : (
-            <>
-              <p className="font-caps text-xs uppercase tracking-wide2 text-white/90">
-                Your estimated range
-              </p>
-              <p className="mt-2 font-serif text-4xl font-bold leading-none sm:text-5xl">
-                {result.range.min > 0 ? result.label : '—'}
-              </p>
-              <p className="mt-2 text-sm text-white/80">
-                {result.finish.name} finish · indicative EMI from{' '}
-                <strong>{formatINR(result.emiPerMonth)}/mo{PRICING_INDICATIVE ? '*' : ''}</strong>
-              </p>
-
-              {/* breakdown */}
-              {result.lines.length > 0 && (
-                <ul className="mt-4 space-y-1.5 border-t border-white/20 pt-4 text-sm text-white/85">
-                  {result.lines.map((l) => (
-                    <li key={l.id} className="flex justify-between gap-3">
-                      <span>
-                        {l.name}
-                        {l.qty > 1 ? ` ×${l.qty}` : ''}
-                      </span>
-                      <span className="tabular-nums">{priceLabel(l.range)}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {PRICING_INDICATIVE && <p className="mt-3 text-[11px] text-white/90">{PRICING_FOOTNOTE}</p>}
-
-              {/* Lead capture → Phase-0 Server Action */}
-              <form action={formAction} className="mt-6 space-y-3 border-t border-white/20 pt-5">
-                <p className="font-serif text-lg">Get your exact quote</p>
-                <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
-                <input type="hidden" name="subject" value={`Interior cost estimate ${result.label}`} readOnly />
-                <input type="hidden" name="message" value={summary} readOnly />
-                <input
-                  name="name"
-                  required
-                  placeholder="Your name"
-                  autoComplete="name"
-                  aria-invalid={!!state.errors?.name}
-                  className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2.5 text-sm text-white placeholder-white/60 outline-none focus:border-white"
-                />
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="Email"
-                  autoComplete="email"
-                  aria-invalid={!!state.errors?.email}
-                  className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2.5 text-sm text-white placeholder-white/60 outline-none focus:border-white"
-                />
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  type="tel"
-                  placeholder="Phone (optional)"
-                  autoComplete="tel"
-                  className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2.5 text-sm text-white placeholder-white/60 outline-none focus:border-white"
-                />
-                <input
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Anything specific? (optional)"
-                  className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2.5 text-sm text-white placeholder-white/60 outline-none focus:border-white"
-                />
-                {(state.errors?.name || state.errors?.email) && (
-                  <p className="text-xs text-amber-200">
-                    {state.errors?.name || state.errors?.email}
-                  </p>
-                )}
-                <button
-                  type="submit"
-                  disabled={pending}
-                  className="btn-pill w-full justify-center bg-white font-bold text-accent hover:bg-white/90 disabled:opacity-70"
-                >
-                  {pending ? 'Sending…' : 'Get Exact Quote'} <ArrowRight size={16} aria-hidden="true" />
-                </button>
-              </form>
-            </>
-          )}
+        {/* Finish — the single biggest lever on the number */}
+        <div className="mt-10">
+          <p className="font-caps text-[10px] uppercase tracking-wide2 text-muted">Finish</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {finishTiers.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setFinishId(t.id)}
+                aria-pressed={finishId === t.id}
+                title={t.blurb}
+                className={chip(finishId === t.id)}
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+          <p className="mt-4 max-w-prose2 text-xs leading-relaxed text-muted">
+            {finishTiers.find((t) => t.id === finishId)?.blurb}
+          </p>
         </div>
+      </div>
+
+      {/* ── The number ─────────────────────────────────────────────────────── */}
+      <div className="bg-olive-deep p-8 text-white sm:p-10">
+        {state.ok ? (
+          <div role="status" className="flex h-full flex-col items-start justify-center gap-4">
+            <CheckCircle2 size={32} strokeWidth={1.25} className="text-gold" aria-hidden="true" />
+            <p className="font-serif text-title font-light">Estimate sent</p>
+            <p className="max-w-prose2 text-sm leading-relaxed text-white/70">{state.message}</p>
+            {state.whatsappUrl && (
+              <a
+                href={state.whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-pill mt-2 bg-[#25D366] text-white hover:bg-[#1ebe57]"
+              >
+                <MessageCircle size={15} aria-hidden="true" /> Continue on WhatsApp
+              </a>
+            )}
+          </div>
+        ) : (
+          <>
+            <p className="font-caps text-[10px] uppercase tracking-wide2 text-gold">
+              Your estimated range
+            </p>
+
+            <p className="mt-6 font-serif text-[clamp(2.25rem,4.5vw,3.25rem)] font-light leading-[1.05] text-white">
+              {result.range.min > 0 ? result.label : '—'}
+            </p>
+
+            <p className="mt-4 text-sm text-white/70">
+              {result.finish.name} finish · indicative EMI from{' '}
+              <span className="text-white">
+                {formatINR(result.emiPerMonth)}/mo{PRICING_INDICATIVE ? '*' : ''}
+              </span>
+            </p>
+
+            {/* The itemised breakdown — the range is never a black box. */}
+            {result.lines.length > 0 && (
+              <ul className="mt-8 border-t border-white/15 pt-6 text-sm">
+                {result.lines.map((l) => (
+                  <li key={l.id} className="flex justify-between gap-4 py-1.5 text-white/70">
+                    <span>
+                      {l.name}
+                      {l.qty > 1 ? ` ×${l.qty}` : ''}
+                    </span>
+                    <span className="tabular-nums text-white/85">{priceLabel(l.range)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {PRICING_INDICATIVE && (
+              <p className="mt-4 text-[11px] leading-relaxed text-white/70">{PRICING_FOOTNOTE}</p>
+            )}
+
+            {/* Lead capture → Phase-0 Server Action. Fields UNCHANGED. */}
+            <form action={formAction} className="mt-8 space-y-4 border-t border-white/15 pt-8">
+              <p className="font-serif text-lg font-light text-white">Turn it into an exact quote</p>
+
+              <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
+              <input type="hidden" name="subject" value={`Interior cost estimate ${result.label}`} readOnly />
+              <input type="hidden" name="message" value={summary} readOnly />
+
+              <input
+                name="name"
+                required
+                placeholder="Your name"
+                autoComplete="name"
+                aria-invalid={!!state.errors?.name}
+                className={darkField}
+              />
+              <input
+                name="email"
+                type="email"
+                required
+                placeholder="Email"
+                autoComplete="email"
+                aria-invalid={!!state.errors?.email}
+                className={darkField}
+              />
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                type="tel"
+                placeholder="Phone (optional)"
+                autoComplete="tel"
+                className={darkField}
+              />
+              <input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Anything specific? (optional)"
+                className={darkField}
+              />
+
+              {(state.errors?.name || state.errors?.email) && (
+                <p className="text-xs text-gold">{state.errors?.name || state.errors?.email}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={pending}
+                className="btn-pill btn-gold w-full justify-center disabled:opacity-70"
+              >
+                {pending ? 'Sending…' : 'Get an exact quote'}
+                <ArrowRight size={15} aria-hidden="true" />
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   )

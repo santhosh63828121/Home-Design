@@ -48,7 +48,7 @@ export default function RefundPolicyPage() {
       </LegalSection>
 
       <LegalSection id="design" heading="2. Design services">
-        <ul className="ml-5 list-disc space-y-2">
+        <ul className="ml-6 list-disc space-y-2">
           <li>
             Once the <strong>concept is delivered</strong>, the design fee is{' '}
             <strong>non-refundable</strong> — the work has been done and handed to you.
@@ -61,7 +61,7 @@ export default function RefundPolicyPage() {
       </LegalSection>
 
       <LegalSection id="execution" heading="3. Execution orders">
-        <ol className="ml-5 list-decimal space-y-2">
+        <ol className="ml-6 list-decimal space-y-2">
           <li>
             <strong>Within 48 hours of payment and before material procurement:</strong> 90% refund.
           </li>

@@ -34,7 +34,8 @@ export const WAYPOINTS = [
   { pos: [0, 1.62, -4], look: [0, 1.62, -8] }, // 5 grand foyer reveal
   // --- Continuous walk through the rest of the home ---
   { pos: [0, 1.6, -8.5], look: [0, 1.5, -13] }, // 6 entering the living room
-  { pos: [0, 1.6, -11.5], look: [4.5, 1.45, -12] }, // 7 living centre, turning right →
+  { pos: [0.6, 1.6, -11.2], look: [3.1, 1.42, -9.2] }, // 7 DINING — the head turns onto the table
+  { pos: [1.4, 1.6, -11.8], look: [4.5, 1.45, -12] }, // 8 living centre, turning right →
   { pos: [4.2, 1.6, -12], look: [9, 1.45, -12] }, // 8 through the doorway, facing kitchen
   { pos: [9, 1.6, -12], look: [10.3, 1.45, -17] }, // 9 kitchen, turning left toward bedroom
   { pos: [10, 1.6, -16], look: [10, 1.5, -21] }, // 10 through the doorway into the bedroom
@@ -58,59 +59,120 @@ export const ROOMS = [
     id: 'entrance',
     name: 'Foyer / Entrance',
     eyebrow: 'RGL DÉCORS · ONE-TAKE WALKTHROUGH',
-    title: 'More Than\nPremium Spaces',
+    title: 'More than\npremium spaces',
     body: 'Your entrance is more than a doorway — it is the first impression of your identity. We design foyers that announce your lifestyle, setting the tone for everything that follows inside.',
-    cta: { label: 'Explore The Home', target: '#story' },
+    cta: { label: 'Explore the home', target: '#story' },
     side: 'left',
-    range: [0.0, 0.42],
+    range: [0.0, 0.4],
     exposure: 0.82,
     hero: true,
   },
   {
     id: 'living',
     name: 'Living Room',
-    eyebrow: 'SCENE 02 · LIVING ROOM',
-    title: 'Living Room',
-    body: 'We craft living rooms that become the soul of your home — spaces where elegance meets identity, and every detail reflects your stature.',
-    cta: { label: 'View Interior Details', target: '#gallery' },
+    eyebrow: 'Scene 02 · Living Room',
+    title: 'Living',
+    body: 'The room that holds everything else together. Layered light, honest materials and a long sightline — designed around how your family actually gathers.',
+    cta: { label: 'View interior details', target: '#gallery' },
     side: 'right',
-    range: [0.42, 0.58],
+    range: [0.4, 0.54],
     exposure: 0.78,
+  },
+  {
+    id: 'dining',
+    name: 'Dining',
+    eyebrow: 'Scene 03 · Dining',
+    title: 'Dining',
+    body: 'Solid timber under a low pendant, marble catching the last of the light. The table is where a house finally becomes a home.',
+    cta: { label: 'See our work', target: '#gallery' },
+    side: 'left',
+    range: [0.54, 0.65],
+    exposure: 0.8,
   },
   {
     id: 'kitchen',
     name: 'Kitchen',
-    eyebrow: 'SCENE 03 · THE KITCHEN',
+    eyebrow: 'Scene 04 · The Kitchen',
     title: 'Kitchen',
-    body: 'More than a place to cook — the heart of your home, designed to reflect warmth and sophistication. We blend premium functionality with the identity of your family’s story.',
-    cta: { label: 'Discover Materials', target: '#why' },
-    side: 'left',
-    range: [0.58, 0.73],
+    body: 'Factory-built modules, humidity-rated boards and hardware chosen for Chennai. The kitchen is where an interior is judged — so it is where we are strictest.',
+    cta: { label: 'Discover materials', target: '#why' },
+    side: 'right',
+    range: [0.65, 0.78],
     exposure: 0.8,
   },
   {
     id: 'bedroom',
     name: 'Bedroom',
-    eyebrow: 'SCENE 04 · THE BEDROOM',
+    eyebrow: 'Scene 05 · The Bedroom',
     title: 'Bedroom',
-    body: 'Bedrooms that whisper comfort and luxury — sanctuaries where your individuality is beautifully mirrored. Every detail reflects not just how you rest, but who you are.',
-    cta: { label: 'Experience Comfort', target: '#story' },
-    side: 'right',
-    range: [0.73, 0.88],
-    exposure: 0.7,
+    body: 'Quiet materials, soft layered light, storage that disappears into the architecture. A bedroom should feel like the end of the day.',
+    cta: { label: 'Experience comfort', target: '#story' },
+    side: 'left',
+    range: [0.78, 0.9],
+    exposure: 0.68,
   },
   {
-    id: 'bathroom',
-    name: 'Bathroom',
-    eyebrow: 'SCENE 05 · THE BATHROOM',
-    title: 'Bathroom',
-    body: 'Bathrooms designed as private retreats — elegant spaces that elevate your daily rituals into a reflection of refined living. Not just functionality, but a symbol of how you live.',
-    cta: { label: 'Book Private Consultation', target: '#contact' },
-    side: 'left',
-    range: [0.88, 1.0],
-    exposure: 0.78,
+    id: 'wardrobe',
+    name: 'Wardrobe',
+    eyebrow: 'Scene 06 · The Wardrobe',
+    title: 'Wardrobe',
+    body: 'Built to the millimetre of your wall, lit from within, planned around what you actually own — so the doors close, and stay closed.',
+    cta: { label: 'Book a private consultation', target: '#contact' },
+    side: 'right',
+    range: [0.9, 1.0],
+    exposure: 0.72,
   },
 ]
+
+/**
+ * POST-PROCESSING BUDGET.
+ * Each of these is measured, not assumed — see the numbers in HouseScene's
+ * _composer(). Flip one on and re-run `node scripts/lh.mjs desktop` before
+ * believing it is free.
+ */
+export const POST = {
+  /**
+   * Depth of field (BokehPass). MEASURED COST: it renders a full extra DEPTH
+   * pass every frame, roughly doubling draw calls — desktop Total Blocking Time
+   * went 2,000ms → 4,300-8,300ms and Performance fell to 43. That is a page-
+   * ruining price for an effect most visitors would not consciously notice on an
+   * architectural walk that is already almost entirely in focus.
+   *
+   * Left OFF. The cinematic depth cue is carried instead by fog + the dusk ramp,
+   * which cost nothing. Turn on only if the scene is ever swapped for a real
+   * villa GLB and re-measured.
+   */
+  depthOfField: false,
+}
+
+/**
+ * DAY → EVENING.
+ * The walk begins at golden hour and ends after dusk: the sun sinks and cools
+ * out while the interior lights come up. `t` is scroll progress (0–1).
+ *
+ * This is what makes the walkthrough read as a film rather than a viewer. It is
+ * also nearly free — we are only lerping light intensities and colours that
+ * already exist; no extra draw calls, no extra passes.
+ */
+export const LIGHTING = {
+  /** Scroll window over which the sun sets and the interior lights ramp up. */
+  duskRange: [0.35, 0.85],
+  sun: {
+    dayColor: '#ffe2b0',
+    duskColor: '#ff9d5c',
+    dayIntensity: 1.5,
+    duskIntensity: 0.18,
+  },
+  hemi: {
+    dayIntensity: 0.25,
+    duskIntensity: 0.06,
+  },
+  /** Interior fills are multiplied by this as evening falls (they "turn on"). */
+  interior: {
+    dayMultiplier: 0.35,
+    duskMultiplier: 1.0,
+  },
+}
 
 // The front door swings open across this scroll window (≈90° as you reach the
 // threshold, so you walk through an open door).

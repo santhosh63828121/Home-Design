@@ -1,11 +1,17 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { MapPin, ArrowUpRight, Home as HomeIcon } from 'lucide-react'
-import PageStub from '@/components/page/PageStub'
-import PricingFaqs from '@/components/pricing/PricingFaqs'
+import { MapPin, ArrowUpRight } from 'lucide-react'
+import SectionReveal from '@/components/SectionReveal'
+import RevealItem from '@/components/RevealItem'
 import { ProjectCover } from '@/components/portfolio/ProjectVisuals'
-import { getCity } from '@/data/locations'
+import LocationShell from './LocationShell'
+import SectionHead from './SectionHead'
+import CityFaqs from './CityFaqs'
+import LocationCta from './LocationCta'
+import { cityImagery } from './cityImagery'
+import { getCity, allLocations } from '@/data/locations'
 import { projectsInCity } from '@/data/portfolio'
 import { serviceCategories } from '@/data/business'
 import { buildMetadata, clampDesc } from '@/lib/seo'
@@ -31,17 +37,56 @@ export function cityMetadata(slug: string): Metadata {
 
 const coreServices = serviceCategories.filter((s) => s.group === 'core').slice(0, 6)
 
-/** Data-driven city page — all unique copy comes from locations.ts. */
+/**
+ * THE CITY TEMPLATE — one file, twenty-one routes.
+ * =============================================================================
+ * Every /interior-designers-<city> page is this component with a different slug.
+ * So the only honest way to make these pages feel premium is to make the
+ * TEMPLATE premium — never a per-city variant, which is how a 20-page family
+ * rots into 20 different pages.
+ *
+ * The layout is a magazine spread: an editorial masthead over a full-bleed
+ * photograph, then alternating white / bone bands, each opened by a tracked
+ * eyebrow, a gold hairline and a light Cormorant headline. Every list — areas,
+ * services, FAQs, other locations — is a RULED INDEX, not a grid of drop-shadow
+ * boxes: the hairline is what separates a gallery from a dashboard (§4).
+ *
+ * WHAT IS UNIQUE PER CITY IS THE CONTENT, AND ALL OF IT IS THE CONTENT WE
+ * ALREADY HAD. intro, housing, areas, nearby, tagline and faqs come verbatim
+ * from locations.ts — restructured, never rewritten, and nothing invented: no
+ * project counts, no "500 homes in Adyar", no fabricated ratings (§6). The two
+ * photographs are dealt deterministically from one curated library (cityImagery)
+ * and their alt text never claims the room is in this city.
+ *
+ * SEO IS LOAD-BEARING AND UNTOUCHED:
+ *   · `cityMetadata()` — same title / description / canonical / keywords
+ *   · BreadcrumbList — emitted by LocationShell, same builder, same script id
+ *   · FAQPage — emitted by CityFaqs from the same `city.faqs` array
+ *   · HomeAndConstructionBusiness + GeoCircle — `cityCoverageSchema(city)`, as-is
+ *   · Internal links — services, tagged projects and every sibling location, all
+ *     resolved through `routes`, so a link here cannot rot into a 404.
+ */
 export default function CityPage({ slug }: { slug: string }) {
   const city = getCity(slug)
   if (!city) notFound()
+
   const cityProjects = projectsInCity(city.projectKey)
+  const { hero, detail } = cityImagery(city.slug)
+  const elsewhere = allLocations.filter((c) => c.slug !== city.slug)
+
+  /**
+   * Section rhythm. The bands alternate white → bone as the page evaluates
+   * top-down, so the rhythm stays correct even though the projects section only
+   * exists for cities with tagged case studies.
+   */
+  let n = 0
+  const band = () => (n++ % 2 === 0 ? 'bg-bone' : 'bg-background')
 
   return (
     <>
-      <PageStub
+      <LocationShell
+        kicker={`RGL Décors · ${city.name}`}
         title={`Interior Designers in ${city.name}`}
-        kicker={`RGL Decors · ${city.name}`}
         intro={city.intro}
         crumbs={[
           { name: 'Home', path: routes.home },
@@ -49,85 +94,225 @@ export default function CityPage({ slug }: { slug: string }) {
           { name: city.name, path: `/${city.slug}` },
         ]}
         cta={{ label: 'Book a Free Site Visit', href: routes.getQuote }}
+        media={hero}
+        caption={city.tagline}
       >
-        <div className="space-y-14">
-          {/* Areas covered */}
-          <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">Areas we cover in {city.name}</h2>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {city.areas.map((a) => (
-                <span
-                  key={a}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-divider bg-white px-3.5 py-1.5 text-sm text-ink"
+        {/* ── The local brief ─────────────────────────────────────────────────
+            The one paragraph that no other city page has. It gets a spread of
+            its own, a photograph beside it, and nothing else competing. */}
+        <section aria-labelledby="housing-heading" className={`section-y ${band()}`}>
+          <div className="shell grid gap-14 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-20">
+            <SectionReveal>
+              <p className="eyebrow">The local brief</p>
+              <span aria-hidden="true" className="rule-gold mt-6" />
+              <h2
+                id="housing-heading"
+                className="mt-8 max-w-[12ch] font-serif text-headline font-light text-ink"
+              >
+                Homes in <span className="italic text-accent">{city.name}</span>
+              </h2>
+              <p className="mt-8 max-w-prose2 text-pretty text-lede leading-relaxed text-ink/70">
+                {city.housing}
+              </p>
+            </SectionReveal>
+
+            {/* Hairline frame, slow zoom on hover, lazy — it is well below the
+                fold and must not compete with the masthead image for bandwidth. */}
+            <SectionReveal
+              variant="fadeUp"
+              className="lux-media lux-tint relative aspect-[4/3] w-full overflow-hidden rounded-sm border border-divider"
+            >
+              <Image
+                src={detail.src}
+                alt={detail.alt}
+                fill
+                loading="lazy"
+                sizes="(max-width: 1024px) 100vw, 55vw"
+                className="object-cover"
+              />
+            </SectionReveal>
+          </div>
+        </section>
+
+        {/* ── Coverage ────────────────────────────────────────────────────── */}
+        <section aria-labelledby="areas-heading" className={`section-y ${band()}`}>
+          <div className="shell">
+            <SectionHead
+              id="areas-heading"
+              eyebrow="Coverage"
+              title={<>Areas we cover in {city.name}</>}
+            >
+              {city.nearby}
+            </SectionHead>
+
+            <SectionReveal stagger as="ul" className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-20">
+              {city.areas.map((area, i) => (
+                <RevealItem
+                  as="li"
+                  key={area}
+                  className="group flex items-center gap-6 border-b border-divider py-6"
                 >
-                  <MapPin size={14} className="text-accent" aria-hidden="true" /> {a}
-                </span>
+                  <span className="font-caps text-[10px] tracking-wide2 text-gold">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <MapPin
+                    size={16}
+                    strokeWidth={1.25}
+                    className="shrink-0 text-accent"
+                    aria-hidden="true"
+                  />
+                  <span className="font-serif text-lg text-ink">{area}</span>
+                </RevealItem>
               ))}
-            </div>
-            {city.nearby && <p className="mt-4 text-sm text-muted">{city.nearby}</p>}
-          </section>
+            </SectionReveal>
+          </div>
+        </section>
 
-          {/* Housing context (unique) */}
-          <section className="flex items-start gap-4 rounded-2xl border border-divider bg-white p-6 shadow-card">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent/10 text-accent">
-              <HomeIcon size={20} aria-hidden="true" />
-            </span>
-            <div>
-              <h2 className="font-serif text-lg">Homes in {city.name}</h2>
-              <p className="mt-1 text-ink/75">{city.housing}</p>
-            </div>
-          </section>
+        {/* ── Services ────────────────────────────────────────────────────────
+            A ruled index of real service routes — every href resolves through
+            `routes.service()`, so this cannot become a dead internal link. */}
+        <section aria-labelledby="services-heading" className={`section-y ${band()}`}>
+          <div className="shell">
+            <SectionHead
+              id="services-heading"
+              eyebrow="The work"
+              title={<>What we design in {city.name}</>}
+            >
+              Design, factory-build and installation, handled end to end by one team — so the home
+              you were shown is the home you receive.
+            </SectionHead>
 
-          {/* Services */}
-          <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">What we design in {city.name}</h2>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {coreServices.map((s) => (
-                <Link
-                  key={s.slug}
-                  href={routes.service(s.slug)}
-                  className="group flex items-center justify-between gap-3 rounded-2xl border border-divider bg-white px-5 py-4 shadow-card transition-transform duration-300 hover:-translate-y-1"
-                >
-                  <span className="font-serif">{s.name}</span>
-                  <ArrowUpRight size={16} className="text-accent" aria-hidden="true" />
-                </Link>
-              ))}
-            </div>
-            <p className="mt-4">
-              <Link href={routes.services} className="text-sm font-medium text-accent hover:underline">
-                See all interior design services →
-              </Link>
-            </p>
-          </section>
-
-          {/* Projects in this city — only when tagged (graceful otherwise) */}
-          {cityProjects.length > 0 && (
-            <section>
-              <h2 className="font-serif text-2xl font-bold sm:text-3xl">Our projects in {city.name}</h2>
-              <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {cityProjects.map((p) => (
+            <SectionReveal stagger as="ul" className="mt-4 grid lg:grid-cols-2 lg:gap-x-20">
+              {coreServices.map((s, i) => (
+                <RevealItem as="li" key={s.slug} className="group relative border-b border-divider">
+                  {/* The gold rule draws across the row on hover. */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-x-0 bottom-[-1px] h-px origin-left scale-x-0 bg-gold transition-transform duration-700 ease-lux group-hover:scale-x-100"
+                  />
                   <Link
-                    key={p.slug}
-                    href={routes.portfolioProject(p.slug)}
-                    className="group block overflow-hidden rounded-2xl border border-divider bg-white shadow-card transition-transform duration-300 hover:-translate-y-1"
+                    href={routes.service(s.slug)}
+                    className="flex items-center gap-6 py-8 transition-transform duration-700 ease-lux group-hover:translate-x-1.5"
                   >
-                    <div className="skeleton relative aspect-[4/3] w-full overflow-hidden">
-                      <ProjectCover project={p} sizes="(max-width: 640px) 100vw, 33vw" />
-                    </div>
-                    <div className="p-5">
-                      <h3 className="font-serif text-lg">{p.title}</h3>
-                      <p className="mt-1 text-sm text-muted">{p.scope}</p>
-                    </div>
+                    <span className="font-caps text-[10px] tracking-wide2 text-gold">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="min-w-0 flex-1 font-serif text-title font-normal text-ink">
+                      {s.name}
+                    </span>
+                    <ArrowUpRight
+                      size={18}
+                      strokeWidth={1.25}
+                      className="shrink-0 text-accent"
+                      aria-hidden="true"
+                    />
                   </Link>
-                ))}
-              </div>
-            </section>
-          )}
+                </RevealItem>
+              ))}
+            </SectionReveal>
 
-          {/* City-specific FAQs (+ FAQPage schema, in sync) */}
-          <PricingFaqs faqs={city.faqs} id={`city-${city.projectKey}`} />
-        </div>
-      </PageStub>
+            <SectionReveal className="mt-12">
+              <Link
+                href={routes.services}
+                className="lux-underline font-caps text-[11px] uppercase tracking-wide2 text-ink/70"
+              >
+                See all interior design services
+              </Link>
+            </SectionReveal>
+          </div>
+        </section>
+
+        {/* ── Projects in this city — only when tagged (graceful otherwise) ─── */}
+        {cityProjects.length > 0 && (
+          <section aria-labelledby="projects-heading" className={`section-y ${band()}`}>
+            <div className="shell">
+              <SectionHead
+                id="projects-heading"
+                eyebrow="Case studies"
+                title={<>Our projects in {city.name}</>}
+              />
+
+              <SectionReveal stagger className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {cityProjects.map((p) => (
+                  <RevealItem key={p.slug}>
+                    <Link
+                      href={routes.portfolioProject(p.slug)}
+                      className="lux-lift group block h-full overflow-hidden rounded-sm border border-divider bg-white"
+                    >
+                      <div className="lux-media skeleton relative aspect-[4/3] w-full">
+                        <ProjectCover project={p} sizes="(max-width: 640px) 100vw, 33vw" />
+                      </div>
+                      <div className="p-6">
+                        <h3 className="font-serif text-title font-normal text-ink">{p.title}</h3>
+                        <p className="mt-2 text-sm leading-relaxed text-ink/65">{p.scope}</p>
+                      </div>
+                    </Link>
+                  </RevealItem>
+                ))}
+              </SectionReveal>
+            </div>
+          </section>
+        )}
+
+        {/* ── City FAQs (+ the FAQPage schema, from the same array) ─────────── */}
+        <section aria-labelledby={`faq-city-${city.projectKey}`} className={`section-y ${band()}`}>
+          <div className="shell">
+            <CityFaqs
+              faqs={city.faqs}
+              id={`city-${city.projectKey}`}
+              eyebrow={`${city.name} · Questions`}
+            />
+          </div>
+        </section>
+
+        {/* ── Sibling locations — the internal-link mesh, all real routes ───── */}
+        <section aria-labelledby="elsewhere-heading" className={`section-y ${band()}`}>
+          <div className="shell">
+            <SectionHead
+              id="elsewhere-heading"
+              eyebrow="Elsewhere"
+              title={
+                <>
+                  Where else we <span className="italic text-accent">work</span>
+                </>
+              }
+            >
+              Chennai neighbourhoods and cities across Tamil Nadu — each with the localities we
+              cover, the local housing context and answers specific to where you live.
+            </SectionHead>
+
+            <SectionReveal stagger as="ul" className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-20">
+              {elsewhere.map((c) => (
+                <RevealItem as="li" key={c.slug} className="border-b border-divider">
+                  <Link
+                    href={routes.city(c.slug)}
+                    className="group flex items-center justify-between gap-4 py-6 transition-transform duration-700 ease-lux hover:translate-x-1.5"
+                  >
+                    <span className="font-serif text-lg text-ink">{c.name}</span>
+                    <ArrowUpRight
+                      size={16}
+                      strokeWidth={1.25}
+                      className="shrink-0 text-accent"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                </RevealItem>
+              ))}
+            </SectionReveal>
+
+            <SectionReveal className="mt-12">
+              <Link
+                href={routes.locations}
+                className="lux-underline font-caps text-[11px] uppercase tracking-wide2 text-ink/70"
+              >
+                All locations
+              </Link>
+            </SectionReveal>
+          </div>
+        </section>
+
+        <LocationCta place={city.name} />
+      </LocationShell>
 
       <JsonLd id={`ld-city-${city.projectKey}`} data={cityCoverageSchema(city)} />
     </>

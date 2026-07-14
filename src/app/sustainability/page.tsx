@@ -38,7 +38,7 @@ export default function SustainabilityPage() {
       </p>
 
       <LegalSection id="materials" heading="1. Materials">
-        <ul className="ml-5 list-disc space-y-2">
+        <ul className="ml-6 list-disc space-y-2">
           <li>
             Use of <strong>BWR / BWP plywood with E0 / E1 low-formaldehyde</strong> emission ratings.
             Formaldehyde off-gasses into the room long after installation; a lower-emission board is
@@ -56,7 +56,7 @@ export default function SustainabilityPage() {
       </LegalSection>
 
       <LegalSection id="site" heading="2. On site">
-        <ul className="ml-5 list-disc space-y-2">
+        <ul className="ml-6 list-disc space-y-2">
           <li>
             <strong>Waste segregation at every site</strong>, so recyclable material does not go to
             landfill with everything else.
@@ -73,7 +73,7 @@ export default function SustainabilityPage() {
       </LegalSection>
 
       <LegalSection id="sourcing" heading="3. Sourcing & documentation">
-        <ul className="ml-5 list-disc space-y-2">
+        <ul className="ml-6 list-disc space-y-2">
           <li>
             <strong>Preference for Tamil Nadu-based vendors</strong>, which shortens supply chains and
             reduces transport emissions.

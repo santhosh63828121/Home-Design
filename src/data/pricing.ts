@@ -279,7 +279,7 @@ export const pricingFaqs: Record<'hub' | 'kitchen' | '2bhk' | '3bhk', Faq[]> = {
     },
     {
       q: 'How long does a 2BHK take to deliver?',
-      a: 'Because units are factory-built, most 2BHK interiors are delivered and installed within our guaranteed 45-day timeline.',
+      a: 'Because units are factory-built, most of the work happens off-site and installation is quick. Your timeline is confirmed in writing with your itemised quote.',
     },
   ],
   '3bhk': [
@@ -338,7 +338,12 @@ export const tierFeatures: TierRow[] = [
   { label: 'Hardware', cells: ['Standard', 'Hettich / Hafele', 'Blum full system', 'Brand of choice'] },
   { label: 'Countertop', cells: ['Granite (2cm)', 'Quartz', 'Italian marble', 'Client-specified'] },
   { label: 'Lighting', cells: ['Basic points', 'Layered plan', 'Full lux-calculated', 'Bespoke'] },
-  { label: 'Warranty', cells: ['5 years', '8 years', '10 years', '10 years +'], pending: true },
+  // Warranty is NOT a tier upsell. The confirmed, written terms are the same for
+  // every client — 5 years on hardware, 1 year on shutters, carcass and carpentry
+  // (see /warranty, which the client signed off as correct). The old row implied
+  // you could buy a longer warranty by choosing a higher tier, which contradicted
+  // the legal page and was never true.
+  { label: 'Warranty', cells: ['As per /warranty', 'As per /warranty', 'As per /warranty', 'As per /warranty'] },
   { label: 'Project manager', cells: ['Shared', 'Dedicated', 'Dedicated + Design Dir', 'MD-level oversight'] },
   { label: '3D walkthrough', cells: ['Included', 'Included', 'Premium renders', 'VR walkthrough'] },
 ]

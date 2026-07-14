@@ -2,7 +2,6 @@ import dynamic from 'next/dynamic'
 import Navbar from '@/components/Navbar.jsx'
 import CinematicExperience from '@/components/CinematicExperience.jsx'
 import ReleaseHero from '@/components/ReleaseHero.jsx'
-import GalleryAccordion from '@/components/GalleryAccordion.jsx'
 import Footer from '@/components/Footer.jsx'
 import type { Metadata } from 'next'
 import { JsonLd, breadcrumbSchema } from '@/lib/structured-data'
@@ -45,23 +44,26 @@ export const metadata: Metadata = buildMetadata({
 export default function HomePage() {
   return (
     <>
-      {/* <a
-        href="#story"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10000] focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
-      >
-        Skip to content
-      </a> */}
-
       <Navbar />
       <CinematicExperience />
 
+      {/*
+        Section order is a narrative, not a list:
+          the walkthrough → statement → what we do → proof in numbers → the
+          transformation → the clients → what it costs → why us → talk to us.
+
+        ScrollStory is deliberately NOT here: the 3D walkthrough now tells the
+        room-by-room story itself (Living · Dining · Kitchen · Bedroom ·
+        Wardrobe), and running both would mean ~14 viewports of scroll saying the
+        same thing twice. The component lives on /services instead, where the
+        scroll storytelling is genuinely new information.
+      */}
       <main id="story">
         <ReleaseHero />
-        <GalleryAccordion />
-        <BeforeAfter />
-        <Testimonials />
         <ServicesSplit />
         <StatsSection />
+        <BeforeAfter />
+        <Testimonials />
         <PricingSection />
         <FeaturesGrid />
         <ContactSection />

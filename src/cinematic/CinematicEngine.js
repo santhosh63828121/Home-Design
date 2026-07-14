@@ -45,14 +45,23 @@ export default class CinematicEngine {
       this.onProgress?.(camParam)
     }
 
+    // NO PIN. The stage holds itself with `position: sticky` and the scroll
+    // length is declared in CSS (.cine-track). ScrollTrigger's only job now is to
+    // READ progress across the track — it does not own the layout.
+    //
+    // This is why the pin is gone:
+    //   · A pin injects its spacer in JS, so the page height depended on the
+    //     engine having booted — which made lazy-booting the engine impossible
+    //     without the page growing under the user mid-scroll.
+    //   · Every refresh() re-measured that spacer; with content above the
+    //     walkthrough that re-measure shifted everything below it (CLS 0.68).
+    //   · A pin is position:fixed, which ANY ancestor transform silently breaks.
+    // `sticky` has none of those failure modes, and it costs no JavaScript.
     this.st = ScrollTrigger.create({
       trigger: this.wrapper,
       start: 'top top',
-      end: () => '+=' + window.innerHeight * JOURNEY.scrollLengthVh,
-      pin: this.wrapper,
-      pinSpacing: true,
+      end: 'bottom bottom',
       scrub: JOURNEY.scrub,
-      anticipatePin: 1,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
         if (this._debug) return

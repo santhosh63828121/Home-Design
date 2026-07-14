@@ -10,14 +10,14 @@ import { business } from '@/data/business'
 export const metadata: Metadata = buildMetadata({
   title: 'Get a Free Interior Design Quote in Chennai',
   description:
-    'Get a free, no-obligation interior design quote and HD 3D walkthrough from RGL Decors in Chennai. Transparent pricing, 10-year warranty, 45-day delivery.',
+    'Get a free, no-obligation interior design quote and an HD 3D walkthrough from RGL Decors in Chennai. Transparent, itemised pricing and a written warranty.',
   path: routes.getQuote,
 })
 
 const trustBadges = [
   { icon: Clapperboard, label: 'Free HD 3D walkthrough' },
-  { icon: ShieldCheck, label: '10-year materials warranty' },
-  { icon: Clock, label: '45-day guaranteed move-in' },
+  { icon: ShieldCheck, label: 'Written warranty on every project' },
+  { icon: Clock, label: 'Factory-built — short site time' },
   { icon: CheckCircle2, label: '100+ quality checks' },
   { icon: BadgeIndianRupee, label: business.entryPriceSignal },
 ]
@@ -32,7 +32,7 @@ export default function GetFreeQuotePage() {
     <div className="min-h-screen bg-background">
       {/* Minimal brand bar — logo home link + click-to-call, nothing else */}
       <header className="border-b border-divider bg-white">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-4 sm:px-8">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4 sm:px-8">
           <Link href={routes.home} aria-label="RGL Decors home">
             <Logo />
           </Link>
@@ -47,20 +47,20 @@ export default function GetFreeQuotePage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
+      <main className="mx-auto w-full max-w-5xl px-gutter section-y-sm">
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow">RGL Decors · Free Quote</p>
-          <h1 className="mt-4 font-serif text-4xl font-bold leading-[1.08] sm:text-5xl">
+          <h1 className="mt-4 font-serif text-4xl font-medium leading-[1.08] sm:text-5xl">
             Get a Free 3D Design &amp; Transparent Quote
           </h1>
-          <p className="mt-5 text-lg leading-relaxed text-ink/75">
+          <p className="mt-6 text-lg leading-relaxed text-ink/75">
             Share a few details and we&apos;ll send you a free HD 3D walkthrough plus an itemised,
             no-obligation quote — from modular kitchens to full-home turnkey interiors.
           </p>
         </div>
 
         {/* Trust badges */}
-        <ul className="mx-auto mt-8 flex max-w-3xl flex-wrap justify-center gap-x-5 gap-y-3">
+        <ul className="mx-auto mt-s4 flex max-w-2xl flex-wrap justify-center gap-x-s6 gap-y-s2">
           {trustBadges.map((b) => {
             const Icon = b.icon
             return (
@@ -73,7 +73,7 @@ export default function GetFreeQuotePage() {
         </ul>
 
         {/* Multi-step consultation form → submitLead (validate → persist → email → WhatsApp) */}
-        <div className="mx-auto mt-12 max-w-2xl">
+        <div className="mx-auto mt-s12 max-w-2xl">
           <MultiStepLeadForm />
         </div>
       </main>

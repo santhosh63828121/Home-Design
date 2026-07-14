@@ -76,7 +76,7 @@ export default function CookiePolicyPage() {
       </LegalSection>
 
       <LegalSection id="third-party" heading="2. Cookies set by embedded content">
-        <ul className="ml-5 list-disc space-y-2">
+        <ul className="ml-6 list-disc space-y-2">
           <li>
             <strong>Google Maps.</strong> Our contact page embeds a Google Map. When it loads, Google
             receives your IP address and may set its own cookies.

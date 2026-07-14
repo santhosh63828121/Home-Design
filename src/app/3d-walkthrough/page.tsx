@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Award, Target, Gift } from 'lucide-react'
 import PageStub from '@/components/page/PageStub'
+import WalkthroughDemo from '@/components/WalkthroughDemo'
 import { YouTubeEmbed } from '@/components/portfolio/media'
 import { ProjectCover } from '@/components/portfolio/ProjectVisuals'
 import ContactSection from '@/components/ContactSection.jsx'
@@ -10,18 +11,39 @@ import { buildMetadata, siteConfig } from '@/lib/seo'
 import { routes } from '@/lib/routes'
 import { JsonLd } from '@/lib/structured-data'
 
+/**
+ * HONESTY NOTE — two claims were retired from this page (they are the same
+ * claims already removed from src/data/content.js):
+ *   · "India's 1st"     — an unprovable superlative. No issuing body, no source.
+ *   · "99% accuracy"    — a fabricated precision figure with nothing behind it.
+ * Both appeared in the metadata description, the USP band, the page intro AND
+ * the Service structured data, so they were being asserted to Google as fact.
+ * They are replaced below with claims the studio can actually stand behind.
+ */
 export const metadata: Metadata = buildMetadata({
   title: 'Free 3D Interior Walkthrough',
   description:
-    "India's 1st complete HD 3D interior walkthrough with 99% accuracy, free of cost — see your Chennai home before it's built, then book your free walkthrough.",
+    "Walk through your Chennai home in HD 3D before a single panel is built — modelled from your own floor plan, free of cost. Change anything before you commit.",
   path: routes.walkthrough,
   keywords: ['3D Interior Walkthrough Chennai', 'Free 3D Interior Design Chennai', 'Virtual Interior Design Chennai'],
 })
 
 const usps = [
-  { icon: Award, title: "India's 1st", text: 'The first enterprise to offer a complete 3D interior walkthrough of your home.' },
-  { icon: Target, title: '99% Accuracy', text: 'HD-quality renders that match the finished interior almost exactly — no surprises.' },
-  { icon: Gift, title: 'Free of Cost', text: 'Your full walkthrough and itemised quote come at no cost and no obligation.' },
+  {
+    icon: Target,
+    title: 'Your actual floor plan',
+    text: 'We model your real measured space — not a showroom mock-up — so what you walk through is your home.',
+  },
+  {
+    icon: Award,
+    title: 'What you approve is what we build',
+    text: 'The approved walkthrough becomes the production drawing. Nothing changes quietly between design and install.',
+  },
+  {
+    icon: Gift,
+    title: 'Free of cost',
+    text: 'Your full walkthrough and itemised quote come at no cost and no obligation.',
+  },
 ]
 
 const steps = [
@@ -37,7 +59,8 @@ const serviceSchema = {
   '@type': 'Service',
   name: '3D Interior Walkthrough',
   serviceType: '3D Interior Design Walkthrough',
-  description: "India's 1st complete HD 3D interior walkthrough with 99% accuracy, free of cost.",
+  description:
+    'A complete HD 3D interior walkthrough of your own floor plan, free of cost — explore and change your Chennai home before it is built.',
   url: `${siteConfig.url}${routes.walkthrough}`,
   provider: { '@id': `${siteConfig.url}/#organization` },
   areaServed: siteConfig.areaServed.map((name) => ({ '@type': 'City', name })),
@@ -49,13 +72,22 @@ export default function WalkthroughPage() {
     <>
       <PageStub
         title="See Your Home Before It's Built"
-        kicker="RGL Decors · 3D Walkthrough"
-        intro="India's first complete HD 3D interior walkthrough, with 99% accuracy — free of cost. Walk through your living room, kitchen and bedrooms before a single panel is made, and change anything you like before you commit."
+        kicker="RGL Décors · 3D Walkthrough"
+        intro="A complete HD 3D walkthrough of your home, free of cost. Walk through your living room, kitchen and bedrooms before a single panel is made — and change anything you like before you commit."
         crumbs={[
           { name: 'Home', path: routes.home },
           { name: '3D Walkthrough', path: routes.walkthrough },
         ]}
         cta={{ label: 'Book Your Free Walkthrough', href: routes.getQuote }}
+        /* The live walkthrough LEADS the page.
+           It must not sit below the masthead: the GSAP pin re-measures its
+           spacer on refresh, and with content above it that re-measure shoves
+           everything below — measured CLS 0.68. Leading the page (exactly as it
+           did on the old homepage) the same scroll measures CLS 0.0002.
+           Desktop only; below 1024px the CSS drops to the photographic hero,
+           because building the scene costs seconds of blocked main thread on a
+           phone. */
+        lead={<WalkthroughDemo />}
       >
         <div className="space-y-16">
           {/* USP band */}
@@ -76,7 +108,7 @@ export default function WalkthroughPage() {
 
           {/* Project walkthroughs — light up when a youTubeId is added in portfolio.ts */}
           <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">Project walkthroughs</h2>
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">Project walkthroughs</h2>
             <p className="mt-2 max-w-2xl text-ink/70">
               Real RGL Decors projects, presented as 3D walkthroughs. Videos publish here as we
               release them.
@@ -96,7 +128,7 @@ export default function WalkthroughPage() {
                   >
                     <div className="skeleton relative aspect-video w-full overflow-hidden">
                       <ProjectCover project={p} sizes="(max-width: 1024px) 100vw, 50vw" />
-                      <span className="absolute left-3 top-3 rounded-full bg-ink/80 px-2.5 py-1 text-xs font-medium text-white">
+                      <span className="absolute left-3 top-3 rounded-full bg-ink/80 px-2 py-1 text-xs font-medium text-white">
                         Walkthrough coming soon
                       </span>
                     </div>
@@ -112,10 +144,10 @@ export default function WalkthroughPage() {
 
           {/* How it works */}
           <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">How the 3D walkthrough works</h2>
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">How the 3D walkthrough works</h2>
             <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {steps.map((s) => (
-                <li key={s.n} className="rounded-2xl border border-divider bg-white p-5 shadow-card">
+                <li key={s.n} className="rounded-2xl border border-divider bg-white p-6 shadow-card">
                   <span className="grid h-9 w-9 place-items-center rounded-full bg-accent font-caps text-sm font-bold text-white">
                     {s.n}
                   </span>
@@ -128,8 +160,8 @@ export default function WalkthroughPage() {
 
           {/* Booking form → Phase-0 lead action */}
           <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">Book your free 3D walkthrough</h2>
-            <div className="-mx-5 mt-2 sm:-mx-8 lg:-mx-12">
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">Book your free 3D walkthrough</h2>
+            <div className="bleed mt-2">
               <ContactSection />
             </div>
           </section>

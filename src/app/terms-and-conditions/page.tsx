@@ -60,7 +60,7 @@ export default function TermsPage() {
       </LegalSection>
 
       <LegalSection id="quotations" heading="2. Quotations and acceptance">
-        <ul className="ml-5 list-disc space-y-1.5">
+        <ul className="ml-6 list-disc space-y-1.5">
           <li>Quotations are valid for <strong>10 days</strong> from issue.</li>
           <li>Acceptance requires a <strong>signed quotation and the advance payment</strong>.</li>
           <li>
@@ -71,7 +71,7 @@ export default function TermsPage() {
       </LegalSection>
 
       <LegalSection id="fees" heading="3. Fees and payment">
-        <ul className="ml-5 list-disc space-y-2">
+        <ul className="ml-6 list-disc space-y-2">
           <li>
             <strong>Design fee:</strong> 5–10% of the estimated project value — payable 50% on
             booking and 50% on design freeze.

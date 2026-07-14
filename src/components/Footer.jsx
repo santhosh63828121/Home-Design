@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Facebook,
   Instagram,
@@ -10,76 +11,192 @@ import {
   MessageCircle,
   Phone,
   Mail,
+  ArrowUpRight,
 } from 'lucide-react'
 import Logo from './ui/Logo.jsx'
 import { SOCIALS, CONTACT } from '../data/content.js'
 import { footerColumns, routes } from '@/lib/routes'
+import { awards, certifications, NEWSLETTER_ENABLED } from '@/data/credentials'
 
 const ICONS = { Facebook, Instagram, Youtube, Twitter, Music2, MessageCircle }
 
 /**
- * Site footer — every link is a real <Link> (no "#"); the location column is a
- * real linked city list (replaces the old keyword-stuffed plain text).
+ * LUXURY FOOTER
+ * =============
+ * Deep olive ground, gold hairlines, editorial serif. Opens with an invitation
+ * (a full-width closing statement) rather than dumping a link farm on you — the
+ * links follow underneath, quiet and well-tracked.
+ *
+ * Awards / certificates / newsletter render ONLY when real content exists
+ * (src/data/credentials.ts). They are empty today, so those blocks are absent
+ * rather than filled with plausible-looking fiction.
+ *
+ * Every link is a real <Link> from the route registry — no "#" anywhere.
  */
+// One variant, reused by every footer element. Transform+opacity only.
+const fItem = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+}
+
 export default function Footer() {
+  const reduce = useReducedMotion()
   return (
-    <footer className="bg-ink pt-[60px] pb-[30px] text-white">
-      <div className="mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
-          {/* Brand */}
-          <div className="md:col-span-1">
-            <Link href={routes.home} aria-label="RGL Decors — home">
-              <Logo dark={false} />
-            </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/70">
-              Complete interiors solution for your dream home.
-              <br />
-              One place · Any budget.
+    <footer className="bg-olive-deep text-white">
+      {/* ── Closing invitation ───────────────────────────────────────────── */}
+      <div className="shell border-b border-white/10 py-section-sm">
+        <div className="flex flex-col items-start justify-between gap-10 lg:flex-row lg:items-end">
+          <div className="max-w-2xl">
+            <p className="font-caps text-[10px] uppercase tracking-wide4 text-gold">
+              Begin your project
             </p>
-            <div className="mt-5 space-y-2 text-sm text-white/80">
-              <a href={CONTACT.phoneHref} className="flex items-center gap-2 hover:text-white">
-                <Phone size={15} aria-hidden="true" /> {CONTACT.phoneDisplay}
+            <h2 className="mt-6 font-serif text-headline font-light leading-[1.05] text-white">
+              Every home we finish began with a conversation.
+            </h2>
+          </div>
+          <Link href={routes.getQuote} className="btn-pill btn-gold shrink-0">
+            Start Design Journey
+            <ArrowUpRight size={16} aria-hidden="true" />
+          </Link>
+        </div>
+      </div>
+
+      {/* ── Links ────────────────────────────────────────────────────────── */}
+      <div className="shell py-16">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-3 lg:grid-cols-5">
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-3 lg:col-span-1">
+            <Link href={routes.home}>
+              <Logo dark={false} />
+              <span className="sr-only">— home</span>
+            </Link>
+            <p className="mt-6 max-w-xs text-sm leading-relaxed text-white/72">
+              Complete interiors, designed and executed under one roof.
+              <br />
+              Chennai · Tamil Nadu.
+            </p>
+            <div className="mt-6 space-y-3 text-sm">
+              <a
+                href={CONTACT.phoneHref}
+                className="flex items-center gap-2 text-white/75 transition-colors hover:text-gold"
+              >
+                <Phone size={14} aria-hidden="true" /> {CONTACT.phoneDisplay}
               </a>
-              <a href={CONTACT.emailHref} className="flex items-center gap-2 hover:text-white">
-                <Mail size={15} aria-hidden="true" /> {CONTACT.email}
+              <a
+                href={CONTACT.emailHref}
+                className="flex items-center gap-2 text-white/75 transition-colors hover:text-gold"
+              >
+                <Mail size={14} aria-hidden="true" /> {CONTACT.email}
               </a>
             </div>
-            <Link
-              href={routes.getQuote}
-              className="btn-pill mt-6 bg-accent text-white hover:bg-accent-dark"
-            >
-              Get Free Quote <span aria-hidden="true">→</span>
-            </Link>
           </div>
 
-          {/* Link columns (services / company / locations / legal) */}
-          {footerColumns.map((col) => (
-            <nav key={col.heading} aria-label={col.heading}>
+          {/* The columns deal themselves in, one after another, and each link
+              inside them cascades. A footer is the last thing a visitor sees; it
+              should not be the one part of the site that just appears. */}
+          {footerColumns.map((col, ci) => (
+            <motion.nav
+              key={col.heading}
+              aria-label={col.heading}
+              initial={reduce ? false : 'hidden'}
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25 }}
+              variants={{
+                visible: { transition: { staggerChildren: 0.035, delayChildren: ci * 0.07 } },
+              }}
+            >
               {/* h2 (not h3): footer columns must not skip a level from a page
-                  that has only an h1 in its main content (heading-order / WCAG). */}
-              <h2 className="font-caps text-xs uppercase tracking-wide2 text-white/50">
+                  whose main content has only an h1 (heading-order / WCAG). */}
+              <motion.h2
+                variants={fItem}
+                className="font-caps text-[10px] uppercase tracking-wide4 text-white/60"
+              >
                 {col.heading}
-              </h2>
-              <ul className="mt-4 space-y-2.5 text-sm text-white/80">
+              </motion.h2>
+              <motion.span
+                variants={fItem}
+                aria-hidden="true"
+                className="mt-3 block h-px w-6 bg-gold/60"
+              />
+              <ul className="mt-6 space-y-2 text-sm">
                 {col.links.map((link) => (
-                  <li key={link.href}>
-                    <Link href={link.href} className="transition-colors hover:text-white">
+                  <motion.li key={link.href} variants={fItem}>
+                    {/* Slides a hair toward the reader on hover — the smallest
+                        possible acknowledgement, applied to 60+ links. */}
+                    <Link
+                      href={link.href}
+                      className="inline-block text-white/72 transition-[color,transform] duration-500 ease-lux hover:translate-x-1 hover:text-gold"
+                    >
                       {link.label}
                     </Link>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
-            </nav>
+            </motion.nav>
           ))}
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-6 sm:flex-row">
-          <p className="text-xs text-white/50">
-            © {new Date().getFullYear()} RGL Decors · RGL Décors Home Interiors. Best Interior
-            Designers in Chennai, Tamil Nadu.
+        {/* ── Newsletter — renders only when there is somewhere to send to. */}
+        {NEWSLETTER_ENABLED && (
+          <div className="mt-16 border-t border-white/10 pt-10">
+            <p className="font-caps text-[10px] uppercase tracking-wide4 text-white/60">
+              The RGL Letter
+            </p>
+            <p className="mt-3 max-w-md text-sm text-white/72">
+              Occasional notes on materials, craft and finished homes. No noise.
+            </p>
+          </div>
+        )}
+
+        {/* ── Awards & certifications — absent until verifiable. ─────────── */}
+        {(awards.length > 0 || certifications.length > 0) && (
+          <div className="mt-16 grid gap-10 border-t border-white/10 pt-10 md:grid-cols-2">
+            {awards.length > 0 && (
+              <div>
+                <h2 className="font-caps text-[10px] uppercase tracking-wide4 text-white/60">
+                  Recognition
+                </h2>
+                <ul className="mt-6 space-y-3">
+                  {awards.map((a) => (
+                    <li key={`${a.title}-${a.year}`} className="text-sm text-white/70">
+                      <span className="font-serif text-base text-white">{a.title}</span>
+                      <span className="text-white/60">
+                        {' '}
+                        · {a.issuer}, {a.year}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {certifications.length > 0 && (
+              <div>
+                <h2 className="font-caps text-[10px] uppercase tracking-wide4 text-white/60">
+                  Certifications
+                </h2>
+                <ul className="mt-6 space-y-3">
+                  {certifications.map((c) => (
+                    <li key={c.name} className="text-sm text-white/70">
+                      <span className="font-serif text-base text-white">{c.name}</span>
+                      <span className="text-white/60"> · {c.issuer}</span>
+                      {c.ref && <span className="text-white/60"> · {c.ref}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Bottom bar ───────────────────────────────────────────────────── */}
+      <div className="border-t border-white/10">
+        <div className="shell flex flex-col items-center justify-between gap-6 py-8 sm:flex-row">
+          <p className="text-xs text-white/60">
+            © {new Date().getFullYear()} RGL Décors Home Interiors · Interior Designers in Chennai,
+            Tamil Nadu.
           </p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {SOCIALS.map((s) => {
               const Icon = ICONS[s.icon]
               if (!Icon) return null
@@ -90,9 +207,9 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.name}
-                  className="lux-icon text-white/60 transition-colors hover:text-white"
+                  className="lux-icon text-white/60 transition-colors hover:text-gold"
                 >
-                  <Icon size={20} aria-hidden="true" />
+                  <Icon size={18} aria-hidden="true" />
                 </a>
               )
             })}

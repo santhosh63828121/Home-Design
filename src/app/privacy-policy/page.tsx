@@ -76,7 +76,7 @@ export default function PrivacyPolicyPage() {
 
       <LegalSection id="why" heading="2. Why we collect it">
         <p>We use your information to:</p>
-        <ul className="ml-5 list-disc space-y-1.5">
+        <ul className="ml-6 list-disc space-y-1.5">
           <li>respond to your enquiry and prepare your 3D design and itemised quote;</li>
           <li>execute your project and schedule site visits;</li>
           <li>send you updates about your project by email, phone or WhatsApp;</li>
@@ -109,7 +109,7 @@ export default function PrivacyPolicyPage() {
           and may only use the data to perform their part of your project.
         </p>
         <p>This website additionally relies on:</p>
-        <ul className="ml-5 list-disc space-y-1.5">
+        <ul className="ml-6 list-disc space-y-1.5">
           <li>
             <strong>Email delivery.</strong> A third-party email service (such as Resend, or our SMTP
             provider) delivers your enquiry to our own team.
@@ -158,7 +158,7 @@ export default function PrivacyPolicyPage() {
 
       <LegalSection id="rights" heading="6. Your rights as a data principal">
         <p>Under the DPDP Act 2023 you have the right to:</p>
-        <ul className="ml-5 list-disc space-y-1.5">
+        <ul className="ml-6 list-disc space-y-1.5">
           <li><strong>know</strong> what we hold about you;</li>
           <li><strong>access</strong> and obtain a copy of it;</li>
           <li><strong>correct</strong> anything inaccurate;</li>

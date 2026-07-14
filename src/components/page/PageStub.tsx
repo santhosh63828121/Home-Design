@@ -10,17 +10,26 @@ import { JsonLd, breadcrumbSchema } from '@/lib/structured-data'
 export type Crumb = { name: string; path: string }
 
 /**
- * Shared page shell for Phase-1 route stubs: header + breadcrumbs + a single
- * <h1> hero + intro + primary CTA + footer + BreadcrumbList JSON-LD. Keeps every
- * not-yet-built route consistent, crawlable and conversion-ready (no 404s, no
- * dead ends) while the full content is built in later phases.
+ * EDITORIAL PAGE MASTHEAD
+ * =======================
+ * The shell behind ~40 routes: chrome + breadcrumbs + a single <h1> + lede + CTA
+ * + BreadcrumbList JSON-LD. Redesigning it here upgrades every inner page at
+ * once — which is the whole reason it exists.
+ *
+ * The masthead is a magazine opener, not a hero banner: a tracked eyebrow, a
+ * gold hairline, an enormous light-weight serif headline, and a measured lede at
+ * a real reading width (~66 characters). The space around it is the design.
+ *
+ * NOT changed: the h1-per-page contract, breadcrumb schema, CTA routing, or the
+ * `children` slot every page fills.
  */
 export default function PageStub({
   title,
-  kicker = 'RGL Decors · Chennai',
+  kicker = 'RGL Décors · Chennai',
   intro,
   crumbs,
   cta = { label: 'Get a Free Quote', href: routes.getQuote },
+  lead,
   children,
 }: {
   title: string
@@ -28,16 +37,35 @@ export default function PageStub({
   intro: string
   crumbs: Crumb[]
   cta?: { label: string; href: string }
+  /**
+   * Optional full-bleed element rendered ABOVE the masthead — a hero the nav
+   * floats over, exactly as on the homepage.
+   *
+   * This exists for a concrete reason: /3d-walkthrough embeds the GSAP-PINNED
+   * WebGL walkthrough. A ScrollTrigger pin re-measures its spacer on refresh,
+   * and if there is content ABOVE it, that re-measure shoves everything below —
+   * measured at CLS 0.68. With the pinned element leading the page (as it did on
+   * the old homepage) the same scroll measures CLS 0.0002.
+   */
+  lead?: React.ReactNode
   children?: React.ReactNode
 }) {
   return (
     <>
       <Navbar />
-      <main id="main" className="bg-background pt-28">
-        <section className="mx-auto w-full max-w-7xl px-5 py-12 sm:px-8 lg:px-12">
-          {/* Breadcrumbs */}
-          <nav aria-label="Breadcrumb" className="mb-6">
-            <ol className="flex flex-wrap items-center gap-2 font-caps text-[11px] uppercase tracking-wide2 text-muted">
+      <main id="main" className="bg-background">
+        {lead}
+
+        {/* Masthead. When there is no `lead`, pt must clear the 72/84px fixed bar
+            and then add editorial air on top — the headline should never feel
+            pinned to the nav. With a `lead`, the hero already did that job. */}
+        <header
+          className={`shell pb-section-sm ${
+            lead ? 'pt-section-sm' : 'pt-[9.5rem] lg:pt-[12rem]'
+          }`}
+        >
+          <nav aria-label="Breadcrumb" className="mb-10">
+            <ol className="flex flex-wrap items-center gap-2 font-caps text-[10px] uppercase tracking-wide2 text-muted">
               {crumbs.map((c, i) => {
                 const last = i === crumbs.length - 1
                 return (
@@ -51,7 +79,9 @@ export default function PageStub({
                         <Link href={c.path} className="transition-colors hover:text-accent">
                           {c.name}
                         </Link>
-                        <span aria-hidden="true">/</span>
+                        <span aria-hidden="true" className="text-divider">
+                          /
+                        </span>
                       </>
                     )}
                   </li>
@@ -61,35 +91,35 @@ export default function PageStub({
           </nav>
 
           <p className="eyebrow">{kicker}</p>
-          <h1 className="mt-4 max-w-3xl font-serif text-4xl font-bold leading-[1.08] sm:text-5xl">
-            {title}
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink/75">{intro}</p>
+          <span aria-hidden="true" className="rule-gold mt-6" />
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <MagneticButton
-              href={cta.href}
-              className="btn-pill btn-gold"
-            >
-              {cta.label} <ArrowRight size={16} aria-hidden="true" />
+          <h1 className="mt-8 max-w-[16ch] font-serif text-display font-light text-ink">{title}</h1>
+
+          <p className="mt-8 max-w-prose2 text-lede text-ink/70 text-pretty">{intro}</p>
+
+          <div className="mt-12 flex flex-wrap items-center gap-4">
+            <MagneticButton href={cta.href} className="btn-pill btn-gold">
+              {cta.label} <ArrowRight size={15} aria-hidden="true" />
             </MagneticButton>
             <a
               href={`tel:${siteConfig.nap.phoneE164}`}
-              className="btn-pill border border-accent bg-transparent text-accent hover:bg-accent hover:text-white"
+              className="btn-pill btn-ghost"
             >
               Call {siteConfig.nap.phoneDisplay}
             </a>
           </div>
+        </header>
 
-          {children ? (
-            <div className="mt-14">{children}</div>
-          ) : (
-            <p className="mt-14 rounded-2xl border border-divider bg-white px-6 py-5 text-sm text-muted">
+        {children ? (
+          <div className="shell pb-section">{children}</div>
+        ) : (
+          <div className="shell pb-section">
+            <p className="border-t border-divider pt-8 text-sm text-muted">
               This page is being crafted as part of our new site. Meanwhile, our team can help you
               right away — request a free 3D design and quote, or call us.
             </p>
-          )}
-        </section>
+          </div>
+        )}
       </main>
       <Footer />
 

@@ -48,7 +48,7 @@ export default function KitchenPricePage() {
           <CostCalculator defaultPreset="1bhk" defaultFinish="premium" />
 
           <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">Kitchen price range</h2>
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">Kitchen price range</h2>
             <p className="mt-2 max-w-2xl text-ink/70">
               We build L-shaped, U-shaped, parallel and island layouts — each engineered to the
               millimetre with tall and loft units.
@@ -59,14 +59,14 @@ export default function KitchenPricePage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">What&apos;s included &amp; excluded</h2>
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">What&apos;s included &amp; excluded</h2>
             <div className="mt-6">
               <IncludedExcluded id="modular-kitchen" />
             </div>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">Finish tiers</h2>
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">Finish tiers</h2>
             <div className="mt-6">
               <FinishTiers />
             </div>

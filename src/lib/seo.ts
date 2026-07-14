@@ -19,7 +19,7 @@ export const siteConfig = {
     'RGL Decors — premium turnkey interior designers in Chennai. Design excellence, craftsmanship and end-to-end execution, with immersive 3D walkthroughs.',
   tagline: 'Interior Designers in Chennai',
   locale: 'en_IN',
-  themeColor: '#2D6A5A',
+  themeColor: '#5E6746',
   ogImage:
     'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
   keywords: seoKeywords,

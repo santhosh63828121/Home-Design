@@ -306,10 +306,17 @@ export const BEFORE_AFTER = [
 ]
 
 export const SERVICES = {
-  label: 'FLOOR 1 · OPEN PLAN',
-  heading: ['ENERGY THAT GETS', 'YOU IN THE ZONE.'],
-  body: "RGL Decors delivers end-to-end interior solutions — from concept to move-in. Every space is crafted to inspire, comfort, and reflect your personality. India's 1st studio offering FREE complete 3D walkthroughs with 99% accuracy.",
-  tags: ['3D Design', 'Free Estimate', 'Easy Access', '10Yr Warranty'],
+  label: 'Design & Execution · One Roof',
+  heading: ['Everything under', 'one roof.'],
+  // Two claims were retired here, both unverifiable or contradictory:
+  //   · "India's 1st studio offering FREE complete 3D walkthroughs" — an
+  //     unprovable superlative.
+  //   · "99% accuracy" — a fabricated precision figure with nothing behind it.
+  body: 'RGL Décors delivers end-to-end interior solutions — from first drawing to the day you move in. Design, materials, factory-built modules, civil work and finishing are handled by one team, so nothing is lost between trades. Every home begins with a free 3D walkthrough of your actual floor plan.',
+  // 'Warranty' now points at the real, confirmed terms (5-yr hardware /
+  // 1-yr shutters, carcass & carpentry — see /warranty). The old '10Yr Warranty'
+  // tag directly contradicted the legal page the client signed off on.
+  tags: ['Free 3D Walkthrough', 'Itemised Estimate', 'Factory-Built Modules', 'Covered by Warranty'],
   image:
     'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1600&q=80',
   alt: 'Warm vibrant Indian modular kitchen with Edison lighting',

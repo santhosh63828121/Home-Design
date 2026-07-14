@@ -1,11 +1,41 @@
 /* ============================================================================
    TRUE 3D HOME WALKTHROUGH
    One <canvas> renders the whole house; HTML labels overlay the camera as it
-   walks. Palette: green #2D6A5A · gold #C9A86A · amber #FFCE8A.
+   walks. Palette: green #5E6746 · gold #C5A572 · amber #FFCE8A.
    ========================================================================== */
 
-.cinematic {
+/* ── THE SCROLL TRACK ──────────────────────────────────────────────────────
+   The walkthrough's scroll length is now declared in CSS, and the stage holds
+   itself in place with `position: sticky`.
+
+   It used to be a GSAP ScrollTrigger `pin`, which builds its scroll space in
+   JAVASCRIPT by injecting a pin-spacer at runtime. Three consequences, all of
+   them bad, all of them now gone:
+     1. The page's height depended on the engine having booted — so the engine
+        could not be lazily started without the page suddenly growing under the
+        user.
+     2. Every ScrollTrigger.refresh() re-measured that spacer. With any content
+        above the walkthrough, a re-measure shoved everything below it: measured
+        CLS 0.68.
+     3. A pin is `position: fixed`, which is silently destroyed by ANY ancestor
+        with a transform/filter/perspective — a permanent landmine on a site
+        this full of motion.
+
+   `position: sticky` has none of these properties: the space is real layout,
+   present in the SSR HTML, and it is unaffected by ancestor transforms.
+   ScrollTrigger now only READS progress; it no longer owns the layout.
+
+   --cine-vh is the journey length (JOURNEY.scrollLengthVh in config.js). Keep
+   the two in sync — the camera maps 0→1 across exactly this distance. */
+.cine-track {
   position: relative;
+  width: 100%;
+  height: calc(var(--cine-vh, 9) * 100svh);
+}
+
+.cinematic {
+  position: sticky;
+  top: 0;
   width: 100%;
   height: 100vh;
   height: 100svh;
@@ -14,21 +44,49 @@
   color: #fff;
 }
 
-/* Hybrid hero switch — both heroes are in the SSR HTML; CSS shows exactly one so
-   the correct hero paints immediately with no client swap. Default (including
-   MOBILE, where the 3D walkthrough now runs on a cheaper render profile): WebGL.
-   Reduced-motion: the lightweight animated static hero. .cine-force-static (added
-   by JS only when WebGL is unavailable) forces the static hero on any device. */
-/* NOTE: these are deliberately child-combinator selectors (.cine-hero > …) so they
-   carry TWO classes of specificity. A single-class `.cine-hero-static` rule would
-   tie with `.cinematic--static { display: flex }` further down this file and LOSE
-   on source order — leaving both heroes rendered on top of each other. */
+/* The photographic hero is a single screen — it has no journey, so it must not
+   inherit the track's height or its sticky behaviour. */
+.cinematic--static {
+  position: relative;
+  height: 100svh;
+}
+
+/* ── HYBRID HERO SWITCH ────────────────────────────────────────────────────
+   Both heroes are in the SSR HTML; CSS shows exactly one, so the correct hero
+   paints immediately with no client-side swap and no flash.
+
+     ≥1024px .................. WebGL walkthrough
+     <1024px .................. cinematic photography hero
+     reduced-motion ........... photography hero (any width)
+     no WebGL (.cine-force-static, set by JS) … photography hero
+
+   WHY MOBILE IS NOT WebGL — this is measured, not assumed. Running the
+   walkthrough on phones cost: Performance 52, LCP 3.7s, TBT 7,440ms, because the
+   procedural scene construction alone blocks the main thread for seconds on a
+   mid-range device. The photography hero on the same phone measures ~97 with a
+   sub-2s LCP. The 3D is a desktop luxury; on mobile it is a tax the user pays in
+   waiting.
+
+   NOTE: deliberately child-combinator selectors (.cine-hero > …) so they carry
+   TWO classes of specificity. A single-class `.cine-hero-static` rule would tie
+   with `.cinematic--static { display: flex }` further down this file and LOSE on
+   source order — leaving both heroes stacked on top of each other. */
 .cine-hero > .cine-hero-static {
   display: none;
 }
 .cine-hero > .cine-hero-webgl {
   display: block;
 }
+
+@media (max-width: 1023px) {
+  .cine-hero > .cine-hero-static {
+    display: flex;
+  }
+  .cine-hero > .cine-hero-webgl {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cine-hero > .cine-hero-static {
     display: flex;
@@ -42,6 +100,15 @@
 }
 .cine-hero.cine-force-static > .cine-hero-webgl {
   display: none;
+}
+
+/* Poster: sits UNDER the canvas (z0 < z1) and is never removed — if WebGL dies
+   mid-session, or the GPU context is lost, the hero degrades to a photograph
+   instead of a black rectangle. */
+.cine-poster {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
 
 .cinematic__fx {
@@ -59,6 +126,45 @@
 }
 .cinematic__fx.is-ready {
   opacity: 1;
+}
+
+/* ── THE GRADE ─────────────────────────────────────────────────────────────
+   A cinematic vignette sitting between the canvas (z1) and the copy (z4).
+   This is NOT decoration — it is the only thing keeping the white headline
+   legible. The camera walks past bright plastered walls and sunlit marble, so
+   without a scrim the type drops to ~1.5:1 against the background and the gold
+   eyebrow disappears entirely. Colourists call this "protecting the title";
+   WCAG calls it passing.
+
+   Two layers, both pure paint (no transform → cannot break the GSAP pin):
+     · a horizontal ramp that darkens whichever side the copy is on
+     · a bottom-up falloff that seats the HUD and hint
+   Radial-free and cheap: the compositor draws these once. */
+.cinematic::before,
+.cinematic::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.cinematic::before {
+  background: linear-gradient(
+    100deg,
+    rgba(20, 22, 16, 0.82) 0%,
+    rgba(20, 22, 16, 0.55) 28%,
+    rgba(20, 22, 16, 0.08) 55%,
+    rgba(20, 22, 16, 0.42) 100%
+  );
+}
+.cinematic::after {
+  background: linear-gradient(
+    to top,
+    rgba(14, 16, 11, 0.75) 0%,
+    rgba(14, 16, 11, 0) 42%,
+    rgba(14, 16, 11, 0) 70%,
+    rgba(14, 16, 11, 0.5) 100%
+  );
 }
 
 /* --- Room label overlay ----------------------------------------------- */
@@ -89,64 +195,82 @@
 
 .scene__eyebrow {
   font-family: var(--font-dmsans), system-ui, sans-serif;
-  font-size: 0.68rem;
-  letter-spacing: 0.3em;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: #c9a86a;
-  margin: 0 0 0.9rem;
+  color: var(--gold);
+  margin: 0 0 1.1rem;
 }
 
+/**
+ * BUG FIXED HERE: `.scene__title--hero` used to declare
+ *   font-family: var(--font-playfair), Georgia, serif;
+ * but `--font-playfair` was NEVER DEFINED (layout.tsx loads Cormorant, Inter and
+ * DM Sans). An undefined var() makes the whole declaration invalid at
+ * computed-value time, so font-family fell back to the INHERITED body font — and
+ * the hero headline silently rendered in Inter Bold. It never once displayed the
+ * serif it was written for.
+ *
+ * The scene type now uses the real design system: Cormorant at a light weight,
+ * sentence case, no uppercase. It matches the rest of the site exactly.
+ */
 .scene__title {
-  font-family: var(--font-dmsans), var(--font-inter), system-ui, sans-serif;
-  font-weight: 700;
-  font-size: clamp(2rem, 3.8vw, 3.6rem);
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-weight: 300;
+  font-size: clamp(2.4rem, 4.4vw, 4rem);
   line-height: 1.02;
   letter-spacing: -0.01em;
-  text-transform: uppercase;
+  text-transform: none;
   margin: 0;
   white-space: pre-line;
-  text-shadow: 0 10px 50px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 10px 50px rgba(0, 0, 0, 0.45);
 }
 
 .scene__title--hero {
-  font-family: var(--font-playfair), Georgia, serif;
-  font-size: clamp(2.8rem, 6.5vw, 5.4rem);
-  text-transform: none;
-  line-height: 0.98;
+  font-size: clamp(3rem, 7vw, 6.5rem);
+  line-height: 0.96;
 }
 
 .scene__body {
-  margin: 1.1rem 0 0;
-  max-width: 34ch;
-  font-size: clamp(0.92rem, 1.2vw, 1.05rem);
-  line-height: 1.6;
-  color: rgba(246, 242, 234, 0.85);
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+  margin: 1.5rem 0 0;
+  max-width: 36ch;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-weight: 300;
+  font-size: clamp(0.94rem, 1.2vw, 1.05rem);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
 }
 
+/* A hairline text link, not a glass chip. Chips read as UI; a tracked capital
+   with a rule under it reads as a caption in a film. */
 .scene__cta {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 1.6rem;
-  padding: 0.65rem 1.3rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
+  gap: 0.6rem;
+  margin-top: 2rem;
+  padding: 0 0 0.4rem;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+  background: none;
   color: #fff;
   font-family: var(--font-dmsans), system-ui, sans-serif;
-  font-weight: 600;
-  font-size: 0.8rem;
-  letter-spacing: 0.04em;
+  font-weight: 500;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
   text-decoration: none;
-  transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+  transition:
+    color 0.5s var(--ease-lux, cubic-bezier(0.22, 1, 0.36, 1)),
+    border-color 0.5s ease,
+    gap 0.5s var(--ease-lux, cubic-bezier(0.22, 1, 0.36, 1));
 }
 
 .scene__cta:hover {
-  background: #2d6a5a;
-  border-color: #2d6a5a;
-  transform: translateY(-1px);
+  color: var(--gold);
+  border-color: var(--gold);
+  gap: 1rem;
 }
 
 /* --- HUD --------------------------------------------------------------- */
@@ -165,7 +289,7 @@
   height: 100%;
   width: 100%;
   transform-origin: left center;
-  background: linear-gradient(90deg, #2d6a5a, #c9a86a);
+  background: linear-gradient(90deg, #5e6746, #c5a572);
 }
 
 .cinematic__hint {
@@ -223,11 +347,14 @@
 
 .cinematic__staticTitle {
   font-family: var(--font-cormorant), Georgia, serif;
-  font-size: clamp(2.4rem, 8vw, 3.6rem);
-  font-weight: 700;
-  line-height: 1.05;
-  margin: 0.6rem 0 0;
-  color: #f6f2ea;
+  font-size: clamp(2.8rem, 10vw, 4.2rem);
+  /* 300, not 700 — Cormorant at bold reads as a wedding invitation; at light it
+     reads as an architecture monograph. This is the site's display weight. */
+  font-weight: 300;
+  line-height: 1.0;
+  letter-spacing: -0.015em;
+  margin: 0.8rem 0 0;
+  color: #ffffff;
 }
 
 .cinematic__staticList {
@@ -247,7 +374,7 @@
   font-family: var(--font-dmsans), system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: #c9a86a;
+  color: #c5a572;
 }
 
 .cinematic__staticList p {
@@ -271,11 +398,14 @@
 .cine-m-slide {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
-  /* Visible immediately (it's the SSR'd LCP paint on mobile) with a slow, cheap,
-     compositor-only Ken Burns drift — one transform animation, no per-frame
-     layout/paint, so it costs effectively nothing on the main thread. */
+  /* Holds a <next/image fill priority> now, not a background-image — a CSS
+     background is invisible to the browser's preload scanner and cannot start
+     downloading until the stylesheet resolves, which is why the mobile LCP was
+     3.9s. Same src as the desktop poster, so it is a single shared preload.
+
+     Ken Burns is a slow, compositor-only transform on this wrapper — one
+     animation, no per-frame layout or paint, so it costs nothing on the main
+     thread and never touches the image's own sizing. */
   transform: scale(1.02);
   animation: cineMZoom 24s ease-in-out infinite alternate;
   will-change: transform;

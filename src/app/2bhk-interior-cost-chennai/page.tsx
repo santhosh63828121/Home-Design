@@ -47,14 +47,14 @@ export default function Cost2BHKPage() {
           <CostCalculator defaultPreset="2bhk" defaultFinish="premium" />
 
           <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">2BHK package range</h2>
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">2BHK package range</h2>
             <div className="mt-6">
               <PriceRangesTable ids={['essentials-2bhk', 'modular-kitchen']} />
             </div>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">What&apos;s included &amp; excluded</h2>
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">What&apos;s included &amp; excluded</h2>
             <div className="mt-6">
               <IncludedExcluded id="essentials-2bhk" />
             </div>

@@ -60,6 +60,94 @@ export const mainNav: NavItem[] = [
   { label: 'Contact', href: routes.contact },
 ]
 
+/**
+ * MEGA MENU — the desktop dropdown under a primary nav item.
+ * Data-driven from the same registry, so a mega-menu link can never rot into a
+ * dead URL. Only items listed here open a panel; the rest are plain links.
+ */
+export type MegaColumn = { heading: string; links: NavItem[] }
+export type MegaMenu = {
+  columns: MegaColumn[]
+  feature: { eyebrow: string; title: string; body: string; href: string; cta: string }
+}
+
+export const megaMenus: Record<string, MegaMenu> = {
+  [routes.services]: {
+    columns: [
+      {
+        heading: 'Residential',
+        links: serviceCategories
+          .filter((s) => s.group === 'core')
+          .slice(0, 6)
+          .map((s) => ({ label: s.name, href: routes.service(s.slug) })),
+      },
+      {
+        heading: 'Specialist',
+        links: [
+          ...serviceCategories
+            .filter((s) => s.group !== 'core')
+            .slice(0, 5)
+            .map((s) => ({ label: s.name, href: routes.service(s.slug) })),
+          { label: 'All 15 categories', href: routes.services },
+        ],
+      },
+      {
+        heading: 'How we work',
+        links: [
+          { label: 'Our Process', href: routes.process },
+          { label: '3D Walkthrough', href: routes.walkthrough },
+          { label: 'Pricing & Cost', href: routes.pricing },
+          { label: 'Warranty', href: routes.warranty },
+          { label: 'After-Sales Care', href: routes.afterSales },
+        ],
+      },
+    ],
+    feature: {
+      eyebrow: 'Not sure where to start?',
+      title: 'Find your design language',
+      body: 'A two-minute quiz that translates how you live into a material palette and a plan.',
+      href: routes.styleQuiz,
+      cta: 'Take the style quiz',
+    },
+  },
+  [routes.portfolio]: {
+    columns: [
+      {
+        heading: 'Browse',
+        links: [
+          { label: 'All Projects', href: routes.portfolio },
+          { label: 'Photo Albums', href: routes.portfolioAlbums },
+          { label: '3D Walkthrough', href: routes.walkthrough },
+          { label: 'Testimonials', href: routes.testimonials },
+        ],
+      },
+      {
+        heading: 'By city',
+        links: cities.slice(0, 6).map((c) => ({
+          label: c.name,
+          href: routes.city(c.slug as string),
+        })),
+      },
+      {
+        heading: 'Costs',
+        links: [
+          { label: '2BHK Interior Cost', href: routes.cost2bhk },
+          { label: '3BHK Interior Cost', href: routes.cost3bhk },
+          { label: 'Modular Kitchen Price', href: routes.kitchenPrice },
+          { label: 'Full Cost Guide', href: routes.pricing },
+        ],
+      },
+    ],
+    feature: {
+      eyebrow: 'Every project, start to finish',
+      title: 'See how a home is made',
+      body: 'Materials, drawings, execution and the finished room — the full story behind the photograph.',
+      href: routes.portfolio,
+      cta: 'Open the portfolio',
+    },
+  },
+}
+
 /** Footer link columns — all real <Link>s. */
 export const footerColumns: { heading: string; links: NavItem[] }[] = [
   {

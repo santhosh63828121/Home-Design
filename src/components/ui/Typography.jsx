@@ -16,7 +16,7 @@ export function Eyebrow({ children, className = '', ...props }) {
 export function Heading({ as: Tag = 'h2', children, className = '', ...props }) {
   return (
     <Tag
-      className={`font-serif font-bold leading-[1.08] tracking-tight text-balance ${className}`}
+      className={`font-serif font-medium leading-[1.08] tracking-tight text-balance ${className}`}
       {...props}
     >
       {children}

@@ -14,7 +14,21 @@ import { routes } from '@/lib/routes'
  * automatically as you drop real media into these arrays. Nothing to re-wire.
  */
 
-export type ImageAsset = { src: string; alt: string; width?: number; height?: number; blurDataURL?: string }
+export type ImageAsset = {
+  src: string
+  alt: string
+  width?: number
+  height?: number
+  blurDataURL?: string
+  /**
+   * Optional room label ("Living", "Kitchen", "Bedroom", …). Drives the
+   * room-wise navigation in the project gallery, which SELF-GATES: the rail
+   * appears only when two or more images actually carry a room. Unlabelled
+   * photographs simply show as one continuous spread — never an empty filter
+   * bar, and never a room invented to populate one.
+   */
+  room?: string
+}
 export type BeforeAfterPair = { before: ImageAsset; after: ImageAsset; label: string }
 export type RenderVsRealPair = { render: ImageAsset; real: ImageAsset }
 export type ProjectTestimonial = { quote: string; author: string; role?: string }
@@ -95,6 +109,76 @@ export type Project = {
 export const PORTFOLIO_BUDGET_INDICATIVE = true
 export const PORTFOLIO_BUDGET_FOOTNOTE = 'Budget bands are indicative ranges, not the client’s actual spend.'
 
+/**
+ * MEDIA DISCLOSURE — the honest half of "curated stock for now, swap later".
+ * ----------------------------------------------------------------------------
+ * The four projects below belong to REAL, NAMED clients. The photographs
+ * currently attached to them are curated reference imagery of the specified
+ * design direction — they are NOT photographs of these clients' homes. Publishing
+ * a stranger's room as Mr. Kiran's finished apartment, silently, would be a
+ * fabrication about an identifiable person.
+ *
+ * So the imagery ships (the layouts are real and the client wants to see them),
+ * but it ships DISCLOSED: this note renders under every project gallery and under
+ * the portfolio grid.
+ *
+ * WHEN RGL SUPPLIES REAL PHOTOGRAPHY: drop it into each project's `media`, then
+ * set this to `null`. The note disappears everywhere at once. Nothing else needs
+ * to change.
+ */
+export const PORTFOLIO_MEDIA_NOTE: string | null =
+  'Imagery shown illustrates the design direction and materials specified for this project. Final photography of the completed home is being prepared.'
+
+/**
+ * Reference imagery, grouped by room so the gallery's room-wise navigation has
+ * something real to key off. Deliberately a small, consistent, desaturated set —
+ * one art direction, not a grab-bag.
+ */
+const REF = {
+  living: (alt: string): ImageAsset => ({
+    src: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1400&q=75',
+    alt,
+    room: 'Living',
+    width: 1400,
+    height: 1750,
+  }),
+  kitchen: (alt: string): ImageAsset => ({
+    src: 'https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1400&q=75',
+    alt,
+    room: 'Kitchen',
+    width: 1400,
+    height: 1050,
+  }),
+  bedroom: (alt: string): ImageAsset => ({
+    src: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1400&q=75',
+    alt,
+    room: 'Bedroom',
+    width: 1400,
+    height: 1750,
+  }),
+  wardrobe: (alt: string): ImageAsset => ({
+    src: 'https://images.unsplash.com/photo-1558997519-83ea9252edf8?auto=format&fit=crop&w=1400&q=75',
+    alt,
+    room: 'Wardrobe',
+    width: 1400,
+    height: 1050,
+  }),
+  dining: (alt: string): ImageAsset => ({
+    src: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=1400&q=75',
+    alt,
+    room: 'Dining',
+    width: 1400,
+    height: 1750,
+  }),
+  workspace: (alt: string): ImageAsset => ({
+    src: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=75',
+    alt,
+    room: 'Workspace',
+    width: 1400,
+    height: 1050,
+  }),
+}
+
 export const projects: Project[] = [
   {
     slug: 'divakar-restaurant',
@@ -109,7 +193,15 @@ export const projects: Project[] = [
       'A complete hospitality fit-out for Mr. Divakar — dining, service and ambience designed end to end and previewed as an HD 3D walkthrough before execution.',
     services: ['indoor-outdoor-lighting', 'finished-furniture'],
     featured: true,
-    media: {}, // photos / walkthrough video to be added
+    media: {
+      cover: REF.dining('Contemporary hospitality dining room with pendant lighting over timber tables'),
+      gallery: [
+        REF.dining('Dining hall — solid timber tables under a low pendant cluster'),
+        REF.living('Lounge and waiting area with layered, low lighting'),
+        REF.workspace('Service counter and back-of-house circulation'),
+        REF.kitchen('Commercial kitchen and pass, planned around service flow'),
+      ],
+    },
     testimonial: null,
   },
   {
@@ -125,7 +217,15 @@ export const projects: Project[] = [
       'A turnkey 2BHK for Mr. Kiran: modular kitchen, bedroom wardrobes and a living-room TV unit, designed and factory-built for a clean, modern finish.',
     services: ['modular-kitchen-chennai', 'wardrobe-design-chennai', 'tv-units-chennai'],
     featured: true,
-    media: {},
+    media: {
+      cover: REF.living('Modern living room with a full-height TV unit and warm timber'),
+      gallery: [
+        REF.living('Living room — TV unit, seating line and concealed storage'),
+        REF.kitchen('Modular kitchen with handleless fronts and a stone worktop'),
+        REF.bedroom('Master bedroom with an upholstered headboard'),
+        REF.wardrobe('Bedroom wardrobe with fluted shutters and a lit reveal'),
+      ],
+    },
     testimonial: null,
   },
   {
@@ -141,7 +241,15 @@ export const projects: Project[] = [
       'Two spaces for Mr. Anbu — a 2BHK apartment and a villa — with coordinated modular units, storage and finishes across both homes.',
     services: ['modular-kitchen-chennai', 'wardrobe-design-chennai'],
     featured: false,
-    media: {},
+    media: {
+      cover: REF.kitchen('Contemporary modular kitchen with a stone worktop'),
+      gallery: [
+        REF.kitchen('Modular kitchen — humidity-rated boards and soft-close hardware'),
+        REF.wardrobe('Coordinated wardrobe joinery across both homes'),
+        REF.living('Living space with coordinated finishes'),
+        REF.bedroom('Bedroom with concealed storage'),
+      ],
+    },
     testimonial: null,
   },
   {
@@ -157,7 +265,15 @@ export const projects: Project[] = [
       'A dual project for Mr. Muthu — a functional commercial office fit-out and a complete 3BHK villa interior, delivered with factory precision.',
     services: ['finished-furniture', 'indoor-outdoor-lighting'],
     featured: true,
-    media: {},
+    media: {
+      cover: REF.workspace('Commercial office fit-out with natural light and timber detailing'),
+      gallery: [
+        REF.workspace('Office floor — workstations, lighting and acoustic treatment'),
+        REF.living('Villa living room with layered lighting'),
+        REF.dining('Villa dining under a pendant cluster'),
+        REF.bedroom('Villa bedroom with fitted storage'),
+      ],
+    },
     testimonial: null,
   },
 ]

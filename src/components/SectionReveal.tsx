@@ -42,6 +42,12 @@ export default function SectionReveal({
 
   return (
     <Motion
+      // A stable hook for scripts/motion-audit.mjs. The audit used to guess at
+      // the animated node by CSS selector (`figure` on /testimonials), which
+      // silently started measuring the wrong element the moment that page was
+      // redesigned — reporting "reveals don't animate" when they animate fine.
+      // The reveal now identifies itself, so the probe cannot drift again.
+      data-reveal={reduce ? 'reduced' : variant}
       className={className}
       variants={variants}
       initial="hidden"

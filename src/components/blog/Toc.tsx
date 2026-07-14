@@ -4,7 +4,7 @@ import type { TocItem } from '@/lib/blog'
 export default function Toc({ items }: { items: TocItem[] }) {
   if (items.length < 2) return null
   return (
-    <nav aria-label="On this page" className="rounded-2xl border border-divider bg-white p-5 shadow-card">
+    <nav aria-label="On this page" className="rounded-2xl border border-divider bg-white p-6 shadow-card">
       <p className="font-caps text-[11px] uppercase tracking-wide2 text-muted">On this page</p>
       <ul className="mt-3 space-y-2 text-sm">
         {items.map((it) => (

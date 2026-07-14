@@ -3,6 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
@@ -10,7 +11,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import CameraPath from './CameraPath.js'
-import { ASSETS, PROPS } from './config.js'
+import { ASSETS, PROPS, LIGHTING, POST } from './config.js'
 import * as TEX from './textures.js'
 
 const H = 3.1
@@ -41,6 +42,11 @@ export default class HouseScene {
     this.time = 0
     this.mobile = window.innerWidth < 768
     this.procLights = []
+    /** Interior fills only (not sun/hemi) — these "turn on" as evening falls. */
+    this.interiorLights = []
+    this._duskT = -1 // last applied dusk value; skips redundant light updates
+    this._sunDay = new THREE.Color(LIGHTING.sun.dayColor)
+    this._sunDusk = new THREE.Color(LIGHTING.sun.duskColor)
 
     // On-demand rendering state. The loop runs only while the camera is settling
     // toward a new scroll target (or just received input) AND the section is
@@ -87,27 +93,112 @@ export default class HouseScene {
     this.houseGroup = new THREE.Group()
     this.scene.add(this.houseGroup)
 
+    // ── COOPERATIVE BUILD ────────────────────────────────────────────────
+    // Building this house used to be ONE synchronous task. Measured on desktop:
+    // 2,000-2,800ms of blocked main thread, which capped the page's Lighthouse
+    // Performance at 49-60 no matter what else was optimised. A task is only
+    // "blocking" for the time it runs beyond 50ms, so a single 2s task costs
+    // ~1,950ms of Total Blocking Time — while the same work split into many
+    // sub-50ms tasks costs approximately zero.
+    //
+    // So the build is now a queue of small steps, yielded between (see
+    // _runBuildQueue). Only what frame 1 needs is built synchronously: the
+    // camera opens OUTSIDE the house looking at the facade, so the shell, the
+    // entrance, the facade, the lights and the composer must exist — the
+    // interiors can stream in over the next few frames, entirely unseen.
     this._materials()
     this._buildShell()
     this._buildEntrance()
     this._buildFacade()
-    this._buildFoyer()
-    this._buildLiving()
-    this._buildOtherFurniture()
     this._lights()
     this._composer()
     this.resize()
     this._lastInputMs = (typeof performance !== 'undefined' ? performance.now() : 0)
     this.wake() // render an initial settle, then idle until scrolled
 
-    this._loadAssets() // optional full-villa GLTF / HDRI overrides
-    this._loadProps() // real modelled furniture into the procedural house
+    this._runBuildQueue([
+      () => this._buildFoyer(),
+      () => this._buildLiving(),
+      () => this._buildOtherFurniture(),
+    ])
+
+    // ── HEAVY ASSETS ARE DEFERRED, NOT SKIPPED ────────────────────────────
+    // The HDRI is ~5.5 MB and RGBELoader PARSES IT ON THE MAIN THREAD, then
+    // PMREM-convolves it — together a multi-second long task. The furniture GLBs
+    // add ~7 MB more. Kicking these off inside the constructor (as this used to)
+    // put 12.5 MB and two long tasks directly in the critical path of the very
+    // frame the user is waiting for: measured desktop TBT 2,000–2,800 ms and LCP
+    // spiking to 12.9 s.
+    //
+    // Nothing here is needed for the FIRST frame — the house already has
+    // procedural lighting and box-placeholder furniture, and both upgrade in
+    // place when the real assets arrive. So we wait until the browser is idle
+    // (post-load, post-TTI) and enhance then. The walkthrough looks identical a
+    // beat later; the page becomes interactive seconds sooner.
+    this._deferEnhancements()
+  }
+
+  /**
+   * Drain a queue of build steps, yielding to the event loop between each one so
+   * no single task can become a long task.
+   *
+   * `setTimeout(…, 0)` (not requestAnimationFrame) is deliberate: rAF callbacks
+   * run INSIDE the frame's rendering task, so consecutive rAF steps coalesce
+   * back into one long task and we would have optimised nothing. A macrotask
+   * boundary genuinely lets the scheduler interleave input and paint.
+   *
+   * Each step wakes the renderer, so the house visibly assembles itself in the
+   * first few frames — which nobody sees, because the camera is outside looking
+   * at the facade for the first 40% of the scroll.
+   */
+  _runBuildQueue(steps) {
+    const next = () => {
+      if (this.disposed) return
+      const step = steps.shift()
+      if (!step) {
+        this.built = true
+        this.wake()
+        return
+      }
+      step()
+      this.wake()
+      this._buildTimer = setTimeout(next, 0)
+    }
+    this._buildTimer = setTimeout(next, 0)
+  }
+
+  /**
+   * Load the optional HDRI + GLB props once the main thread is genuinely free.
+   * Falls back to a timeout on browsers without requestIdleCallback (Safari).
+   */
+  _deferEnhancements() {
+    const run = () => {
+      if (this.disposed) return
+      this._loadAssets() // golden-hour IBL + reflections
+      this._loadProps() // real modelled sofa / chair
+    }
+    const schedule = () => {
+      if (typeof requestIdleCallback === 'function') {
+        this._idleId = requestIdleCallback(run, { timeout: 3000 })
+      } else {
+        this._idleId = setTimeout(run, 1200)
+      }
+    }
+    // Wait for `load` so we never compete with the page's own resources.
+    if (typeof document === 'undefined' || document.readyState === 'complete') schedule()
+    else window.addEventListener('load', schedule, { once: true })
   }
 
   // ---- Materials --------------------------------------------------------
   _materials() {
     const A = this.aniso
     const std = (o) => new THREE.MeshStandardMaterial(o)
+    // MeshPhysicalMaterial adds a clearcoat lobe — a second, sharper specular
+    // layer over the base. It is what separates POLISHED stone from matte stone,
+    // and lacquered joinery from raw board. It costs one extra BRDF evaluation
+    // and NO extra render pass (unlike `transmission`, which forces a whole
+    // additional scene render per frame and is deliberately avoided here).
+    const phys = (o) => new THREE.MeshPhysicalMaterial(o)
     const wall = (color) => std({ color, roughness: 0.96, envMapIntensity: 0.35 })
     this.mat = {
       floor: std({
@@ -120,7 +211,19 @@ export default class HouseScene {
         normalMap: TEX.woodNormal(4), normalScale: new THREE.Vector2(0.4, 0.4),
         roughness: 0.45, envMapIntensity: 0.8,
       }),
-      marble: std({ map: TEX.marble({ base: '#f3efe8', vein: 'rgba(110,100,85,0.55)', repeat: 1 }), normalMap: TEX.floorNormal(1, A), normalScale: new THREE.Vector2(0.15, 0.15), roughness: 0.12, envMapIntensity: 1.6 }),
+      // ITALIAN MARBLE (Calacatta): a cool white ground with grey-gold veining
+      // and a polished clearcoat. Warm/beige veins read as builder-grade granite;
+      // the cool grey is what makes it read as Italian.
+      marble: phys({
+        map: TEX.marble({ base: '#f6f4f0', vein: 'rgba(122,124,128,0.5)', repeat: 1 }),
+        normalMap: TEX.floorNormal(1, A),
+        normalScale: new THREE.Vector2(0.1, 0.1),
+        roughness: 0.08,
+        metalness: 0,
+        clearcoat: 1,
+        clearcoatRoughness: 0.06,
+        envMapIntensity: 1.8,
+      }),
       stoneSlab: std({ map: TEX.marble({ base: '#cfccc4', vein: 'rgba(80,78,72,0.4)', repeat: 2 }), roughness: 0.4, envMapIntensity: 0.9 }),
       // per-room walls
       wFoyer: wall('#e7ddc8'),
@@ -137,10 +240,35 @@ export default class HouseScene {
       stone: std({ map: TEX.blackStone({}), roughness: 0.08, metalness: 0.3, envMapIntensity: 2.0 }),
       rug: std({ map: TEX.rug({ base: '#cfc6b6', repeat: 1 }), normalMap: TEX.fabricNormal(4), normalScale: new THREE.Vector2(0.3, 0.3), roughness: 1, envMapIntensity: 0.15 }),
       bronze: std({ color: '#6e5634', roughness: 0.35, metalness: 0.85, envMapIntensity: 1.4 }),
-      gold: std({ color: '#c9a86a', roughness: 0.3, metalness: 0.9, envMapIntensity: 1.6 }),
-      black: std({ color: '#0c0c0d', roughness: 0.4, metalness: 0.5, envMapIntensity: 1.2 }),
+      // BRASS — the site's 10% gold, in three dimensions. A true metal needs
+      // metalness 1: anything less mixes in a diffuse lobe and the result reads
+      // as gold-coloured PLASTIC, which is the classic ArchViz tell. Roughness
+      // 0.22 gives brushed (not mirror) brass; the high envMapIntensity is what
+      // lets the HDRI actually show up in it.
+      gold: std({
+        color: '#c5a572',
+        roughness: 0.22,
+        metalness: 1,
+        envMapIntensity: 2.2,
+      }),
+      // Olive — the brand's 20%, used for upholstery and lacquered joinery so
+      // the 3D hero belongs to the same palette as the rest of the site.
+      olive: phys({
+        color: '#5e6746',
+        roughness: 0.55,
+        metalness: 0,
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.4,
+        envMapIntensity: 0.6,
+      }),
+      black: std({ color: '#0c0c0d', roughness: 0.35, metalness: 0.6, envMapIntensity: 1.4 }),
       glass: std({ color: '#bcd4e0', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.16, envMapIntensity: 2.5 }),
-      leaf: std({ color: '#3c5a3a', roughness: 0.8 }),
+      // Foliage reads as MASS IN SHADOW, not as a green ball. A saturated
+      // mid-green sphere is the single strongest "cartoon" tell in the scene —
+      // real foliage in a golden-hour plate is dark, desaturated and matte, and
+      // is recognised by silhouette rather than colour. Hence: near-black olive,
+      // fully rough, and no environment reflection to give away the sphere.
+      leaf: std({ color: '#232b1e', roughness: 1, metalness: 0, envMapIntensity: 0.15 }),
       cushionA: std({ map: TEX.fabric({ base: '#2f4660', repeat: 2 }), normalMap: TEX.fabricNormal(2), roughness: 0.85 }),
       cushionB: std({ map: TEX.fabric({ base: '#b07a3c', repeat: 2 }), roughness: 0.85 }),
       cushionC: std({ map: TEX.fabric({ base: '#7d756a', repeat: 2 }), roughness: 0.85 }),
@@ -208,13 +336,37 @@ export default class HouseScene {
     else this._box(0.06, 1.8, w, cx, 1.7, cz, m, false, false)
   }
 
+  /**
+   * A canopy built from OVERLAPPING, JITTERED lobes instead of one scaled
+   * sphere. A single ellipsoid reads instantly as a lollipop; three or four
+   * offset lobes of differing size produce an irregular silhouette, which is the
+   * only cue at this distance that says "plant" rather than "ball". Deterministic
+   * offsets (no Math.random) so the scene is identical on every load.
+   */
+  _canopy(x, y, z, r, seed = 0) {
+    const LOBES = [
+      [0, 0, 0, 1.0],
+      [0.42, 0.34, -0.2, 0.72],
+      [-0.38, 0.16, 0.26, 0.66],
+      [0.1, -0.3, 0.4, 0.58],
+    ]
+    LOBES.forEach(([ox, oy, oz, s], i) => {
+      const wobble = 1 + (((seed + i) % 3) - 1) * 0.12
+      const m = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(r * s * wobble, 1),
+        this.mat.leaf,
+      )
+      m.position.set(x + ox * r, y + oy * r, z + oz * r)
+      m.rotation.set(seed * 0.7 + i, seed * 1.3 + i * 2, 0)
+      m.scale.y = 1.15
+      m.castShadow = this.renderer.shadowMap.enabled
+      this.houseGroup.add(m)
+    })
+  }
+
   _plant(x, z, scale = 1) {
     this._box(0.5 * scale, 0.5 * scale, 0.5 * scale, x, 0.25 * scale, z, this.mat.black)
-    const foliage = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55 * scale, 2), this.mat.leaf)
-    foliage.position.set(x, 1.0 * scale, z)
-    foliage.scale.y = 1.4
-    foliage.castShadow = this.renderer.shadowMap.enabled
-    this.houseGroup.add(foliage)
+    this._canopy(x, 1.05 * scale, z, 0.5 * scale, Math.round(Math.abs(x * 3 + z)))
     this._contact(x, z, 1.2 * scale, 1.2 * scale)
   }
 
@@ -336,13 +488,12 @@ export default class HouseScene {
       this._box(0.2, 0.5, 0.2, sx, 0.25, 5.5, M.pathLight, false, false) // bollard light
       this.procLights.push(this._point('#ffcf8a', 3, 4, sx, 0.6, 5.5))
     }
-    // Olive/palm trees.
-    for (const [tx, tz, s] of [[-7, 4, 1.3], [7.5, 5, 1.5], [-3.2, 6.5, 1.0]]) {
-      this._box(0.25 * s, 2.4 * s, 0.25 * s, tx, 1.2 * s, tz, M.walnut)
-      const f = new THREE.Mesh(new THREE.IcosahedronGeometry(0.9 * s, 2), M.leaf)
-      f.position.set(tx, 2.6 * s, tz)
-      f.scale.y = 1.2
-      this.houseGroup.add(f)
+    // Garden trees — slimmer trunks, irregular canopies, set further back and
+    // higher so they read as landscape depth behind the facade rather than as
+    // props parked on the lawn.
+    for (const [tx, tz, s] of [[-7.6, 4.2, 1.35], [8.2, 5.4, 1.55], [-3.6, 7.2, 1.05]]) {
+      this._box(0.16 * s, 3.0 * s, 0.16 * s, tx, 1.5 * s, tz, M.walnut)
+      this._canopy(tx, 3.15 * s, tz, 0.95 * s, Math.round(Math.abs(tx * 2 + tz)))
     }
     // Low planters by the door.
     for (const sx of [-1.1, 1.1]) this._plant(sx, 1.4, 0.8)
@@ -457,6 +608,56 @@ export default class HouseScene {
 
     for (let i = 0; i < 6; i++) this._box(1.6, 0.18, 0.5, 3.2, 0.09 + i * 0.18, -14.6, M.marble)
     this._box(0.06, 1.1, 1.4, 4.0, 0.9, -14.6, M.glass)
+
+    // ── DINING (open-plan, in the living room's north half) ───────────────
+    // Sits on the walk between the foyer and the turn toward the kitchen, so the
+    // camera passes through it naturally — see the dining waypoint in config.js.
+    const dx0 = 3.1
+    const dz0 = -9.2
+
+    this._box(2.4, 0.08, 1.1, dx0, 0.75, dz0, M.walnut) // solid timber top
+    for (const [ox, oz] of [
+      [-1.0, -0.42],
+      [1.0, -0.42],
+      [-1.0, 0.42],
+      [1.0, 0.42],
+    ])
+      this._box(0.09, 0.75, 0.09, dx0 + ox, 0.37, dz0 + oz, M.black)
+
+    // Six chairs — fabric seat, walnut back, brass feet.
+    for (const [cx, cz, back] of [
+      [-0.8, -0.85, -1],
+      [0, -0.85, -1],
+      [0.8, -0.85, -1],
+      [-0.8, 0.85, 1],
+      [0, 0.85, 1],
+      [0.8, 0.85, 1],
+    ]) {
+      this._box(0.46, 0.06, 0.46, dx0 + cx, 0.45, dz0 + cz, M.fabric)
+      this._box(0.46, 0.55, 0.05, dx0 + cx, 0.75, dz0 + cz + back * 0.22, M.walnut)
+      for (const fx of [-0.18, 0.18])
+        this._box(0.04, 0.45, 0.04, dx0 + cx + fx, 0.22, dz0 + cz, M.gold)
+    }
+
+    // Low pendant cluster over the table — three brass shades, warm.
+    for (const px of [-0.7, 0, 0.7]) {
+      this._box(0.03, 1.05, 0.03, dx0 + px, 2.35, dz0, M.gold, false, false)
+      this._box(0.3, 0.22, 0.3, dx0 + px, 1.75, dz0, M.gold, false, false)
+      this._box(0.24, 0.03, 0.24, dx0 + px, 1.63, dz0, M.led, false, false)
+    }
+    this.diningLights = [
+      this._point('#ffcf95', 5, 6, dx0 - 0.7, 1.6, dz0),
+      this._point('#ffcf95', 5, 6, dx0 + 0.7, 1.6, dz0),
+    ]
+
+    // Sideboard + marble bowl against the wall behind.
+    this._box(2.0, 0.72, 0.42, dx0 + 0.4, 0.36, dz0 - 1.9, M.walnut)
+    this._box(2.06, 0.05, 0.46, dx0 + 0.4, 0.75, dz0 - 1.9, M.marble)
+    this._box(0.34, 0.14, 0.34, dx0 + 0.1, 0.84, dz0 - 1.9, M.stone, false, false)
+    this._box(0.05, 1.3, 1.0, dx0 + 0.4, 1.85, dz0 - 2.1, M.art)
+
+    this._box(3.4, 0.04, 2.6, dx0, 0.02, dz0, M.rug, false, true)
+    this._contact(dx0, dz0, 3.2, 2.4)
   }
 
   // ---- other rooms ------------------------------------------------------
@@ -487,21 +688,59 @@ export default class HouseScene {
     this._box(2.4, 2.4, 0.6, 14.4, 1.2, -21, M.walnut)
     this._contact(10, -22.4, 3.4, 3.6)
 
-    this._box(1.9, 0.6, 0.95, 0, 0.32, -21, M.marble)
-    this._box(1.6, 0.4, 0.65, 0, 0.45, -21, M.black)
-    this._box(2.0, 0.85, 0.55, -4.4, 0.42, -19, M.walnut)
-    this._box(2.05, 0.12, 0.57, -4.4, 0.9, -19, M.marble)
-    this._box(1.4, 1.2, 0.05, -4.85, 1.8, -19, M.glassCool)
-    this._plant(-4, -24, 1)
-    this._contact(0, -21, 2.4, 1.3)
+    // ── WARDROBE (was the bathroom) ──────────────────────────────────────
+    // Re-blocked as the walk-in dressing room the brief asks for. Same floor
+    // plate, same camera path — only the joinery changed, so the waypoints and
+    // ranges in config.js still line up exactly.
+    const wz = -21
+
+    // Full-height wardrobe run along the west wall: fluted walnut shutters with
+    // a lit reveal between each bay. The LED strip behind the shutters is what
+    // sells "built-in" rather than "cupboard".
+    for (let i = 0; i < 5; i++) {
+      const z = wz - 4.2 + i * 1.75
+      this._box(0.62, 2.7, 1.62, -4.55, 1.35, z, M.walnut) // carcass
+      this._box(0.04, 2.5, 0.06, -4.22, 1.35, z + 0.84, M.led, false, false) // lit reveal
+      this._box(0.05, 0.03, 0.9, -4.2, 1.9, z, M.gold, false, false) // brass finger-pull
+    }
+    // Open display bay — brass rail, folded stacks, a lit shelf.
+    this._box(0.6, 2.7, 1.7, -4.55, 1.35, wz + 2.1, M.black)
+    this._box(0.06, 0.06, 1.5, -4.35, 2.0, wz + 2.1, M.gold, false, false) // hanging rail
+    for (let i = 0; i < 3; i++)
+      this._box(0.52, 0.05, 1.5, -4.55, 0.55 + i * 0.5, wz + 2.1, M.walnut)
+    this._box(0.55, 0.03, 1.5, -4.55, 1.62, wz + 2.1, M.led, false, false)
+
+    // Island dresser: walnut body, Italian marble top, brass tray.
+    this._box(2.2, 0.78, 1.05, -1.4, 0.39, wz, M.walnut)
+    this._box(2.35, 0.06, 1.18, -1.4, 0.81, wz, M.marble)
+    this._box(0.5, 0.02, 0.34, -1.9, 0.85, wz, M.gold, false, false)
+    this._box(0.16, 0.26, 0.16, -1.0, 0.94, wz - 0.1, M.glassCool, false, false)
+    this._contact(-1.4, wz, 2.6, 1.5)
+
+    // Full-height mirror + upholstered bench.
+    this._box(0.06, 2.2, 1.0, 4.9, 1.35, wz - 1.4, M.glassCool)
+    this._box(1.5, 0.42, 0.55, 3.6, 0.28, wz + 1.6, M.fabric)
+    for (const bx of [-0.6, 0.6]) this._box(0.07, 0.3, 0.07, 3.6 + bx, 0.14, wz + 1.6, M.gold)
+    this._contact(3.6, wz + 1.6, 1.8, 0.9)
+
+    this._box(3.2, 0.04, 2.6, -1.4, 0.02, wz, M.rug, false, true)
+    this._plant(-4, -24.6, 0.9)
   }
 
   // ---- lights -----------------------------------------------------------
+  /**
+   * Interior fills are registered in `this.interiorLights` with their design
+   * intensity remembered, so the day→evening ramp can scale them without
+   * accumulating rounding error (we always lerp from the ORIGINAL value, never
+   * from the current one).
+   */
   _point(color, intensity, dist, x, y, z) {
     const l = new THREE.PointLight(color, intensity, dist, 2)
     l.position.set(x, y, z)
+    l.userData.baseIntensity = intensity
     this.scene.add(l)
     this.procLights.push(l)
+    this.interiorLights.push(l)
     return l
   }
 
@@ -509,19 +748,22 @@ export default class HouseScene {
     const l = new THREE.RectAreaLight(color, intensity, w, h)
     l.position.set(x, y, z)
     l.lookAt(look.x, look.y, look.z)
+    l.userData.baseIntensity = intensity
     this.scene.add(l)
     this.procLights.push(l)
+    this.interiorLights.push(l)
     return l
   }
 
   _lights() {
     const shadows = this.renderer.shadowMap.enabled
-    const hemi = new THREE.HemisphereLight('#fff2e0', '#1a120a', 0.25)
+    const hemi = new THREE.HemisphereLight('#fff2e0', '#1a120a', LIGHTING.hemi.dayIntensity)
     this.scene.add(hemi)
     this.hemi = hemi
 
-    const sun = new THREE.DirectionalLight('#ffe2b0', 1.5)
+    const sun = new THREE.DirectionalLight(LIGHTING.sun.dayColor, LIGHTING.sun.dayIntensity)
     sun.position.set(7, 11, 15)
+    this.sun = sun
     if (shadows) {
       sun.castShadow = true
       sun.shadow.mapSize.set(2048, 2048)
@@ -665,13 +907,40 @@ export default class HouseScene {
   _composer() {
     const composer = new EffectComposer(this.renderer)
     composer.addPass(new RenderPass(this.scene, this.camera))
+
+    // Handheld motion smear. Kept very low — this is a slow architectural
+    // walk, not a chase. It is driven by camera speed in _loop().
     this.afterimage = new AfterimagePass(0.0)
     this.afterimage.uniforms.damp.value = 0.0
     composer.addPass(this.afterimage)
+
     const w = window.innerWidth
     const h = window.innerHeight
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.14, 0.5, 0.95) // strength, radius, threshold
+
+    // DEPTH OF FIELD — desktop only.
+    // BokehPass renders a separate DEPTH pass every frame, which roughly doubles
+    // the scene's draw calls. That is affordable on a desktop GPU and absolutely
+    // is not on a phone, where we already drop to a photographic hero anyway.
+    //
+    // The aperture is deliberately tiny. Real architectural cinematography holds
+    // almost everything in focus and lets only the extreme foreground/background
+    // fall away — a big aperture reads as a video-game "portrait mode", which is
+    // exactly the gaming effect the brief rules out.
+    if (!this.mobile && POST.depthOfField) {
+      this.bokeh = new BokehPass(this.scene, this.camera, {
+        focus: 8.0, // metres — re-aimed each frame at what the camera is looking at
+        aperture: 0.00022,
+        maxblur: 0.006,
+      })
+      composer.addPass(this.bokeh)
+    }
+
+    // Soft bloom ONLY on genuine highlights: threshold 0.95 means nothing blooms
+    // except the emissive coves, lamp shades and LED reveals. Low strength — a
+    // glow, not a haze.
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.14, 0.5, 0.95)
     composer.addPass(this.bloom)
+
     composer.addPass(new OutputPass())
     this.composer = composer
   }
@@ -710,6 +979,49 @@ export default class HouseScene {
     return (r || this.rooms[this.rooms.length - 1]).exposure
   }
 
+  /**
+   * DAY → EVENING.
+   * The walk starts at golden hour and ends after dusk: the sun sinks and goes
+   * warm-then-dim while the interior lights come up. `d` is 0 at the start of
+   * LIGHTING.duskRange and 1 at the end, smoothstepped so nothing snaps.
+   *
+   * Cheap by construction — we only scale intensities and lerp two colours on
+   * lights that already exist. No new draw calls, no extra passes. Guarded by
+   * `_duskT` so a frame where the value hasn't meaningfully changed touches
+   * nothing at all.
+   */
+  _applyDusk(t) {
+    const [a, b] = LIGHTING.duskRange
+    const raw = THREE.MathUtils.clamp((t - a) / (b - a), 0, 1)
+    const d = raw * raw * (3 - 2 * raw) // smoothstep
+
+    if (Math.abs(d - this._duskT) < 0.004) return
+    this._duskT = d
+
+    const S = LIGHTING.sun
+    if (this.sun) {
+      this.sun.intensity = THREE.MathUtils.lerp(S.dayIntensity, S.duskIntensity, d)
+      this.sun.color.copy(this._sunDay).lerp(this._sunDusk, d)
+    }
+    if (this.hemi) {
+      this.hemi.intensity = THREE.MathUtils.lerp(
+        LIGHTING.hemi.dayIntensity,
+        LIGHTING.hemi.duskIntensity,
+        d,
+      )
+    }
+
+    // Interior fills ramp UP as the daylight leaves — the house lighting itself.
+    const mul = THREE.MathUtils.lerp(
+      LIGHTING.interior.dayMultiplier,
+      LIGHTING.interior.duskMultiplier,
+      d,
+    )
+    for (const l of this.interiorLights) {
+      l.intensity = (l.userData.baseIntensity ?? l.intensity) * mul
+    }
+  }
+
   _loop = () => {
     if (this.disposed) {
       this._running = false
@@ -719,6 +1031,8 @@ export default class HouseScene {
     const J = this.journey
     this.curT += (this.targetT - this.curT) * J.inertia
     const speed = Math.min(1, Math.abs(this.curT - this.prevT) * 140)
+
+    this._applyDusk(this.curT)
 
     this.path.sample(this.curT, this._pos, this._look)
     const t = this.time
@@ -730,6 +1044,16 @@ export default class HouseScene {
     this.camera.position.copy(this._pos)
     this.camera.up.set(0, 1, 0)
     this.camera.lookAt(this._look)
+
+    // Rack focus: the focal plane tracks whatever the camera is aimed at, so the
+    // subject of each room stays sharp and only the extreme fore/background
+    // softens. A FIXED focus distance would blur the very thing being presented
+    // — the classic way DOF ruins an architectural walkthrough.
+    if (this.bokeh) {
+      const dist = this._pos.distanceTo(this._look)
+      const u = this.bokeh.uniforms ?? this.bokeh.materialBokeh?.uniforms
+      if (u?.focus) u.focus.value += (dist - u.focus.value) * 0.08 // eased, never snaps
+    }
 
     this._dir.copy(this._look).sub(this._pos).normalize()
     const turn = this._prevDir.angleTo(this._dir)
@@ -784,6 +1108,14 @@ export default class HouseScene {
   dispose() {
     this.disposed = true
     cancelAnimationFrame(this._raf)
+    clearTimeout(this._buildTimer)
+    // Cancel the deferred HDRI/GLB fetch — otherwise navigating away before the
+    // idle callback fires still pulls 12.5 MB for a scene that no longer exists.
+    if (this._idleId != null) {
+      if (typeof cancelIdleCallback === 'function') cancelIdleCallback(this._idleId)
+      clearTimeout(this._idleId)
+      this._idleId = null
+    }
     this.scene?.traverse((o) => {
       if (o.geometry) o.geometry.dispose()
       if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m.dispose())

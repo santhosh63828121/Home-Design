@@ -21,7 +21,7 @@ export default function ArticleLayout({ post, related }: { post: Post; related: 
     <>
       <Navbar />
       <main id="main" className="bg-background pt-28">
-        <article className="mx-auto w-full max-w-7xl px-5 py-12 sm:px-8 lg:px-12">
+        <article className="mx-auto w-full max-w-7xl px-6 py-12 sm:px-8 lg:px-12">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-6">
             <ol className="flex flex-wrap items-center gap-2 font-caps text-[11px] uppercase tracking-wide2 text-muted">
@@ -40,10 +40,10 @@ export default function ArticleLayout({ post, related }: { post: Post; related: 
           {/* Header */}
           <header className="mx-auto max-w-3xl">
             {fm.category && <p className="eyebrow">{fm.category}</p>}
-            <h1 className="mt-4 font-serif text-4xl font-bold leading-[1.1] sm:text-5xl">{fm.title}</h1>
-            <p className="mt-5 text-lg leading-relaxed text-ink/75">{fm.description}</p>
+            <h1 className="mt-4 font-serif text-4xl font-medium leading-[1.1] sm:text-5xl">{fm.title}</h1>
+            <p className="mt-6 text-lg leading-relaxed text-ink/75">{fm.description}</p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted">
               <span className="inline-flex items-center gap-1.5">
                 <PenLine size={15} aria-hidden="true" /> {fm.author}
               </span>
@@ -56,7 +56,7 @@ export default function ArticleLayout({ post, related }: { post: Post; related: 
               </span>
             </div>
 
-            <div className="mt-5">
+            <div className="mt-6">
               <ShareButtons url={url} title={fm.title} />
             </div>
           </header>
@@ -123,7 +123,7 @@ export default function ArticleLayout({ post, related }: { post: Post; related: 
           {/* Related posts */}
           {related.length > 0 && (
             <section className="mt-16 border-t border-divider pt-12">
-              <h2 className="font-serif text-2xl font-bold sm:text-3xl">Related reading</h2>
+              <h2 className="font-serif text-2xl font-medium sm:text-3xl">Related reading</h2>
               <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {related.map((p) => (
                   <BlogCard key={p.slug} post={p} />

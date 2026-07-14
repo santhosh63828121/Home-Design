@@ -47,14 +47,14 @@ export default function Cost3BHKPage() {
           <CostCalculator defaultPreset="3bhk" defaultFinish="premium" />
 
           <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">3BHK &amp; turnkey ranges</h2>
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">3BHK &amp; turnkey ranges</h2>
             <div className="mt-6">
               <PriceRangesTable ids={['premium-3bhk', 'full-home-turnkey']} />
             </div>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl font-bold sm:text-3xl">What&apos;s included &amp; excluded</h2>
+            <h2 className="font-serif text-2xl font-medium sm:text-3xl">What&apos;s included &amp; excluded</h2>
             <div className="mt-6">
               <IncludedExcluded id="premium-3bhk" />
             </div>

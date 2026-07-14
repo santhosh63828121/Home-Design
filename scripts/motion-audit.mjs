@@ -29,7 +29,8 @@ console.log('\n=== REDUCED MOTION (prefers-reduced-motion: reduce) ===')
   const page = await browser.newPage()
   await page.setViewport({ width: 1366, height: 900 })
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }])
-  await page.goto(`${BASE}/`, { waitUntil: 'networkidle2', timeout: 60000 })
+  // Walkthrough now lives on /3d-walkthrough, not the homepage.
+  await page.goto(`${BASE}/3d-walkthrough`, { waitUntil: 'networkidle2', timeout: 60000 })
 
   const mm = await page.evaluate(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   expect('matchMedia reduce is emulated', mm === true)
@@ -98,7 +99,8 @@ console.log('\n=== CLS (normal motion, incl. cinematic GLB/HDRI load) ===')
     }).observe({ type: 'layout-shift', buffered: true })
   })
   // 'load' not 'networkidle2': the cinematic render loop never lets the page idle.
-  await page.goto(`${BASE}/`, { waitUntil: 'load', timeout: 60000 })
+  // Walkthrough now lives on /3d-walkthrough, not the homepage.
+  await page.goto(`${BASE}/3d-walkthrough`, { waitUntil: 'load', timeout: 60000 })
   // Give the cinematic engine time to load HDRI + GLB props and paint.
   await new Promise((r) => setTimeout(r, 4500))
   const clsAfterLoad = await page.evaluate(() => window.__cls)
@@ -152,8 +154,13 @@ async function revealIntermediateFrames(reduced) {
   if (reduced) await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }])
   await page.goto(`${BASE}/testimonials`, { waitUntil: 'networkidle2', timeout: 60000 })
   const n = await page.evaluate(async () => {
-    const figs = [...document.querySelectorAll('figure')]
-    const fig = figs.find((f) => f.getBoundingClientRect().top > window.innerHeight) || figs.at(-1)
+    // Target the reveal by its own marker, NOT by guessing a CSS selector.
+    // This probe used to look for  on /testimonials; when that page was
+    // redesigned the figures stopped being the animated node, and the audit
+    // began reporting 'reveals do not animate' while they animated perfectly.
+    // SectionReveal now stamps data-reveal on the element it actually animates.
+    const nodes = [...document.querySelectorAll('[data-reveal]')]
+    const fig = nodes.find((f) => f.getBoundingClientRect().top > window.innerHeight) || nodes.at(-1)
     if (!fig) return -1
     const ty = () => {
       const t = getComputedStyle(fig).transform

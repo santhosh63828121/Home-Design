@@ -55,7 +55,7 @@ export const cities: City[] = [
       },
       {
         q: 'How quickly can you deliver interiors in Chennai?',
-        a: 'Most Chennai homes are delivered within our guaranteed 45-day timeline. Being local, our site visits, measurements and installation are quick to schedule across the city.',
+        a: 'Timelines depend on scope, but factory-built modules keep site time short. Being local, our site visits, measurements and installation are quick to schedule across the city.',
       },
     ],
   },
@@ -95,7 +95,7 @@ export const cities: City[] = [
     geo: { lat: 11.6643, lng: 78.146 },
     tagline: 'Practical, durable interiors for Salem homes.',
     metaDescription:
-      'Interior designers in Salem — RGL Decors for independent-house interiors, modular kitchens and wardrobes. Durable factory-built finishes with free 3D design and 10-year warranty.',
+      'Interior designers in Salem — RGL Decors for independent-house interiors, modular kitchens and wardrobes. Durable factory-built finishes, free 3D design and a written warranty.',
     intro:
       'Salem is predominantly an independent-house city, and homeowners here value durable, practical interiors that hold up for years. We bring factory-built modular kitchens, wardrobes and full-home interiors to Salem, with a focus on hard-wearing finishes and smart storage.',
     housing:
@@ -142,7 +142,7 @@ export const cities: City[] = [
       },
       {
         q: 'How fast can you complete a Hosur apartment interior?',
-        a: 'Factory-built units keep installation short — most Hosur flats are delivered within our 45-day timeline, with the heavy work done off-site so on-site time is minimal.',
+        a: 'Factory-built units keep installation short — the heavy work is done off-site, so on-site time in a Hosur flat is minimal. Your timeline is confirmed with your quote.',
       },
     ],
   },
@@ -167,7 +167,7 @@ export const cities: City[] = [
       },
       {
         q: 'Why choose factory-built interiors over a local carpenter in Krishnagiri?',
-        a: 'Factory manufacturing gives you precise, bubble-free panels, soft-close hardware and a 10-year warranty — a level of consistency and finish that on-site carpentry in smaller towns often cannot match.',
+        a: 'Factory manufacturing gives you precise, bubble-free panels, soft-close branded hardware and a written warranty — a level of consistency and finish that on-site carpentry in smaller towns often cannot match.',
       },
       {
         q: 'Do I need to travel to a showroom?',
@@ -403,7 +403,7 @@ export const suburbs: City[] = [
     geo: { lat: 12.9494, lng: 80.2585 },
     tagline: 'Coastal-grade interiors for ECR villas and beach homes.',
     metaDescription:
-      'Interior designers on ECR, Chennai — RGL Decors for sea-facing villas, beach houses and second homes. Coastal-grade, humidity-resistant interiors with free 3D design and a 10-year warranty.',
+      'Interior designers on ECR, Chennai — RGL Decors for sea-facing villas, beach houses and second homes. Coastal-grade, humidity-resistant interiors with a free 3D design.',
     intro:
       'The East Coast Road is Chennai’s premium coastal belt — sea-facing villas, beach houses and weekend second homes from Neelankarai down to Kovalam. The brief here is as much about engineering as aesthetics: salt air and humidity are tough on interiors, so we specify marine-grade substrates, moisture-barrier backings and anti-corrosive hardware built to last by the sea.',
     housing:
