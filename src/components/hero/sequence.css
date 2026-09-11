@@ -1,0 +1,107 @@
+/* IMAGE-SEQUENCE HERO — scroll-scrubbed cinematography from rendered frames.
+   Mirrors the cinematic's sticky-track pattern (no GSAP pin → no CLS, immune to
+   ancestor transforms) but is entirely independent of it, so the WebGL "3D
+   Model" system is never touched. */
+
+.seq-track {
+  position: relative;
+  width: 100%;
+  /* Scroll length = journey. --seq-vh viewport-heights of scroll map to frames
+     0→N. Kept in sync with the component's SCROLL_VH. */
+  height: calc(var(--seq-vh, 6) * 100svh);
+}
+
+.seq-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  background: #0e100b;
+  color: #fff;
+}
+
+/* Poster — the LCP element. Painted immediately; the canvas draws over it on
+   desktop once frame 0 is ready (same picture, so no visible pop). It also IS
+   the hero on mobile / reduced-motion, where the canvas never runs. */
+.seq-poster {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Slow Ken-Burns ONLY where the canvas is not driving (mobile / reduced). */
+@media (max-width: 1023px) {
+  .seq-poster {
+    animation: seqKen 22s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+}
+@keyframes seqKen {
+  from {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1.12) translate3d(-1.5%, -1%, 0);
+  }
+}
+
+.seq-canvas {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+  display: none; /* desktop only — enabled by JS when the sequence runs */
+}
+.seq-canvas.is-on {
+  display: block;
+}
+
+/* The grade — two ramps so white copy clears AA over any frame. Pure paint. */
+.seq-grade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.seq-grade::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(20, 22, 16, 0.82) 0%,
+    rgba(20, 22, 16, 0.5) 30%,
+    rgba(20, 22, 16, 0.08) 60%,
+    rgba(20, 22, 16, 0.3) 100%
+  );
+}
+.seq-grade::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(14, 16, 11, 0.78) 0%,
+    rgba(14, 16, 11, 0) 42%,
+    rgba(14, 16, 11, 0) 70%,
+    rgba(14, 16, 11, 0.4) 100%
+  );
+}
+
+.seq-content {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seq-poster {
+    animation: none;
+  }
+}
