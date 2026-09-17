@@ -12,3 +12,8 @@ prisma/dev.db
 .DS_Store
 .vercel
 next-env.d.ts
+
+# Raw render frames — 1.2 GB of source PNGs. Preserved on disk, never shipped.
+# The web-ready sequence in public/hero/ is generated from these by
+# scripts/build-hero-frames.mjs and IS committed.
+public/Images/

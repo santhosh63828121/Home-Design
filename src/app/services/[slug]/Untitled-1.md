@@ -1,6 +1,6 @@
 # File Tree: Design
 
-**Generated:** 7/14/2026, 3:09:04 AM
+**Generated:** 8/15/2026, 9:12:35 PM
 **Root Path:** `c:\Users\Dell\Documents\Design`
 
 ```
@@ -25,6 +25,7 @@
 ├── 📁 scripts
 │   ├── 📄 a11y-keyboard.mjs
 │   ├── 📄 cls-probe.mjs
+│   ├── 📄 layout-audit.mjs
 │   ├── 📄 lh-contrast.mjs
 │   ├── 📄 lh.mjs
 │   ├── 📄 motion-audit.mjs
@@ -132,6 +133,7 @@
 │   │   │   └── 📄 page.tsx
 │   │   ├── 📁 services
 │   │   │   ├── 📁 [slug]
+│   │   │   │   ├── 📝 Untitled-1.md
 │   │   │   │   └── 📄 page.tsx
 │   │   │   └── 📄 page.tsx
 │   │   ├── 📁 sustainability
@@ -156,6 +158,10 @@
 │   │   ├── 📄 config.js
 │   │   └── 📄 textures.js
 │   ├── 📁 components
+│   │   ├── 📁 about
+│   │   │   ├── 📄 AwardsWall.tsx
+│   │   │   ├── 📄 ProcessTimeline.tsx
+│   │   │   └── 📄 TeamGrid.tsx
 │   │   ├── 📁 blog
 │   │   │   ├── 📄 ArticleLayout.tsx
 │   │   │   ├── 📄 BlogCard.tsx
@@ -164,14 +170,24 @@
 │   │   │   ├── 📄 Toc.tsx
 │   │   │   └── 📄 mdx-components.tsx
 │   │   ├── 📁 legal
-│   │   │   └── 📄 LegalLayout.tsx
+│   │   │   ├── 📄 LegalLayout.tsx
+│   │   │   └── 📄 LegalToc.tsx
 │   │   ├── 📁 locations
-│   │   │   └── 📄 CityPage.tsx
+│   │   │   ├── 📄 CityFaqs.tsx
+│   │   │   ├── 📄 CityPage.tsx
+│   │   │   ├── 📄 LocationCta.tsx
+│   │   │   ├── 📄 LocationShell.tsx
+│   │   │   ├── 📄 SectionHead.tsx
+│   │   │   └── 📄 cityImagery.ts
+│   │   ├── 📁 motion
+│   │   │   └── 📄 Plate.tsx
 │   │   ├── 📁 page
 │   │   │   └── 📄 PageStub.tsx
 │   │   ├── 📁 portfolio
 │   │   │   ├── 📄 BeforeAfterSlider.jsx
+│   │   │   ├── 📄 Lightbox.tsx
 │   │   │   ├── 📄 PortfolioGrid.tsx
+│   │   │   ├── 📄 ProjectGalleryLux.tsx
 │   │   │   ├── 📄 ProjectVisuals.tsx
 │   │   │   └── 📄 media.tsx
 │   │   ├── 📁 pricing
@@ -201,6 +217,7 @@
 │   │   ├── 📄 ReleaseHero.jsx
 │   │   ├── 📄 RevealItem.tsx
 │   │   ├── 📄 ScrollProgress.tsx
+│   │   ├── 📄 ScrollStory.tsx
 │   │   ├── 📄 SectionReveal.tsx
 │   │   ├── 📄 ServicesSplit.jsx
 │   │   ├── 📄 StatsSection.jsx
@@ -209,6 +226,7 @@
 │   │   ├── 📄 TextReveal.tsx
 │   │   ├── 📝 Untitled-1.md
 │   │   ├── 📝 Untitled-2.md
+│   │   ├── 📄 WalkthroughDemo.tsx
 │   │   └── 🎨 cinematic.css
 │   ├── 📁 content
 │   │   └── 📁 blog
@@ -237,6 +255,7 @@
 │   │   ├── 📄 blogCategories.ts
 │   │   ├── 📄 business.ts
 │   │   ├── 📄 content.js
+│   │   ├── 📄 credentials.ts
 │   │   ├── 📄 faq.ts
 │   │   ├── 📄 locations.ts
 │   │   ├── 📄 lookbook.ts
@@ -262,10 +281,12 @@
 │   │   ├── 📄 seo.ts
 │   │   └── 📄 structured-data.tsx
 │   └── 📄 middleware.ts
+├── ⚙️ .both.mjs
 ├── ⚙️ .env.example
 ├── ⚙️ .eslintrc.json
 ├── ⚙️ .gitignore
 ├── ⚙️ .prettierrc
+├── 📝 DESIGN-SYSTEM.md
 ├── 📝 README.md
 ├── 📝 RGL-Decors-Build-Prompt.md
 ├── 📝 RGL-Decors-Website-Strategy (1).md
@@ -275,7 +296,8 @@
 ├── ⚙️ package.json
 ├── 📄 postcss.config.js
 ├── 📄 tailwind.config.js
-└── ⚙️ tsconfig.json
+├── ⚙️ tsconfig.json
+└── 📄 tsconfig.tsbuildinfo
 ```
 
 ---
