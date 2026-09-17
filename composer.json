@@ -1,0 +1,25 @@
+{
+    "name": "rgldecors/design",
+    "description": "RGL Decors — Best Interior Designers in Chennai. PHP 8.2+ luxury interior-design application.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "phpmailer/phpmailer": "^6.9",
+        "erusev/parsedown": "^1.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "files": [
+            "app/Helpers/view_helpers.php",
+            "app/Helpers/seo_helpers.php"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}
