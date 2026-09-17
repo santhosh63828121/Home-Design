@@ -17,3 +17,9 @@ next-env.d.ts
 # The web-ready sequence in public/hero/ is generated from these by
 # scripts/build-hero-frames.mjs and IS committed.
 public/Images/
+
+# Cloudflare Workers / OpenNext build output
+.open-next
+.wrangler
+.dev.vars
+cloudflare-env.d.ts
